@@ -30,6 +30,18 @@ class PayrunService {
     const eligible = [];
     const ineligible = [];
 
+    // Pre-cache active salary structures and rules once to eliminate N+1 repeated queries
+    const activeStructures = await payrollRepository.findStructures({ is_active: true });
+    const standardStructure = activeStructures.find((s) => s.code === 'IN-CORP-STD') || activeStructures[0] || null;
+    const structureCache = new Map();
+    const rulesCache = new Map();
+
+    for (const st of activeStructures) {
+      structureCache.set(st.id, st);
+      const rules = await payrollRepository.findRules({ salary_structure_id: st.id, is_active: true });
+      rulesCache.set(st.id, rules || []);
+    }
+
     for (const emp of employees) {
       const issues = [];
       const warnings = [];
@@ -53,15 +65,15 @@ class PayrunService {
         }
       }
 
-      // 3. Salary Structure Verification
+      // 3. Salary Structure Verification (Using pre-cached structures & rules)
       const targetStructureId = salaryStructureId || contract?.salary_structure_id;
-      let structure = null;
-      if (targetStructureId) {
+      let structure = targetStructureId ? structureCache.get(targetStructureId) : null;
+      if (!structure && targetStructureId) {
         structure = await payrollRepository.findStructureById(targetStructureId);
+        if (structure) structureCache.set(structure.id, structure);
       }
       if (!structure) {
-        const activeStructures = await payrollRepository.findStructures({ is_active: true });
-        structure = activeStructures.find((s) => s.code === 'IN-CORP-STD') || activeStructures[0] || null;
+        structure = standardStructure;
       }
 
       if (!structure) {
@@ -69,7 +81,11 @@ class PayrunService {
       } else if (!structure.is_active) {
         issues.push(`Assigned salary structure '${structure.name}' is inactive`);
       } else {
-        const rules = await payrollRepository.findRules({ salary_structure_id: structure.id, is_active: true });
+        let rules = rulesCache.get(structure.id);
+        if (!rules) {
+          rules = await payrollRepository.findRules({ salary_structure_id: structure.id, is_active: true });
+          rulesCache.set(structure.id, rules || []);
+        }
         if (!rules || rules.length === 0) {
           issues.push(`Salary structure '${structure.name}' contains no active rules`);
         }
