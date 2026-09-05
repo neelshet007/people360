@@ -28,7 +28,7 @@ const bonusRepository = {
             e.employee_code, e.display_name AS employee_name,
             e.department, e.designation,
             e.email AS employee_email,
-            u.display_name AS approved_by_name
+            u.name AS approved_by_name
           FROM bonus_allocations ba
           JOIN employees e ON ba.employee_id = e.id
           LEFT JOIN users u ON ba.approved_by = u.id
@@ -247,7 +247,29 @@ const bonusRepository = {
   },
 
   /**
-   * Delete all allocations for a payrun (used when resetting a DRAFT bonus cycle)
+   * Delete an individual allocation by ID (e.g. remove employee from draft bonus cycle)
+   */
+  async deleteAllocation(id) {
+    try {
+      const isLive = await db.testConnection();
+      if (isLive) {
+        const res = await db.query('DELETE FROM bonus_allocations WHERE id = $1 RETURNING *', [id]);
+        return res.rows[0] || null;
+      }
+    } catch (err) {
+      console.warn('[BonusRepo DB Fallback deleteAllocation]:', err.message);
+    }
+    const idx = fallbackAllocations.findIndex((a) => a.id === id);
+    if (idx !== -1) {
+      const deleted = fallbackAllocations[idx];
+      fallbackAllocations.splice(idx, 1);
+      return deleted;
+    }
+    return null;
+  },
+
+  /**
+   * Delete all allocations for a payrun (used when resetting or deleting a DRAFT bonus cycle)
    */
   async deleteAllocationsForPayrun(payrunId) {
     try {

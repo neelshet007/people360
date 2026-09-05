@@ -69,12 +69,19 @@ export default function PayrunListPage() {
       accessor: 'name',
       render: (row) => (
         <div>
-          <Link
-            to={`/payroll/payruns/${row.id}`}
-            style={{ fontWeight: 600, color: 'var(--primary-600, #4f46e5)', textDecoration: 'none' }}
-          >
-            {row.name}
-          </Link>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <Link
+              to={row.payrun_type === 'BONUS' ? '/payroll/bonus' : `/payroll/payruns/${row.id}`}
+              style={{ fontWeight: 600, color: 'var(--primary-600, #4f46e5)', textDecoration: 'none' }}
+            >
+              {row.name}
+            </Link>
+            {row.payrun_type === 'BONUS' && (
+              <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 6px', borderRadius: 4, background: '#f5f3ff', color: '#7c3aed', border: '1px solid #ddd6fe' }}>
+                BONUS
+              </span>
+            )}
+          </div>
           <div style={{ fontSize: '0.75rem', color: 'var(--neutral-500, #64748b)' }}>ID: {row.id.slice(0, 8)}...</div>
         </div>
       ),
@@ -146,9 +153,14 @@ export default function PayrunListPage() {
       title="Payruns"
       subtitle="Periodic compensation execution batches & Indian gross-to-net processing"
       actions={
-        <Button variant="primary" onClick={() => setShowWizard(true)}>
-          + Initialize Payrun
-        </Button>
+        <div style={{ display: 'flex', gap: '10px' }}>
+          <Button variant="outline" onClick={() => navigate('/payroll/bonus')} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+            🎁 Allocate Bonus
+          </Button>
+          <Button variant="primary" onClick={() => setShowWizard(true)}>
+            + Initialize Payrun
+          </Button>
+        </div>
       }
     >
       {error && (

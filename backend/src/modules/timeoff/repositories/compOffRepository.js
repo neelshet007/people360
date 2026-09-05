@@ -23,7 +23,7 @@ const compOffRepository = {
           SELECT c.*,
             e.employee_code, e.display_name AS employee_name,
             e.department, e.designation,
-            u.display_name AS approved_by_name
+            u.name AS approved_by_name
           FROM comp_off_credits c
           JOIN employees e ON c.employee_id = e.id
           LEFT JOIN users u ON c.approved_by = u.id

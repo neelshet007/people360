@@ -385,6 +385,80 @@ class BonusService {
     // Fallback: return empty (payruns fallback doesn't track payrun_type)
     return [];
   }
+
+  /**
+   * Delete a bonus cycle if in DRAFT or unapproved status
+   */
+  async deleteBonusCycle(payrunId) {
+    const payrun = await payrollRepository.findPayrunById(payrunId);
+    if (!payrun) {
+      throw ApiError.notFound(`Bonus cycle with ID '${payrunId}' not found`);
+    }
+
+    if (payrun.payrun_type !== 'BONUS') {
+      throw ApiError.badRequest('Only bonus payruns can be deleted via this endpoint');
+    }
+
+    if (payrun.status !== 'DRAFT' && payrun.status !== 'COMPUTED') {
+      throw ApiError.badRequest(
+        `Cannot delete bonus cycle in '${payrun.status}' status. Only DRAFT or unapproved cycles can be deleted.`
+      );
+    }
+
+    const db = require('../../../database/db');
+    try {
+      const isLive = await db.testConnection();
+      if (isLive) {
+        const client = await db.getClient();
+        try {
+          await client.query('BEGIN');
+          // Clean up payslip lines and payslips if computed
+          await client.query(
+            `DELETE FROM payslip_lines WHERE payslip_id IN (SELECT id FROM payslips WHERE payrun_id = $1)`,
+            [payrunId]
+          );
+          await client.query('DELETE FROM payslips WHERE payrun_id = $1', [payrunId]);
+          // Clean up bonus allocations
+          await client.query('DELETE FROM bonus_allocations WHERE payrun_id = $1', [payrunId]);
+          // Delete payrun record
+          await client.query('DELETE FROM payruns WHERE id = $1', [payrunId]);
+          await client.query('COMMIT');
+        } catch (e) {
+          await client.query('ROLLBACK');
+          throw e;
+        } finally {
+          client.release();
+        }
+      }
+    } catch (err) {
+      console.warn('[BonusService deleteBonusCycle DB fallback]:', err.message);
+      await bonusRepository.deleteAllocationsForPayrun(payrunId);
+    }
+
+    return { message: 'Bonus cycle deleted successfully', id: payrunId };
+  }
+
+  /**
+   * Remove an individual employee allocation from a DRAFT bonus cycle
+   */
+  async deleteAllocation(payrunId, allocId) {
+    const payrun = await payrollRepository.findPayrunById(payrunId);
+    if (!payrun) {
+      throw ApiError.notFound(`Bonus cycle with ID '${payrunId}' not found`);
+    }
+    if (payrun.status !== 'DRAFT') {
+      throw ApiError.badRequest(`Cannot delete allocation when cycle is in '${payrun.status}' status. Must be DRAFT.`);
+    }
+    const existing = await bonusRepository.findAllocationById(allocId);
+    if (!existing) {
+      throw ApiError.notFound(`Bonus allocation with ID '${allocId}' not found`);
+    }
+    if (existing.status !== 'DRAFT') {
+      throw ApiError.badRequest(`Cannot delete allocation in '${existing.status}' status`);
+    }
+    const deleted = await bonusRepository.deleteAllocation(allocId);
+    return deleted;
+  }
 }
 
 module.exports = new BonusService();

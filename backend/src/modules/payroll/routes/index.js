@@ -59,9 +59,13 @@ router.get('/bonus/cycles/:id', authenticate, authorize('payruns.read'), control
 router.post('/bonus/cycles/:id/approve', authenticate, authorize('payruns.write'), controllers.approveBonusCycle);
 // Disburse (mark paid) a computed bonus cycle
 router.post('/bonus/cycles/:id/disburse', authenticate, authorize('payruns.write'), controllers.disburseBonusCycle);
+// Delete a draft/unapproved bonus cycle
+router.delete('/bonus/cycles/:id', authenticate, authorize('payruns.write'), controllers.deleteBonusCycle);
 // Update individual allocation (amount, remarks)
 router.put('/bonus/cycles/:id/allocations/:allocId', authenticate, authorize('payruns.write'), controllers.updateBonusAllocation);
 // Reject individual allocation
 router.post('/bonus/cycles/:id/allocations/:allocId/reject', authenticate, authorize('payruns.write'), controllers.rejectBonusAllocation);
+// Delete individual allocation from a draft cycle
+router.delete('/bonus/cycles/:id/allocations/:allocId', authenticate, authorize('payruns.write'), controllers.deleteBonusAllocation);
 
 module.exports = router;

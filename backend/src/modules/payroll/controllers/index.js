@@ -356,6 +356,24 @@ const disburseBonusCycle = async (req, res, next) => {
   }
 };
 
+const deleteBonusCycle = async (req, res, next) => {
+  try {
+    const result = await bonusService.deleteBonusCycle(req.params.id);
+    return successResponse(res, result);
+  } catch (error) {
+    next(error);
+  }
+};
+
+const deleteBonusAllocation = async (req, res, next) => {
+  try {
+    const result = await bonusService.deleteAllocation(req.params.id, req.params.allocId);
+    return successResponse(res, result);
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   getPayrollStatus,
   getSalaryStructures,
@@ -389,5 +407,7 @@ module.exports = {
   rejectBonusAllocation,
   approveBonusCycle,
   disburseBonusCycle,
+  deleteBonusCycle,
+  deleteBonusAllocation,
 };
 

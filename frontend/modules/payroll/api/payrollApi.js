@@ -63,10 +63,13 @@ export const payrollApi = {
   getBonusCycleDetail: (id) => apiClient.get(`/payroll/bonus/cycles/${id}`),
   approveBonusCycle: (id) => apiClient.post(`/payroll/bonus/cycles/${id}/approve`),
   disburseBonusCycle: (id) => apiClient.post(`/payroll/bonus/cycles/${id}/disburse`),
+  deleteBonusCycle: (id) => apiClient.delete(`/payroll/bonus/cycles/${id}`),
   updateBonusAllocation: (cycleId, allocId, data) =>
     apiClient.put(`/payroll/bonus/cycles/${cycleId}/allocations/${allocId}`, data),
   rejectBonusAllocation: (cycleId, allocId) =>
     apiClient.post(`/payroll/bonus/cycles/${cycleId}/allocations/${allocId}/reject`),
+  deleteBonusAllocation: (cycleId, allocId) =>
+    apiClient.delete(`/payroll/bonus/cycles/${cycleId}/allocations/${allocId}`),
 };
 
 export default payrollApi;

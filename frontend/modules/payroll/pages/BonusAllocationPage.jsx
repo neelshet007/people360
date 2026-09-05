@@ -93,6 +93,41 @@ function Badge({ status, type = 'payrun' }) {
 }
 
 // ─── Step 0: Cycle Setup ──────────────────────────────────────────────────────
+const PRESETS = [
+  {
+    icon: '🪔',
+    title: 'Diwali Festive Bonus',
+    desc: 'Company-wide festival allocation',
+    name: 'Diwali Festive Bonus 2026',
+    bonus_type: 'FESTIVAL',
+    default_amount: '5000',
+  },
+  {
+    icon: '🏆',
+    title: 'Annual Performance',
+    desc: 'Appraisal & merit reward pool',
+    name: 'FY26 Annual Performance Bonus',
+    bonus_type: 'PERFORMANCE',
+    default_amount: '10000',
+  },
+  {
+    icon: '⭐',
+    title: 'Spot Recognition',
+    desc: 'Instant milestone celebration award',
+    name: 'Q3 Spot Recognition Award',
+    bonus_type: 'SPOT',
+    default_amount: '2500',
+  },
+  {
+    icon: '🛡️',
+    title: 'Retention Incentive',
+    desc: 'Strategic talent retention bonus',
+    name: 'Mid-Year Retention Incentive',
+    bonus_type: 'RETENTION',
+    default_amount: '15000',
+  },
+];
+
 function CycleSetupStep({ onCreated }) {
   const today = new Date();
   const firstDay = new Date(today.getFullYear(), today.getMonth(), 1).toISOString().split('T')[0];
@@ -109,6 +144,15 @@ function CycleSetupStep({ onCreated }) {
   const [error, setError] = useState(null);
 
   const handleChange = (k, v) => setForm(f => ({ ...f, [k]: v }));
+
+  const applyPreset = (p) => {
+    setForm(f => ({
+      ...f,
+      name: p.name,
+      bonus_type: p.bonus_type,
+      default_amount: p.default_amount,
+    }));
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -141,8 +185,44 @@ function CycleSetupStep({ onCreated }) {
   const labelStyle = { display: 'block', fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 6 };
 
   return (
-    <form onSubmit={handleSubmit} style={{ maxWidth: 540 }}>
-      <h3 style={{ margin: '0 0 20px', fontSize: 18, fontWeight: 700, color: '#1e293b' }}>Configure Bonus Cycle</h3>
+    <form onSubmit={handleSubmit} style={{ maxWidth: 640 }}>
+      <h3 style={{ margin: '0 0 8px', fontSize: 18, fontWeight: 700, color: '#1e293b' }}>Configure Bonus Cycle</h3>
+      <p style={{ margin: '0 0 20px', fontSize: 13, color: '#64748b' }}>
+        Launch a company-wide bonus cycle quickly with a 1-click template or custom configuration.
+      </p>
+
+      {/* 1-Click Presets */}
+      <div style={{ marginBottom: 24 }}>
+        <div style={{ fontSize: 12, fontWeight: 700, color: '#6366f1', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 10 }}>
+          ⚡ Easy 1-Click Presets
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 10 }}>
+          {PRESETS.map((p, idx) => {
+            const isSelected = form.name === p.name;
+            return (
+              <div
+                key={idx}
+                onClick={() => applyPreset(p)}
+                style={{
+                  border: isSelected ? '1.5px solid #6366f1' : '1.5px solid #e2e8f0',
+                  background: isSelected ? '#f5f3ff' : '#f8fafc',
+                  borderRadius: 10,
+                  padding: '12px 14px',
+                  cursor: 'pointer',
+                  transition: 'all 0.15s',
+                  boxShadow: isSelected ? '0 2px 8px rgba(99,102,241,0.15)' : 'none',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 3 }}>
+                  <span style={{ fontSize: 20 }}>{p.icon}</span>
+                  <span style={{ fontSize: 13, fontWeight: 700, color: '#1e293b' }}>{p.title}</span>
+                </div>
+                <div style={{ fontSize: 11, color: '#64748b' }}>{p.desc} · Default ₹{p.default_amount}</div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
 
       {error && (
         <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 8, padding: '10px 14px', color: '#dc2626', fontSize: 13, marginBottom: 16 }}>
@@ -155,7 +235,7 @@ function CycleSetupStep({ onCreated }) {
           <label style={labelStyle}>Bonus Cycle Name *</label>
           <input id="bonus-cycle-name" style={inputStyle} value={form.name}
             onChange={e => handleChange('name', e.target.value)}
-            placeholder="e.g. Diwali Bonus 2026, Q3 Performance Bonus" required />
+            placeholder="e.g. Diwali Festive Bonus 2026, Q3 Performance Bonus" required />
         </div>
 
         <div>
@@ -201,15 +281,18 @@ function CycleSetupStep({ onCreated }) {
 }
 
 // ─── Step 1: Employee Allocation ──────────────────────────────────────────────
-function AllocationStep({ cycleId, onApproved }) {
+function AllocationStep({ cycleId, onApproved, onDeleted }) {
   const [detail, setDetail] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState({});
   const [approving, setApproving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState(null);
   const [editValues, setEditValues] = useState({});
   const [bulkAmount, setBulkAmount] = useState('');
   const [bulkMode, setBulkMode] = useState('fixed'); // 'fixed' | 'percent'
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedDept, setSelectedDept] = useState('');
 
   const load = useCallback(async () => {
     setLoading(true); setError(null);
@@ -244,6 +327,28 @@ function AllocationStep({ cycleId, onApproved }) {
       alert('Save failed: ' + (err.response?.data?.error?.message || err.message));
     } finally {
       setSaving(s => ({ ...s, [allocId]: false }));
+    }
+  };
+
+  const handleDeleteAllocation = async (allocId, empName) => {
+    if (!window.confirm(`Remove ${empName} from this bonus cycle?`)) return;
+    try {
+      await payrollApi.deleteBonusAllocation(cycleId, allocId);
+      await load();
+    } catch (err) {
+      alert('Failed to remove: ' + (err.response?.data?.error?.message || err.message));
+    }
+  };
+
+  const handleDeleteCycle = async () => {
+    if (!window.confirm('Are you sure you want to permanently discard and delete this draft bonus cycle? All allocations will be removed.')) return;
+    setDeleting(true);
+    try {
+      await payrollApi.deleteBonusCycle(cycleId);
+      if (onDeleted) onDeleted();
+    } catch (err) {
+      alert('Delete failed: ' + (err.response?.data?.error?.message || err.message));
+      setDeleting(false);
     }
   };
 
@@ -297,16 +402,28 @@ function AllocationStep({ cycleId, onApproved }) {
   );
   if (!detail) return null;
 
-  const totals = detail.totals || {};
   const allocations = detail.allocations || [];
+  const departments = Array.from(new Set(allocations.map(a => a.department).filter(Boolean))).sort();
+  const filteredAllocations = allocations.filter(a => {
+    const matchSearch = !searchTerm ||
+      (a.employee_name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (a.employee_code || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (a.designation || '').toLowerCase().includes(searchTerm.toLowerCase());
+    const matchDept = !selectedDept || a.department === selectedDept;
+    return matchSearch && matchDept;
+  });
+
   const totalBonusEntered = Object.values(editValues).reduce((s, v) => s + parseFloat(v.amount || 0), 0);
+  const isDraftCycle = (detail.payrun?.status || 'DRAFT') === 'DRAFT';
 
   return (
     <div>
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16, marginBottom: 24 }}>
         <div>
           <h3 style={{ margin: '0 0 4px', fontSize: 18, fontWeight: 700, color: '#1e293b' }}>Set Employee Bonus Amounts</h3>
-          <p style={{ margin: 0, fontSize: 13, color: '#6b7280' }}>{allocations.length} employees eligible · Set individual amounts or apply bulk fill</p>
+          <p style={{ margin: 0, fontSize: 13, color: '#6b7280' }}>
+            {allocations.length} employees in cycle · Set individual amounts, apply bulk fill, or remove employees
+          </p>
         </div>
         <div style={{ background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', borderRadius: 12, padding: '12px 20px', color: '#fff', textAlign: 'right' }}>
           <div style={{ fontSize: 11, opacity: 0.8, marginBottom: 2 }}>Total Bonus Pool</div>
@@ -314,23 +431,47 @@ function AllocationStep({ cycleId, onApproved }) {
         </div>
       </div>
 
-      {/* Bulk fill tool */}
-      <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 10, padding: '14px 18px', marginBottom: 20, display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
-        <span style={{ fontSize: 13, fontWeight: 600, color: '#374151' }}>Bulk Fill:</span>
-        <select value={bulkMode} onChange={e => setBulkMode(e.target.value)} id="bonus-bulk-mode"
-          style={{ padding: '7px 12px', borderRadius: 6, border: '1.5px solid #e2e8f0', fontSize: 13, background: '#fff' }}>
-          <option value="fixed">Fixed ₹ Amount</option>
-          <option value="percent">% of Monthly Salary</option>
-        </select>
-        <input type="number" value={bulkAmount} onChange={e => setBulkAmount(e.target.value)} id="bonus-bulk-value"
-          placeholder={bulkMode === 'fixed' ? 'e.g. 5000' : 'e.g. 10'}
-          style={{ padding: '7px 12px', borderRadius: 6, border: '1.5px solid #e2e8f0', fontSize: 13, width: 130 }} />
-        <button id="bonus-bulk-apply-btn" onClick={applyBulk} style={{
-          padding: '7px 16px', borderRadius: 6, background: '#6366f1', color: '#fff',
-          border: 'none', fontSize: 13, fontWeight: 600, cursor: 'pointer',
-        }}>
-          Apply to All
-        </button>
+      {/* Bulk fill & search toolbar */}
+      <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 10, padding: '14px 18px', marginBottom: 18, display: 'flex', gap: 12, alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+          <span style={{ fontSize: 13, fontWeight: 600, color: '#374151' }}>Bulk Fill:</span>
+          <select value={bulkMode} onChange={e => setBulkMode(e.target.value)} id="bonus-bulk-mode"
+            style={{ padding: '7px 12px', borderRadius: 6, border: '1.5px solid #e2e8f0', fontSize: 13, background: '#fff' }}>
+            <option value="fixed">Fixed ₹ Amount</option>
+            <option value="percent">% of Monthly Salary</option>
+          </select>
+          <input type="number" value={bulkAmount} onChange={e => setBulkAmount(e.target.value)} id="bonus-bulk-value"
+            placeholder={bulkMode === 'fixed' ? 'e.g. 5000' : 'e.g. 10'}
+            style={{ padding: '7px 12px', borderRadius: 6, border: '1.5px solid #e2e8f0', fontSize: 13, width: 120 }} />
+          <button id="bonus-bulk-apply-btn" onClick={applyBulk} style={{
+            padding: '7px 16px', borderRadius: 6, background: '#6366f1', color: '#fff',
+            border: 'none', fontSize: 13, fontWeight: 600, cursor: 'pointer',
+          }}>
+            Apply to All
+          </button>
+        </div>
+
+        {/* Filter inputs */}
+        <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+          <input
+            id="bonus-search-employee"
+            type="text"
+            value={searchTerm}
+            onChange={e => setSearchTerm(e.target.value)}
+            placeholder="Search employee…"
+            style={{ padding: '7px 12px', borderRadius: 6, border: '1.5px solid #e2e8f0', fontSize: 13, width: 150 }}
+          />
+          {departments.length > 0 && (
+            <select
+              value={selectedDept}
+              onChange={e => setSelectedDept(e.target.value)}
+              style={{ padding: '7px 12px', borderRadius: 6, border: '1.5px solid #e2e8f0', fontSize: 13, background: '#fff' }}
+            >
+              <option value="">All Departments</option>
+              {departments.map(d => <option key={d} value={d}>{d}</option>)}
+            </select>
+          )}
+        </div>
       </div>
 
       {error && (
@@ -349,11 +490,11 @@ function AllocationStep({ cycleId, onApproved }) {
               <th style={{ padding: '12px 16px', textAlign: 'right', fontWeight: 700, color: '#374151', borderBottom: '1px solid #e2e8f0' }}>Bonus Amount (₹)</th>
               <th style={{ padding: '12px 16px', textAlign: 'left', fontWeight: 700, color: '#374151', borderBottom: '1px solid #e2e8f0' }}>Remarks</th>
               <th style={{ padding: '12px 16px', textAlign: 'center', fontWeight: 700, color: '#374151', borderBottom: '1px solid #e2e8f0' }}>Status</th>
-              <th style={{ padding: '12px 8px', textAlign: 'center', fontWeight: 700, color: '#374151', borderBottom: '1px solid #e2e8f0' }}>Save</th>
+              <th style={{ padding: '12px 8px', textAlign: 'center', fontWeight: 700, color: '#374151', borderBottom: '1px solid #e2e8f0' }}>Actions</th>
             </tr>
           </thead>
           <tbody>
-            {allocations.map((alloc, idx) => {
+            {filteredAllocations.map((alloc, idx) => {
               const ev = editValues[alloc.id] || { amount: 0, remarks: '' };
               const isDraft = alloc.status === 'DRAFT';
               return (
@@ -388,10 +529,17 @@ function AllocationStep({ cycleId, onApproved }) {
                   </td>
                   <td style={{ padding: '10px 8px', borderBottom: '1px solid #f1f5f9', textAlign: 'center' }}>
                     {isDraft && (
-                      <button onClick={() => saveAllocation(alloc.id)} disabled={saving[alloc.id]}
-                        style={{ padding: '5px 12px', borderRadius: 6, background: saving[alloc.id] ? '#e0e7ff' : '#eff6ff', color: '#3730a3', border: '1px solid #c7d2fe', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
-                        {saving[alloc.id] ? '…' : 'Save'}
-                      </button>
+                      <div style={{ display: 'flex', gap: 6, justifyContent: 'center' }}>
+                        <button onClick={() => saveAllocation(alloc.id)} disabled={saving[alloc.id]}
+                          style={{ padding: '5px 10px', borderRadius: 6, background: saving[alloc.id] ? '#e0e7ff' : '#eff6ff', color: '#3730a3', border: '1px solid #c7d2fe', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
+                          {saving[alloc.id] ? '…' : 'Save'}
+                        </button>
+                        <button onClick={() => handleDeleteAllocation(alloc.id, alloc.employee_name)}
+                          title="Remove employee from this bonus cycle"
+                          style={{ padding: '5px 8px', borderRadius: 6, background: '#fef2f2', color: '#dc2626', border: '1px solid #fecaca', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
+                          ✕
+                        </button>
+                      </div>
                     )}
                   </td>
                 </tr>
@@ -400,7 +548,7 @@ function AllocationStep({ cycleId, onApproved }) {
           </tbody>
           <tfoot>
             <tr style={{ background: '#f8fafc' }}>
-              <td colSpan={2} style={{ padding: '12px 16px', fontWeight: 700, fontSize: 13, color: '#374151' }}>Total</td>
+              <td colSpan={2} style={{ padding: '12px 16px', fontWeight: 700, fontSize: 13, color: '#374151' }}>Total ({filteredAllocations.length} employees shown)</td>
               <td style={{ padding: '12px 16px', textAlign: 'right', fontWeight: 800, fontSize: 14, color: '#1e293b' }}>{fmt(totalBonusEntered)}</td>
               <td colSpan={3} />
             </tr>
@@ -408,8 +556,8 @@ function AllocationStep({ cycleId, onApproved }) {
         </table>
       </div>
 
-      <div style={{ display: 'flex', gap: 12 }}>
-        <button id="bonus-approve-btn" onClick={handleApprove} disabled={approving} style={{
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
+        <button id="bonus-approve-btn" onClick={handleApprove} disabled={approving || deleting} style={{
           padding: '12px 28px', borderRadius: 10,
           background: approving ? '#c7d2fe' : 'linear-gradient(135deg, #10b981, #059669)',
           color: '#fff', fontSize: 14, fontWeight: 700, border: 'none',
@@ -418,16 +566,28 @@ function AllocationStep({ cycleId, onApproved }) {
         }}>
           {approving ? 'Approving & Computing…' : '✓ Approve All & Compute'}
         </button>
+
+        {isDraftCycle && (
+          <button id="bonus-discard-draft-btn" onClick={handleDeleteCycle} disabled={deleting || approving} style={{
+            padding: '12px 22px', borderRadius: 10,
+            background: '#fef2f2', color: '#dc2626', border: '1.5px solid #fecaca',
+            fontSize: 13, fontWeight: 700, cursor: deleting ? 'not-allowed' : 'pointer',
+            display: 'inline-flex', alignItems: 'center', gap: 6,
+          }}>
+            {deleting ? 'Discarding…' : '🗑 Discard & Delete Draft Cycle'}
+          </button>
+        )}
       </div>
     </div>
   );
 }
 
 // ─── Step 2: Review ───────────────────────────────────────────────────────────
-function ReviewStep({ cycleId, payrun, onDisburse }) {
+function ReviewStep({ cycleId, payrun, onDisburse, onDeleted }) {
   const [detail, setDetail] = useState(null);
   const [loading, setLoading] = useState(true);
   const [disbursing, setDisbursing] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState(null);
 
   useEffect(() => {
@@ -454,6 +614,18 @@ function ReviewStep({ cycleId, payrun, onDisburse }) {
       setError(err.response?.data?.error?.message || err.message);
     } finally {
       setDisbursing(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!window.confirm('Delete this bonus cycle? All allocations and computed payslips will be removed.')) return;
+    setDeleting(true);
+    try {
+      await payrollApi.deleteBonusCycle(cycleId);
+      if (onDeleted) onDeleted();
+    } catch (err) {
+      alert('Delete failed: ' + (err.response?.data?.error?.message || err.message));
+      setDeleting(false);
     }
   };
 
@@ -518,17 +690,27 @@ function ReviewStep({ cycleId, payrun, onDisburse }) {
         </table>
       </div>
 
-      {['COMPUTED', 'VALIDATED'].includes(payrun?.status || detail.payrun?.status) && (
-        <button id="bonus-disburse-btn" onClick={handleDisburse} disabled={disbursing} style={{
-          padding: '12px 32px', borderRadius: 10,
-          background: disbursing ? '#c7d2fe' : 'linear-gradient(135deg, #f59e0b, #d97706)',
-          color: '#fff', fontSize: 14, fontWeight: 700, border: 'none',
-          cursor: disbursing ? 'not-allowed' : 'pointer',
-          boxShadow: '0 4px 12px rgba(245,158,11,0.3)',
+      <div style={{ display: 'flex', gap: 14, alignItems: 'center', flexWrap: 'wrap' }}>
+        {['COMPUTED', 'VALIDATED'].includes(payrun?.status || detail.payrun?.status) && (
+          <button id="bonus-disburse-btn" onClick={handleDisburse} disabled={disbursing || deleting} style={{
+            padding: '12px 32px', borderRadius: 10,
+            background: disbursing ? '#c7d2fe' : 'linear-gradient(135deg, #f59e0b, #d97706)',
+            color: '#fff', fontSize: 14, fontWeight: 700, border: 'none',
+            cursor: disbursing ? 'not-allowed' : 'pointer',
+            boxShadow: '0 4px 12px rgba(245,158,11,0.3)',
+          }}>
+            {disbursing ? 'Disbursing…' : '💸 Mark as Paid & Disburse'}
+          </button>
+        )}
+        <button id="bonus-review-delete-btn" onClick={handleDelete} disabled={deleting || disbursing} style={{
+          padding: '12px 22px', borderRadius: 10,
+          background: '#fef2f2', color: '#dc2626', border: '1.5px solid #fecaca',
+          fontSize: 14, fontWeight: 700, cursor: deleting ? 'not-allowed' : 'pointer',
+          display: 'inline-flex', alignItems: 'center', gap: 6,
         }}>
-          {disbursing ? 'Disbursing…' : '💸 Mark as Paid & Disburse'}
+          {deleting ? 'Deleting…' : '🗑 Delete Bonus Cycle'}
         </button>
-      )}
+      </div>
     </div>
   );
 }
@@ -586,25 +768,40 @@ function DisbursementStep({ cycleId, payrun }) {
 }
 
 // ─── Cycle List ───────────────────────────────────────────────────────────────
-function CycleList({ onSelect }) {
+function CycleList({ onSelect, onDeleted }) {
   const [cycles, setCycles] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [deletingId, setDeletingId] = useState(null);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    (async () => {
-      setLoading(true);
-      try {
-        const res = await payrollApi.listBonusCycles();
-        const d = res.data?.data || res.data;
-        setCycles(Array.isArray(d) ? d : []);
-      } catch (err) {
-        setError(err.response?.data?.error?.message || err.message);
-      } finally {
-        setLoading(false);
-      }
-    })();
-  }, []);
+  const loadCycles = async () => {
+    setLoading(true);
+    try {
+      const res = await payrollApi.listBonusCycles();
+      const d = res.data?.data || res.data;
+      setCycles(Array.isArray(d) ? d : []);
+    } catch (err) {
+      setError(err.response?.data?.error?.message || err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => { loadCycles(); }, []);
+
+  const handleDelete = async (id, name) => {
+    if (!window.confirm(`Are you sure you want to permanently delete the draft bonus cycle "${name}"?`)) return;
+    setDeletingId(id);
+    try {
+      await payrollApi.deleteBonusCycle(id);
+      await loadCycles();
+      if (onDeleted) onDeleted();
+    } catch (err) {
+      alert('Delete failed: ' + (err.response?.data?.error?.message || err.message));
+    } finally {
+      setDeletingId(null);
+    }
+  };
 
   if (loading) return <div style={{ padding: 32, textAlign: 'center', color: '#6b7280' }}>Loading bonus cycles…</div>;
   if (error) return <div style={{ padding: 16, background: '#fef2f2', borderRadius: 8, color: '#dc2626' }}>{error}</div>;
@@ -639,12 +836,39 @@ function CycleList({ onSelect }) {
               </div>
             </div>
           </div>
-          <div style={{ display: 'flex', gap: 16, alignItems: 'center', flexShrink: 0 }}>
+          <div style={{ display: 'flex', gap: 14, alignItems: 'center', flexShrink: 0 }}>
             <div style={{ textAlign: 'right' }}>
               <div style={{ fontSize: 16, fontWeight: 800, color: '#1e293b' }}>{fmt(c.total_bonus_amount)}</div>
               <div style={{ fontSize: 11, color: '#94a3b8' }}>Total Pool</div>
             </div>
             <Badge status={c.status} />
+            {c.status === 'DRAFT' && (
+              <button
+                id={`delete-cycle-${c.id}`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleDelete(c.id, c.name);
+                }}
+                disabled={deletingId === c.id}
+                style={{
+                  padding: '6px 12px',
+                  borderRadius: 8,
+                  border: '1px solid #fecaca',
+                  background: '#fef2f2',
+                  color: '#dc2626',
+                  fontSize: 12,
+                  fontWeight: 700,
+                  cursor: deletingId === c.id ? 'not-allowed' : 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 4,
+                  transition: 'all 0.15s',
+                }}
+                title="Delete this draft bonus cycle"
+              >
+                {deletingId === c.id ? '…' : '🗑 Delete Draft'}
+              </button>
+            )}
           </div>
         </div>
       ))}
@@ -688,6 +912,13 @@ export default function BonusAllocationPage() {
     setStep(3);
   };
 
+  const handleDeleted = () => {
+    setMode('list');
+    setStep(0);
+    setCycleId(null);
+    setPayrun(null);
+  };
+
   const handleSelectExisting = (cycle) => {
     setCycleId(cycle.id);
     setPayrun(cycle);
@@ -726,7 +957,7 @@ export default function BonusAllocationPage() {
       {mode === 'list' && (
         <div>
           <h2 style={{ fontSize: 16, fontWeight: 700, color: '#374151', margin: '0 0 16px' }}>All Bonus Cycles</h2>
-          <CycleList onSelect={handleSelectExisting} />
+          <CycleList onSelect={handleSelectExisting} onDeleted={handleDeleted} />
         </div>
       )}
 
@@ -736,8 +967,8 @@ export default function BonusAllocationPage() {
           <StepIndicator steps={STEPS} current={step} />
 
           {step === 0 && <CycleSetupStep onCreated={handleCreated} />}
-          {step === 1 && cycleId && <AllocationStep cycleId={cycleId} onApproved={handleApproved} />}
-          {step === 2 && cycleId && <ReviewStep cycleId={cycleId} payrun={payrun} onDisburse={handleDisburse} />}
+          {step === 1 && cycleId && <AllocationStep cycleId={cycleId} onApproved={handleApproved} onDeleted={handleDeleted} />}
+          {step === 2 && cycleId && <ReviewStep cycleId={cycleId} payrun={payrun} onDisburse={handleDisburse} onDeleted={handleDeleted} />}
           {step === 3 && cycleId && <DisbursementStep cycleId={cycleId} payrun={payrun} />}
         </div>
       )}
