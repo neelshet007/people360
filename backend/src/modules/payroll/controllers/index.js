@@ -1,17 +1,21 @@
 /**
  * Payroll Controller
  * Owner: P3 (Payroll)
- * Note: Placeholder structure only - CRUD and calculations not implemented yet.
+ * Handles HTTP requests for P3 Payroll module foundation
  */
 
-const getPayroll = async (req, res, next) => {
+const payrollService = require('../services');
+const { successResponse } = require('../../../utils/responseHelper');
+
+const getPayrollStatus = async (req, res, next) => {
   try {
-    // P3 will implement controller handler logic here
+    const status = await payrollService.getStatus();
+    return successResponse(res, status);
   } catch (error) {
     next(error);
   }
 };
 
 module.exports = {
-  getPayroll,
+  getPayrollStatus,
 };
