@@ -47,6 +47,20 @@ const getContractById = async (req, res, next) => {
     const { id } = req.params;
     const contract = await contractService.getContractById(id);
 
+    if (!contract) {
+      return res.status(404).json({
+        success: false,
+        message: `Contract with ID '${id}' not found`,
+      });
+    }
+
+    if (req.user && req.user.role === 'EMPLOYEE' && contract.employee_id !== req.user.employeeId) {
+      return res.status(403).json({
+        success: false,
+        error: { code: 'FORBIDDEN', message: 'Access denied: You are only authorized to view your own contract' },
+      });
+    }
+
     return res.status(200).json({
       success: true,
       data: contract,
@@ -55,6 +69,7 @@ const getContractById = async (req, res, next) => {
     next(error);
   }
 };
+
 
 const getActiveContract = async (req, res, next) => {
   try {

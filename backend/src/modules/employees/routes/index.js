@@ -2,7 +2,8 @@ const express = require('express');
 const router = express.Router();
 const employeeController = require('../controllers');
 const contractController = require('../../contracts/controllers');
-const { authenticate, authorize, checkEmployeeOwnership } = require('../../../middleware/authMiddleware');
+const { authenticate, authorize, authorizeEmployeeSelfOrPermission, checkEmployeeOwnership } = require('../../../middleware/authMiddleware');
+
 
 /**
  * Employees Module Routes
@@ -11,9 +12,10 @@ const { authenticate, authorize, checkEmployeeOwnership } = require('../../../mi
  */
 
 router.get('/', authenticate, authorize('employees.read'), employeeController.getEmployees);
-router.get('/:id', authenticate, authorize('employees.read'), checkEmployeeOwnership('id'), employeeController.getEmployeeById);
+router.get('/:id', authenticate, authorizeEmployeeSelfOrPermission('employees.read', 'id'), employeeController.getEmployeeById);
 router.post('/', authenticate, authorize('employees.write'), employeeController.createEmployee);
 router.put('/:id', authenticate, authorize('employees.write'), employeeController.updateEmployee);
+
 router.patch('/:id', authenticate, authorize('employees.write'), employeeController.updateEmployee);
 router.delete('/:id', authenticate, authorize('employees.write'), employeeController.deleteEmployee);
 

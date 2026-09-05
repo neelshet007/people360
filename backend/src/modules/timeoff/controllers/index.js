@@ -90,12 +90,18 @@ const createRequest = async (req, res, next) => {
 
 const updateRequestStatus = async (req, res, next) => {
   try {
-    const request = await timeoffService.updateRequestStatus(req.params.id, req.body);
+    const approverId = req.user?.employeeId || null;
+    const request = await timeoffService.updateRequestStatus(req.params.id, {
+      ...req.body,
+      approver_id: approverId,
+    });
     return successResponse(res, request);
   } catch (error) {
     next(error);
   }
 };
+
+
 
 module.exports = {
   getTypes,

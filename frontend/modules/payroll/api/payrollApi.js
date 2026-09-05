@@ -16,6 +16,8 @@ export const payrollApi = {
   },
   getSalaryStructureById: (id) => apiClient.get(`/payroll/salary-structures/${id}`),
   createSalaryStructure: (data) => apiClient.post('/payroll/salary-structures', data),
+  updateSalaryStructure: (id, data) => apiClient.put(`/payroll/salary-structures/${id}`, data),
+  deleteSalaryStructure: (id) => apiClient.delete(`/payroll/salary-structures/${id}`),
 
   // Salary Rules
   getSalaryRules: (params = {}) => {
@@ -23,6 +25,13 @@ export const payrollApi = {
     return apiClient.get(`/payroll/salary-rules${query ? `?${query}` : ''}`);
   },
   getSalaryRuleById: (id) => apiClient.get(`/payroll/salary-rules/${id}`),
+  createSalaryRule: (data) => apiClient.post('/payroll/salary-rules', data),
+  updateSalaryRule: (id, data) => apiClient.put(`/payroll/salary-rules/${id}`, data),
+  deleteSalaryRule: (id) => apiClient.delete(`/payroll/salary-rules/${id}`),
+  reorderSalaryRules: (ruleOrders) => apiClient.post('/payroll/salary-rules/reorder', { ruleOrders }),
+
+  // Salary Calculation Engine
+  calculateSalary: (data) => apiClient.post('/payroll/salary/calculate', data),
 
   // Payruns
   getPayruns: (params = {}) => {

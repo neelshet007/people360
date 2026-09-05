@@ -32,7 +32,19 @@ const payrollService = {
   // ---------------------------------------------------------------------------
   async getSalaryStructures(query = {}) {
     const isActive = query.is_active !== undefined ? query.is_active === 'true' : undefined;
-    return payrollRepository.findStructures({ is_active: isActive });
+    const structures = await payrollRepository.findStructures({ is_active: isActive });
+    
+    // Attach rule counts
+    const enriched = await Promise.all(
+      structures.map(async (s) => {
+        const rules = await payrollRepository.findRules({ salary_structure_id: s.id });
+        return {
+          ...s,
+          rule_count: rules.length,
+        };
+      })
+    );
+    return enriched;
   },
 
   async getSalaryStructureById(id) {
@@ -54,6 +66,22 @@ const payrollService = {
     return payrollRepository.createStructure(data);
   },
 
+  async updateSalaryStructure(id, data) {
+    const existing = await payrollRepository.findStructureById(id);
+    if (!existing) {
+      throw ApiError.notFound(`Salary structure with ID '${id}' not found`);
+    }
+    return payrollRepository.updateStructure(id, data);
+  },
+
+  async deleteSalaryStructure(id) {
+    const existing = await payrollRepository.findStructureById(id);
+    if (!existing) {
+      throw ApiError.notFound(`Salary structure with ID '${id}' not found`);
+    }
+    return payrollRepository.deleteStructure(id);
+  },
+
   // ---------------------------------------------------------------------------
   // SALARY RULES
   // ---------------------------------------------------------------------------
@@ -61,6 +89,7 @@ const payrollService = {
     return payrollRepository.findRules({
       salary_structure_id: query.salary_structure_id,
       category: query.category,
+      is_active: query.is_active !== undefined ? query.is_active === 'true' : undefined,
     });
   },
 
@@ -70,6 +99,47 @@ const payrollService = {
       throw ApiError.notFound(`Salary rule with ID '${id}' not found`);
     }
     return rule;
+  },
+
+  async createSalaryRule(data) {
+    if (!data.salary_structure_id || !data.name || !data.code) {
+      throw ApiError.badRequest('Salary structure ID, rule name, and code are required');
+    }
+    if (!data.calculation_type) {
+      throw ApiError.badRequest('Calculation type is required (FIXED, PERCENTAGE, FORMULA)');
+    }
+    return payrollRepository.createRule(data);
+  },
+
+  async updateSalaryRule(id, data) {
+    const existing = await payrollRepository.findRuleById(id);
+    if (!existing) {
+      throw ApiError.notFound(`Salary rule with ID '${id}' not found`);
+    }
+    return payrollRepository.updateRule(id, data);
+  },
+
+  async deleteSalaryRule(id) {
+    const existing = await payrollRepository.findRuleById(id);
+    if (!existing) {
+      throw ApiError.notFound(`Salary rule with ID '${id}' not found`);
+    }
+    return payrollRepository.deleteRule(id);
+  },
+
+  async reorderSalaryRules(ruleOrders) {
+    if (!Array.isArray(ruleOrders)) {
+      throw ApiError.badRequest('ruleOrders must be an array of { id, sequence_order }');
+    }
+    return payrollRepository.reorderRules(ruleOrders);
+  },
+
+  // ---------------------------------------------------------------------------
+  // SALARY CALCULATION ENGINE
+  // ---------------------------------------------------------------------------
+  async calculateSalary(params) {
+    const salaryCalculationService = require('./salaryCalculationService');
+    return salaryCalculationService.calculateSalary(params);
   },
 
   // ---------------------------------------------------------------------------

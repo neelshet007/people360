@@ -253,10 +253,69 @@ const payrollRepository = {
     return newStructure;
   },
 
+  async updateStructure(id, data) {
+    try {
+      const isLive = await db.testConnection();
+      if (isLive) {
+        const fields = [];
+        const params = [id];
+        let idx = 2;
+
+        if (data.name !== undefined) {
+          fields.push(`name = $${idx++}`);
+          params.push(data.name);
+        }
+        if (data.code !== undefined) {
+          fields.push(`code = $${idx++}`);
+          params.push(data.code);
+        }
+        if (data.description !== undefined) {
+          fields.push(`description = $${idx++}`);
+          params.push(data.description);
+        }
+        if (data.is_active !== undefined) {
+          fields.push(`is_active = $${idx++}`);
+          params.push(Boolean(data.is_active));
+        }
+        fields.push(`updated_at = NOW()`);
+
+        const sql = `UPDATE salary_structures SET ${fields.join(', ')} WHERE id = $1 RETURNING *;`;
+        const res = await db.query(sql, params);
+        return res.rows[0] || null;
+      }
+    } catch (err) {
+      console.warn('[Repository DB Fallback updateStructure]:', err.message);
+    }
+    const idx = fallbackStructures.findIndex((s) => s.id === id);
+    if (idx !== -1) {
+      fallbackStructures[idx] = { ...fallbackStructures[idx], ...data, updated_at: new Date().toISOString() };
+      return fallbackStructures[idx];
+    }
+    return null;
+  },
+
+  async deleteStructure(id) {
+    try {
+      const isLive = await db.testConnection();
+      if (isLive) {
+        const res = await db.query('DELETE FROM salary_structures WHERE id = $1 RETURNING id;', [id]);
+        return res.rows.length > 0;
+      }
+    } catch (err) {
+      console.warn('[Repository DB Fallback deleteStructure]:', err.message);
+    }
+    const idx = fallbackStructures.findIndex((s) => s.id === id);
+    if (idx !== -1) {
+      fallbackStructures.splice(idx, 1);
+      return true;
+    }
+    return false;
+  },
+
   // ---------------------------------------------------------------------------
   // SALARY RULES
   // ---------------------------------------------------------------------------
-  async findRules({ salary_structure_id, category } = {}) {
+  async findRules({ salary_structure_id, category, is_active } = {}) {
     try {
       const isLive = await db.testConnection();
       if (isLive) {
@@ -271,6 +330,11 @@ const payrollRepository = {
         if (category) {
           sql += ` AND category = $${pIdx}`;
           params.push(category);
+          pIdx++;
+        }
+        if (is_active !== undefined) {
+          sql += ` AND is_active = $${pIdx}`;
+          params.push(Boolean(is_active));
           pIdx++;
         }
         sql += ' ORDER BY sequence_order ASC';
@@ -301,6 +365,158 @@ const payrollRepository = {
       console.warn('[Repository DB Fallback findRuleById]:', err.message);
     }
     return fallbackRules.find((r) => r.id === id) || null;
+  },
+
+  async createRule(data) {
+    const id = crypto.randomUUID ? crypto.randomUUID() : `rule-${Date.now()}`;
+    const now = new Date().toISOString();
+    const newRule = {
+      id,
+      salary_structure_id: data.salary_structure_id,
+      name: data.name,
+      code: (data.code || '').toUpperCase().trim(),
+      category: data.category,
+      calculation_type: data.calculation_type,
+      amount_or_rate: parseFloat(data.amount_or_rate || 0),
+      percentage_base: data.percentage_base || null,
+      formula: data.formula || null,
+      sequence_order: parseInt(data.sequence_order || 1, 10),
+      is_active: data.is_active !== undefined ? Boolean(data.is_active) : true,
+      created_at: now,
+      updated_at: now,
+    };
+    try {
+      const isLive = await db.testConnection();
+      if (isLive) {
+        const sql = `
+          INSERT INTO salary_rules (
+            id, salary_structure_id, name, code, category, calculation_type,
+            amount_or_rate, percentage_base, formula, sequence_order, is_active,
+            created_at, updated_at
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+          RETURNING *;
+        `;
+        const res = await db.query(sql, [
+          newRule.id,
+          newRule.salary_structure_id,
+          newRule.name,
+          newRule.code,
+          newRule.category,
+          newRule.calculation_type,
+          newRule.amount_or_rate,
+          newRule.percentage_base,
+          newRule.formula,
+          newRule.sequence_order,
+          newRule.is_active,
+          newRule.created_at,
+          newRule.updated_at,
+        ]);
+        return res.rows[0];
+      }
+    } catch (err) {
+      console.warn('[Repository DB Fallback createRule]:', err.message);
+    }
+    fallbackRules.push(newRule);
+    return newRule;
+  },
+
+  async updateRule(id, data) {
+    try {
+      const isLive = await db.testConnection();
+      if (isLive) {
+        const fields = [];
+        const params = [id];
+        let idx = 2;
+
+        if (data.name !== undefined) {
+          fields.push(`name = $${idx++}`);
+          params.push(data.name);
+        }
+        if (data.code !== undefined) {
+          fields.push(`code = $${idx++}`);
+          params.push(data.code.toUpperCase().trim());
+        }
+        if (data.category !== undefined) {
+          fields.push(`category = $${idx++}`);
+          params.push(data.category);
+        }
+        if (data.calculation_type !== undefined) {
+          fields.push(`calculation_type = $${idx++}`);
+          params.push(data.calculation_type);
+        }
+        if (data.amount_or_rate !== undefined) {
+          fields.push(`amount_or_rate = $${idx++}`);
+          params.push(parseFloat(data.amount_or_rate));
+        }
+        if (data.percentage_base !== undefined) {
+          fields.push(`percentage_base = $${idx++}`);
+          params.push(data.percentage_base);
+        }
+        if (data.formula !== undefined) {
+          fields.push(`formula = $${idx++}`);
+          params.push(data.formula);
+        }
+        if (data.sequence_order !== undefined) {
+          fields.push(`sequence_order = $${idx++}`);
+          params.push(parseInt(data.sequence_order, 10));
+        }
+        if (data.is_active !== undefined) {
+          fields.push(`is_active = $${idx++}`);
+          params.push(Boolean(data.is_active));
+        }
+        fields.push(`updated_at = NOW()`);
+
+        const sql = `UPDATE salary_rules SET ${fields.join(', ')} WHERE id = $1 RETURNING *;`;
+        const res = await db.query(sql, params);
+        return res.rows[0] || null;
+      }
+    } catch (err) {
+      console.warn('[Repository DB Fallback updateRule]:', err.message);
+    }
+    const idx = fallbackRules.findIndex((r) => r.id === id);
+    if (idx !== -1) {
+      fallbackRules[idx] = { ...fallbackRules[idx], ...data, updated_at: new Date().toISOString() };
+      return fallbackRules[idx];
+    }
+    return null;
+  },
+
+  async deleteRule(id) {
+    try {
+      const isLive = await db.testConnection();
+      if (isLive) {
+        const res = await db.query('DELETE FROM salary_rules WHERE id = $1 RETURNING id;', [id]);
+        return res.rows.length > 0;
+      }
+    } catch (err) {
+      console.warn('[Repository DB Fallback deleteRule]:', err.message);
+    }
+    const idx = fallbackRules.findIndex((r) => r.id === id);
+    if (idx !== -1) {
+      fallbackRules.splice(idx, 1);
+      return true;
+    }
+    return false;
+  },
+
+  async reorderRules(ruleOrders = []) {
+    try {
+      const isLive = await db.testConnection();
+      if (isLive) {
+        for (const item of ruleOrders) {
+          if (item.id && item.sequence_order !== undefined) {
+            await db.query('UPDATE salary_rules SET sequence_order = $1, updated_at = NOW() WHERE id = $2;', [
+              parseInt(item.sequence_order, 10),
+              item.id,
+            ]);
+          }
+        }
+        return true;
+      }
+    } catch (err) {
+      console.warn('[Repository DB Fallback reorderRules]:', err.message);
+    }
+    return true;
   },
 
   // ---------------------------------------------------------------------------

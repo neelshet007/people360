@@ -67,10 +67,13 @@ const contractRepository = {
             e.department as employee_department,
             e.designation as employee_designation,
             ws.name as schedule_name,
-            ws.total_weekly_hours as schedule_weekly_hours
+            ws.total_weekly_hours as schedule_weekly_hours,
+            st.name as salary_structure_name,
+            st.code as salary_structure_code
           FROM contracts c
           LEFT JOIN employees e ON c.employee_id = e.id
           LEFT JOIN working_schedules ws ON c.working_schedule_id = ws.id
+          LEFT JOIN salary_structures st ON c.salary_structure_id = st.id
           WHERE 1=1
         `;
         const params = [];
@@ -237,10 +240,13 @@ const contractRepository = {
             e.designation as employee_designation,
             ws.name as schedule_name,
             ws.total_weekly_hours as schedule_weekly_hours,
-            ws.days_config as schedule_days_config
+            ws.days_config as schedule_days_config,
+            st.name as salary_structure_name,
+            st.code as salary_structure_code
           FROM contracts c
           LEFT JOIN employees e ON c.employee_id = e.id
           LEFT JOIN working_schedules ws ON c.working_schedule_id = ws.id
+          LEFT JOIN salary_structures st ON c.salary_structure_id = st.id
           WHERE c.id = $1
         `;
         const res = await db.query(sql, [id]);
@@ -279,10 +285,13 @@ const contractRepository = {
             e.employee_code,
             e.email as employee_email,
             ws.name as schedule_name,
-            ws.total_weekly_hours as schedule_weekly_hours
+            ws.total_weekly_hours as schedule_weekly_hours,
+            st.name as salary_structure_name,
+            st.code as salary_structure_code
           FROM contracts c
           LEFT JOIN employees e ON c.employee_id = e.id
           LEFT JOIN working_schedules ws ON c.working_schedule_id = ws.id
+          LEFT JOIN salary_structures st ON c.salary_structure_id = st.id
           WHERE c.employee_id = $1
             AND c.status = 'ACTIVE'
             AND c.start_date <= $2::DATE
@@ -330,10 +339,13 @@ const contractRepository = {
             e.employee_code,
             e.email as employee_email,
             ws.name as schedule_name,
-            ws.total_weekly_hours as schedule_weekly_hours
+            ws.total_weekly_hours as schedule_weekly_hours,
+            st.name as salary_structure_name,
+            st.code as salary_structure_code
           FROM contracts c
           LEFT JOIN employees e ON c.employee_id = e.id
           LEFT JOIN working_schedules ws ON c.working_schedule_id = ws.id
+          LEFT JOIN salary_structures st ON c.salary_structure_id = st.id
           WHERE c.employee_id = $1
             AND c.status = 'ACTIVE'
             AND c.start_date <= $3::DATE

@@ -62,6 +62,14 @@ async function runMigration() {
       console.log('[Migration] ✅ Users & RBAC tables created successfully.');
     }
 
+    const salaryConfigMigration = path.resolve(__dirname, '../../../database/migrations/007_salary_configuration.sql');
+    if (fs.existsSync(salaryConfigMigration)) {
+      const salaryConfigSql = fs.readFileSync(salaryConfigMigration, 'utf8');
+      console.log('[Migration] Executing 007_salary_configuration.sql...');
+      await db.query(salaryConfigSql);
+      console.log('[Migration] ✅ Salary Configuration schema updated successfully.');
+    }
+
     // Check if employee seed data is needed
     const countRes = await db.query('SELECT COUNT(*) FROM employees');
     if (parseInt(countRes.rows[0].count, 10) === 0) {

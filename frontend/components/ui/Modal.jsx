@@ -10,9 +10,12 @@ export default function Modal({
   title,
   children,
   footer = null,
+  actions = null,
   size = 'md', // sm, md, lg
   className = '',
 }) {
+  const modalFooter = footer || actions;
+
   useEffect(() => {
     function handleKeyDown(event) {
       if (event.key === 'Escape' && isOpen) {
@@ -103,7 +106,7 @@ export default function Modal({
 
         <div style={{ padding: '20px', overflowY: 'auto', flex: 1 }}>{children}</div>
 
-        {footer && (
+        {modalFooter && (
           <div
             style={{
               padding: '14px 20px',
@@ -114,10 +117,11 @@ export default function Modal({
               gap: '10px',
             }}
           >
-            {footer}
+            {modalFooter}
           </div>
         )}
       </div>
     </div>
   );
 }
+

@@ -17,10 +17,19 @@ router.get('/status', authenticate, controllers.getPayrollStatus);
 router.get('/salary-structures', authenticate, authorize('salary.read'), controllers.getSalaryStructures);
 router.get('/salary-structures/:id', authenticate, authorize('salary.read'), controllers.getSalaryStructureById);
 router.post('/salary-structures', authenticate, authorize('salary.manage'), controllers.createSalaryStructure);
+router.put('/salary-structures/:id', authenticate, authorize('salary.manage'), controllers.updateSalaryStructure);
+router.delete('/salary-structures/:id', authenticate, authorize('salary.manage'), controllers.deleteSalaryStructure);
 
 // Salary Rules
 router.get('/salary-rules', authenticate, authorize('salary.read'), controllers.getSalaryRules);
 router.get('/salary-rules/:id', authenticate, authorize('salary.read'), controllers.getSalaryRuleById);
+router.post('/salary-rules', authenticate, authorize('salary.manage'), controllers.createSalaryRule);
+router.put('/salary-rules/:id', authenticate, authorize('salary.manage'), controllers.updateSalaryRule);
+router.delete('/salary-rules/:id', authenticate, authorize('salary.manage'), controllers.deleteSalaryRule);
+router.post('/salary-rules/reorder', authenticate, authorize('salary.manage'), controllers.reorderSalaryRules);
+
+// Salary Calculation Engine
+router.post('/salary/calculate', authenticate, authorize('salary.read'), controllers.calculateSalary);
 
 // Payruns
 router.get('/payruns', authenticate, authorize('payruns.read'), validators.validatePagination, controllers.getPayruns);
