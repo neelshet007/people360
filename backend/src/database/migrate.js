@@ -54,6 +54,14 @@ async function runMigration() {
       console.log('[Migration] ✅ Attendance Phase 5 columns & triggers created successfully.');
     }
 
+    const usersRbacMigration = path.resolve(__dirname, '../../../database/migrations/006_create_users_rbac.sql');
+    if (fs.existsSync(usersRbacMigration)) {
+      const usersRbacSql = fs.readFileSync(usersRbacMigration, 'utf8');
+      console.log('[Migration] Executing 006_create_users_rbac.sql...');
+      await db.query(usersRbacSql);
+      console.log('[Migration] ✅ Users & RBAC tables created successfully.');
+    }
+
     // Check if employee seed data is needed
     const countRes = await db.query('SELECT COUNT(*) FROM employees');
     if (parseInt(countRes.rows[0].count, 10) === 0) {

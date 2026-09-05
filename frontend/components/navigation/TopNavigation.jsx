@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import Avatar from '../ui/Avatar';
 import Dropdown from '../ui/Dropdown';
-import { getStoredToken, clearStoredToken } from '../../lib/auth';
+import { useAuth } from '../../context/AuthContext';
 import AttendanceWidget from '../../modules/attendance/components/AttendanceWidget';
 
 /**
@@ -11,8 +11,9 @@ import AttendanceWidget from '../../modules/attendance/components/AttendanceWidg
  */
 export default function TopNavigation({ onToggleMobileSidebar }) {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, role, logout, isAuthenticated } = useAuth();
   const [showNotifications, setShowNotifications] = useState(false);
-  const token = getStoredToken();
 
   // Route title helper
   const getPageTitle = (path) => {
@@ -32,31 +33,30 @@ export default function TopNavigation({ onToggleMobileSidebar }) {
   ];
 
   const userMenuItems = [
+    ...(user?.employeeId
+      ? [
+          {
+            label: 'My Profile',
+            icon: '👤',
+            onClick: () => navigate(`/employees/${user.employeeId}`),
+          },
+        ]
+      : []),
     {
-      label: 'My Profile',
-      icon: '👤',
-      onClick: () => {
-        // Navigate or open profile modal
-      },
-    },
-    {
-      label: 'Platform Settings',
-      icon: '⚙️',
-      onClick: () => {
-        // Platform settings
-      },
+      label: 'Platform Dashboard',
+      icon: '📊',
+      onClick: () => navigate('/dashboard'),
     },
     { divider: true },
     {
-      label: token ? 'Sign Out' : 'Sign In',
-      danger: !!token,
-      icon: token ? '🚪' : '🔑',
+      label: isAuthenticated ? 'Sign Out' : 'Sign In',
+      danger: isAuthenticated,
+      icon: isAuthenticated ? '🚪' : '🔑',
       onClick: () => {
-        if (token) {
-          clearStoredToken();
-          window.location.href = '/login';
+        if (isAuthenticated) {
+          logout();
         } else {
-          window.location.href = '/login';
+          navigate('/login');
         }
       },
     },
@@ -330,13 +330,13 @@ export default function TopNavigation({ onToggleMobileSidebar }) {
               onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--neutral-100, #f1f5f9)')}
               onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
             >
-              <Avatar name="Admin User" size="sm" status="online" />
+              <Avatar name={user?.name || 'Authorized User'} size="sm" status="online" />
               <div style={{ display: 'flex', flexDirection: 'column', textAlign: 'left' }} className="header-user-text">
                 <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--neutral-900, #0f172a)', lineHeight: 1.2 }}>
-                  HR Admin
+                  {user?.name || 'Authorized User'}
                 </span>
-                <span style={{ fontSize: '0.6875rem', color: 'var(--neutral-500, #64748b)' }}>
-                  P1 Core HR
+                <span style={{ fontSize: '0.6875rem', color: 'var(--primary-700, #4338ca)', fontWeight: 600 }}>
+                  {role || 'EMPLOYEE'}
                 </span>
               </div>
               <span style={{ fontSize: '0.625rem', color: 'var(--neutral-400, #94a3b8)' }}>▼</span>

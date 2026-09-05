@@ -2,11 +2,115 @@ const db = require('../../../database/db');
 
 /**
  * Dashboard Service
- * Aggregates live system-wide KPIs directly from PostgreSQL
+ * Aggregates live system-wide or role-tailored KPIs directly from PostgreSQL
  */
-const getDashboardStats = async () => {
+const getDashboardStats = async (user = {}) => {
+  const role = user.role || 'ADMIN';
+  const employeeId = user.employeeId || null;
+
   try {
-    // 1. Employees KPIs
+    // -------------------------------------------------------------------------
+    // 1. ROLE: EMPLOYEE (Personal Self-Service Dashboard)
+    // -------------------------------------------------------------------------
+    if (role === 'EMPLOYEE' && employeeId) {
+      // (a) Personal Details & Active Contract
+      const empRes = await db.query(`
+        SELECT id, employee_code, first_name, last_name, display_name, email, department, designation, status, date_of_joining
+        FROM employees WHERE id = $1
+      `, [employeeId]);
+      const empInfo = empRes.rows[0] || {};
+
+      const contractRes = await db.query(`
+        SELECT c.*, s.name as schedule_name, st.name as structure_name
+        FROM contracts c
+        LEFT JOIN working_schedules s ON c.working_schedule_id = s.id
+        LEFT JOIN salary_structures st ON c.salary_structure_id = st.id
+        WHERE c.employee_id = $1 AND c.status = 'ACTIVE'
+        ORDER BY c.start_date DESC LIMIT 1
+      `, [employeeId]);
+      const activeContract = contractRes.rows[0] || null;
+
+      // (b) Personal Attendance
+      const todayAttRes = await db.query(`
+        SELECT * FROM attendance WHERE employee_id = $1 AND date = CURRENT_DATE LIMIT 1
+      `, [employeeId]);
+      const todayAttendance = todayAttRes.rows[0] || null;
+
+      const attHistoryRes = await db.query(`
+        SELECT id, date, clock_in, clock_out, total_hours, status, notes
+        FROM attendance WHERE employee_id = $1
+        ORDER BY date DESC LIMIT 5
+      `, [employeeId]);
+
+      const attCountRes = await db.query(`
+        SELECT 
+          COUNT(*) FILTER (WHERE status = 'PRESENT') as present_days,
+          COUNT(*) FILTER (WHERE status = 'LATE') as late_days,
+          COUNT(*) FILTER (WHERE status = 'HALF_DAY') as half_days,
+          COALESCE(SUM(total_hours), 0) as total_hours_worked
+        FROM attendance WHERE employee_id = $1
+      `, [employeeId]);
+      const attSummary = attCountRes.rows[0] || {};
+
+      // (c) Personal Leave Balances & Requests
+      const leaveAllocRes = await db.query(`
+        SELECT a.id, a.year, a.allocated_days, a.used_days, (a.allocated_days - a.used_days) as remaining_days,
+               t.name as type_name, t.code as type_code, t.is_paid
+        FROM time_off_allocations a
+        JOIN time_off_types t ON a.time_off_type_id = t.id
+        WHERE a.employee_id = $1 AND a.year = 2026
+        ORDER BY t.name ASC
+      `, [employeeId]);
+
+      const leaveReqRes = await db.query(`
+        SELECT r.id, r.start_date, r.end_date, r.total_days, r.reason, r.status, r.created_at,
+               t.name as type_name, t.code as type_code
+        FROM time_off_requests r
+        JOIN time_off_types t ON r.time_off_type_id = t.id
+        WHERE r.employee_id = $1
+        ORDER BY r.created_at DESC LIMIT 5
+      `, [employeeId]);
+
+      // (d) Personal Payslips
+      const payslipRes = await db.query(`
+        SELECT p.id, p.gross_amount, p.total_deductions, p.net_amount, p.status, p.worked_days,
+               pr.name as payrun_name, pr.pay_period_start, pr.pay_period_end
+        FROM payslips p
+        JOIN payruns pr ON p.payrun_id = pr.id
+        WHERE p.employee_id = $1
+        ORDER BY pr.pay_period_end DESC LIMIT 3
+      `, [employeeId]);
+
+      return {
+        role: 'EMPLOYEE',
+        employee: empInfo,
+        contract: activeContract,
+        attendance: {
+          today: todayAttendance,
+          recent: attHistoryRes.rows,
+          summary: {
+            present: parseInt(attSummary.present_days || 0, 10),
+            late: parseInt(attSummary.late_days || 0, 10),
+            half_day: parseInt(attSummary.half_days || 0, 10),
+            total_hours: parseFloat(attSummary.total_hours_worked || 0),
+          },
+        },
+        timeoff: {
+          allocations: leaveAllocRes.rows,
+          recent_requests: leaveReqRes.rows,
+        },
+        payroll: {
+          recent_payslips: payslipRes.rows,
+          latest_payslip: payslipRes.rows[0] || null,
+        },
+      };
+    }
+
+    // -------------------------------------------------------------------------
+    // 2. MANAGEMENT ROLES (HR_MANAGER, HR_PAYROLL_USER, HR_PAYROLL_MANAGER, ADMIN)
+    // -------------------------------------------------------------------------
+
+    // (a) Employees KPIs
     const empRes = await db.query(`
       SELECT 
         COUNT(*) as total,
@@ -18,7 +122,7 @@ const getDashboardStats = async () => {
     `);
     const empStats = empRes.rows[0] || {};
 
-    // 2. Department Breakdown
+    // Department Breakdown
     const deptRes = await db.query(`
       SELECT department, COUNT(*) as count 
       FROM employees 
@@ -27,7 +131,7 @@ const getDashboardStats = async () => {
       ORDER BY count DESC
     `);
 
-    // 3. Contracts KPIs
+    // (b) Contracts KPIs
     const contractRes = await db.query(`
       SELECT 
         COUNT(*) as total,
@@ -37,7 +141,7 @@ const getDashboardStats = async () => {
     `);
     const contractStats = contractRes.rows[0] || {};
 
-    // 4. Attendance KPIs
+    // (c) Attendance KPIs
     const attRes = await db.query(`
       SELECT 
         COUNT(*) as total_records,
@@ -49,7 +153,7 @@ const getDashboardStats = async () => {
     `);
     const attStats = attRes.rows[0] || {};
 
-    // 5. Time Off KPIs
+    // (d) Time Off KPIs
     const leaveRes = await db.query(`
       SELECT 
         COUNT(*) as total_requests,
@@ -60,7 +164,7 @@ const getDashboardStats = async () => {
     `);
     const leaveStats = leaveRes.rows[0] || {};
 
-    // 6. Payroll KPIs
+    // (e) Payroll KPIs
     const payrollRes = await db.query(`
       SELECT 
         COUNT(*) as total_payruns,
@@ -74,7 +178,16 @@ const getDashboardStats = async () => {
     const payslipCountRes = await db.query(`SELECT COUNT(*) as total FROM payslips`);
     const totalPayslips = payslipCountRes.rows[0]?.total || 0;
 
-    // 7. Recent Employees
+    // (f) System Users (for ADMIN role)
+    const userCountRes = await db.query(`
+      SELECT 
+        COUNT(*) as total_users,
+        COUNT(*) FILTER (WHERE status = 'ACTIVE') as active_users
+      FROM users;
+    `);
+    const userStats = userCountRes.rows[0] || {};
+
+    // (g) Recent Employees
     const recentEmpRes = await db.query(`
       SELECT id, employee_code, first_name, last_name, display_name, department, designation, status, created_at
       FROM employees
@@ -83,6 +196,11 @@ const getDashboardStats = async () => {
     `);
 
     return {
+      role,
+      users: {
+        total: parseInt(userStats.total_users || 0, 10),
+        active: parseInt(userStats.active_users || 0, 10),
+      },
       employees: {
         total: parseInt(empStats.total || 0, 10),
         active: parseInt(empStats.active || 0, 10),

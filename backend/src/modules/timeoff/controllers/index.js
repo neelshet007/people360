@@ -27,7 +27,11 @@ const createType = async (req, res, next) => {
 
 const getAllocations = async (req, res, next) => {
   try {
-    const allocations = await timeoffService.getAllocations(req.query);
+    const filters = { ...req.query };
+    if (req.user && req.user.role === 'EMPLOYEE' && req.user.employeeId) {
+      filters.employee_id = req.user.employeeId;
+    }
+    const allocations = await timeoffService.getAllocations(filters);
     return successResponse(res, allocations);
   } catch (error) {
     next(error);
@@ -45,7 +49,11 @@ const createAllocation = async (req, res, next) => {
 
 const getRequests = async (req, res, next) => {
   try {
-    const result = await timeoffService.listRequests(req.query);
+    const filters = { ...req.query };
+    if (req.user && req.user.role === 'EMPLOYEE' && req.user.employeeId) {
+      filters.employee_id = req.user.employeeId;
+    }
+    const result = await timeoffService.listRequests(filters);
     return successResponse(res, result.data, result.pagination);
   } catch (error) {
     next(error);
@@ -55,6 +63,12 @@ const getRequests = async (req, res, next) => {
 const getRequestById = async (req, res, next) => {
   try {
     const request = await timeoffService.getRequestById(req.params.id);
+    if (req.user && req.user.role === 'EMPLOYEE' && request && request.employee_id !== req.user.employeeId) {
+      return res.status(403).json({
+        success: false,
+        error: { code: 'FORBIDDEN', message: 'Access denied: You can only view your own leave requests.' }
+      });
+    }
     return successResponse(res, request);
   } catch (error) {
     next(error);
@@ -63,7 +77,11 @@ const getRequestById = async (req, res, next) => {
 
 const createRequest = async (req, res, next) => {
   try {
-    const request = await timeoffService.createRequest(req.body);
+    const payload = { ...req.body };
+    if (req.user && req.user.role === 'EMPLOYEE' && req.user.employeeId) {
+      payload.employee_id = req.user.employeeId;
+    }
+    const request = await timeoffService.createRequest(payload);
     return successResponse(res, request, null, 201);
   } catch (error) {
     next(error);

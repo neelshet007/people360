@@ -1,13 +1,15 @@
 const jwt = require('jsonwebtoken');
 const config = require('../config');
+const db = require('../database/db');
 const { errorResponse } = require('../utils/responseHelper');
+const { hasPermission, getRolePermissions, ROLES } = require('../utils/rbac');
 
 /**
- * Authentication Middleware — Phase 5 upgrade
- * Verifies JWT from Authorization header and resolves real user identity.
- * Sets req.user = { userId, employeeId, email, role, name }
+ * Authentication & RBAC Middleware
+ * Centralized authorization engine for PeoplePay360
  */
-const authenticate = (req, res, next) => {
+
+const authenticate = async (req, res, next) => {
   const authHeader = req.headers.authorization;
 
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -16,47 +18,126 @@ const authenticate = (req, res, next) => {
 
   const token = authHeader.slice(7);
 
-  // Support demo/mock token for non-DB environments
+  // Demo fallback token for dev environments
   if (token === 'mock-jwt-auth-session-token') {
     req.user = {
-      userId: 'demo-admin',
+      id: 'demo-admin-id',
+      userId: 'demo-admin-id',
+      email: 'admin@peoplepay360.demo',
+      name: 'System Administrator',
+      role: ROLES.ADMIN,
       employeeId: null,
-      email: 'admin@peoplepay360.com',
-      role: 'HR_ADMIN',
-      name: 'HR Admin',
+      permissions: ['*'],
     };
     return next();
   }
 
   try {
     const decoded = jwt.verify(token, config.jwt.secret);
+    
+    // Attach user payload
     req.user = {
-      userId: decoded.userId,
-      employeeId: decoded.employeeId || null,
+      id: decoded.userId || decoded.id,
+      userId: decoded.userId || decoded.id,
       email: decoded.email,
-      role: decoded.role || 'EMPLOYEE',
       name: decoded.name || decoded.email,
+      role: decoded.role || ROLES.EMPLOYEE,
+      employeeId: decoded.employeeId || null,
+      permissions: decoded.permissions || getRolePermissions(decoded.role),
     };
+
     next();
   } catch (err) {
-    return errorResponse(res, 'Session expired or invalid token. Please log in again.', 'UNAUTHORIZED', [], 401);
+    return errorResponse(res, 'Session expired or invalid token. Please sign in again.', 'UNAUTHORIZED', [], 401);
   }
 };
 
 /**
- * Role-based access control middleware factory.
- * Usage: requireRole('HR_ADMIN', 'ADMIN')
+ * Granular Permission Authorization
+ * Usage: router.get('/', authenticate, authorize('employees.read'), ...)
+ */
+const authorize = (permission) => {
+  return (req, res, next) => {
+    if (!req.user) {
+      return errorResponse(res, 'User not authenticated', 'UNAUTHORIZED', [], 401);
+    }
+
+    if (req.user.role === ROLES.ADMIN || hasPermission(req.user.role, permission)) {
+      return next();
+    }
+
+    return errorResponse(
+      res,
+      `Access forbidden: Your role (${req.user.role}) does not have permission '${permission}'`,
+      'FORBIDDEN',
+      [],
+      403
+    );
+  };
+};
+
+/**
+ * Role-Based Access Control Factory
+ * Usage: router.post('/', authenticate, requireRole('ADMIN', 'HR_PAYROLL_MANAGER'), ...)
  */
 const requireRole = (...allowedRoles) => {
   return (req, res, next) => {
     if (!req.user) {
-      return errorResponse(res, 'Not authenticated', 'UNAUTHORIZED', [], 401);
+      return errorResponse(res, 'User not authenticated', 'UNAUTHORIZED', [], 401);
     }
-    if (!allowedRoles.includes(req.user.role)) {
-      return errorResponse(res, 'You do not have permission to perform this action', 'FORBIDDEN', [], 403);
+
+    if (req.user.role === ROLES.ADMIN || allowedRoles.includes(req.user.role)) {
+      return next();
     }
+
+    return errorResponse(
+      res,
+      `Access forbidden: Requires one of roles: [${allowedRoles.join(', ')}]`,
+      'FORBIDDEN',
+      [],
+      403
+    );
+  };
+};
+
+/**
+ * Employee Data Isolation Guard
+ * Ensures EMPLOYEE role cannot inspect or mutate another employee's records
+ */
+const checkEmployeeOwnership = (paramKey = 'id') => {
+  return (req, res, next) => {
+    if (!req.user) {
+      return errorResponse(res, 'User not authenticated', 'UNAUTHORIZED', [], 401);
+    }
+
+    // HR and Admin roles bypass ownership restrictions
+    if (req.user.role !== ROLES.EMPLOYEE) {
+      return next();
+    }
+
+    const requestedEmployeeId = req.params[paramKey] || req.query[paramKey] || req.body?.employee_id;
+
+    if (!req.user.employeeId) {
+      return errorResponse(res, 'No linked employee profile associated with this account', 'FORBIDDEN', [], 403);
+    }
+
+    if (requestedEmployeeId && requestedEmployeeId !== req.user.employeeId) {
+      return errorResponse(
+        res,
+        'Access denied: You are only authorized to view and manage your own employee data',
+        'FORBIDDEN',
+        [],
+        403
+      );
+    }
+
     next();
   };
 };
 
-module.exports = { authenticate, requireRole };
+module.exports = {
+  authenticate,
+  authorize,
+  requireRole,
+  checkEmployeeOwnership,
+};

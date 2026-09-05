@@ -102,7 +102,11 @@ const createPayrun = async (req, res, next) => {
 // -----------------------------------------------------------------------------
 const getPayslips = async (req, res, next) => {
   try {
-    const result = await payrollService.getPayslips(req.query);
+    const filters = { ...req.query };
+    if (req.user && req.user.role === 'EMPLOYEE' && req.user.employeeId) {
+      filters.employee_id = req.user.employeeId;
+    }
+    const result = await payrollService.getPayslips(filters);
     return successResponse(res, result.data, result.pagination);
   } catch (error) {
     next(error);
@@ -112,6 +116,12 @@ const getPayslips = async (req, res, next) => {
 const getPayslipById = async (req, res, next) => {
   try {
     const payslip = await payrollService.getPayslipById(req.params.id);
+    if (req.user && req.user.role === 'EMPLOYEE' && payslip && payslip.employee_id !== req.user.employeeId) {
+      return res.status(403).json({
+        success: false,
+        error: { code: 'FORBIDDEN', message: 'Access denied: You can only view your own payslips.' }
+      });
+    }
     return successResponse(res, payslip);
   } catch (error) {
     next(error);

@@ -1,4 +1,5 @@
 const db = require('./db');
+const { hashPassword } = require('../utils/passwordHelper');
 
 /**
  * PeoplePay360 Authoritative Database Seed Script
@@ -18,6 +19,7 @@ async function runSeed() {
     await client.query('BEGIN');
 
     console.log('[Seed] Cleaning existing tables in foreign key order...');
+    await client.query('DELETE FROM users');
     await client.query('DELETE FROM payslip_lines');
     await client.query('DELETE FROM payslips');
     await client.query('DELETE FROM payruns');
@@ -564,12 +566,55 @@ async function runSeed() {
       WHERE id = $4;
     `, [aggregateGross, aggregateDeductions, aggregateNet, payrunId]);
 
-    console.log(`[Seed] ✓ Created August 2026 Payrun with 5 itemized payslips (Total Net: ₹${aggregateNet.toLocaleString('en-IN')}).`);
+    console.log('[Seed] 8. Creating 5 Authoritative Demo User Accounts (Password: Demo@123)...');
+    const demoPasswordHash = hashPassword('Demo@123');
+
+    const demoUsers = [
+      {
+        email: 'admin@peoplepay360.demo',
+        name: 'System Administrator',
+        role: 'ADMIN',
+        employeeId: null,
+      },
+      {
+        email: 'hr.manager@peoplepay360.demo',
+        name: 'Ananya Iyer (HR Manager)',
+        role: 'HR_MANAGER',
+        employeeId: insertedEmployees[3].id, // Ananya Iyer (Head of People & Culture)
+      },
+      {
+        email: 'payroll.user@peoplepay360.demo',
+        name: 'Sneha Kulkarni (Payroll User)',
+        role: 'HR_PAYROLL_USER',
+        employeeId: insertedEmployees[5].id, // Sneha Kulkarni (Lead Payroll Specialist)
+      },
+      {
+        email: 'payroll.manager@peoplepay360.demo',
+        name: 'Vikram Singh (Payroll Manager)',
+        role: 'HR_PAYROLL_MANAGER',
+        employeeId: insertedEmployees[4].id, // Vikram Singh (Finance Controller)
+      },
+      {
+        email: 'employee@peoplepay360.demo',
+        name: 'Rahul Sharma (Employee)',
+        role: 'EMPLOYEE',
+        employeeId: insertedEmployees[0].id, // Rahul Sharma (Principal Software Architect)
+      },
+    ];
+
+    for (const u of demoUsers) {
+      await client.query(`
+        INSERT INTO users (email, password_hash, name, role, employee_id, status)
+        VALUES ($1, $2, $3, $4, $5, 'ACTIVE');
+      `, [u.email, demoPasswordHash, u.name, u.role, u.employeeId]);
+    }
+    console.log('[Seed] ✓ Created 5 authoritative demo accounts with cryptographically hashed passwords.');
 
     await client.query('COMMIT');
 
     console.log('====================================================');
     console.log('  Database Seeding Completed Successfully!           ');
+    console.log(`  - Users:            5 (Admin, HR Mgr, Payroll User, Payroll Mgr, Employee)`);
     console.log(`  - Employees:        ${insertedEmployees.length} (Indian profiles)`);
     console.log(`  - Schedules:        3 (Asia/Kolkata timezone)`);
     console.log(`  - Salary Structure: 1 (INR CTC breakdown)`);

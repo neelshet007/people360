@@ -1,7 +1,15 @@
 /**
- * Auth Helpers — Phase 5
- * Real login, token storage, and user state management.
+ * Auth Helpers — Centralized Authentication & RBAC Support
+ * Owner: Shared Application Foundation
  */
+
+export const ROLES = {
+  ADMIN: 'ADMIN',
+  HR_MANAGER: 'HR_MANAGER',
+  HR_PAYROLL_USER: 'HR_PAYROLL_USER',
+  HR_PAYROLL_MANAGER: 'HR_PAYROLL_MANAGER',
+  EMPLOYEE: 'EMPLOYEE',
+};
 
 const TOKEN_KEY = 'auth_token';
 const USER_KEY = 'auth_user';
@@ -62,8 +70,34 @@ export const login = async (email, password) => {
   return { token, user };
 };
 
-/** Check if user is an HR admin or system admin */
-export const isHRRole = (user) => {
+export const logout = () => {
+  clearStoredToken();
+  if (typeof window !== 'undefined') {
+    window.location.href = '/login';
+  }
+};
+
+/** Permission checking helpers */
+export const hasPermission = (permission, user = getStoredUser()) => {
   if (!user) return false;
-  return ['HR_ADMIN', 'ADMIN'].includes(user.role);
+  if (user.role === ROLES.ADMIN) return true;
+  const permissions = user.permissions || [];
+  if (permissions.includes('*')) return true;
+  return permissions.includes(permission);
+};
+
+export const hasAnyRole = (roles = [], user = getStoredUser()) => {
+  if (!user) return false;
+  if (user.role === ROLES.ADMIN) return true;
+  return roles.includes(user.role);
+};
+
+export const isHRRole = (user = getStoredUser()) => {
+  if (!user) return false;
+  return [ROLES.ADMIN, ROLES.HR_MANAGER, ROLES.HR_PAYROLL_MANAGER].includes(user.role);
+};
+
+export const isPayrollRole = (user = getStoredUser()) => {
+  if (!user) return false;
+  return [ROLES.ADMIN, ROLES.HR_PAYROLL_USER, ROLES.HR_PAYROLL_MANAGER].includes(user.role);
 };
