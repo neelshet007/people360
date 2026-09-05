@@ -38,6 +38,14 @@ async function runMigration() {
       console.log('[Migration] ✅ HR Operations tables and indexes created successfully.');
     }
 
+    const contractsSchedMigration = path.resolve(__dirname, '../../../database/migrations/004_create_contracts_schedules.sql');
+    if (fs.existsSync(contractsSchedMigration)) {
+      const contractsSchedSql = fs.readFileSync(contractsSchedMigration, 'utf8');
+      console.log('[Migration] Executing 004_create_contracts_schedules.sql...');
+      await db.query(contractsSchedSql);
+      console.log('[Migration] ✅ Contracts and Working Schedules tables created successfully.');
+    }
+
     // Check if employee seed data is needed
     const countRes = await db.query('SELECT COUNT(*) FROM employees');
     if (parseInt(countRes.rows[0].count, 10) === 0) {
