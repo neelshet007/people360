@@ -31,6 +31,7 @@ import {
   SalaryStructuresPage,
   SalaryRulesPage,
   PayslipsPage,
+  BonusAllocationPage,
 } from '../modules/payroll';
 import DashboardPage from '../modules/dashboard/pages/DashboardPage';
 
@@ -234,6 +235,14 @@ export default function App() {
               element={
                 <ProtectedRoute allowedRoles={['ADMIN', 'HR_PAYROLL_USER', 'HR_PAYROLL_MANAGER']}>
                   <SalaryRulesPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/payroll/bonus"
+              element={
+                <ProtectedRoute allowedRoles={['ADMIN', 'HR_PAYROLL_USER', 'HR_PAYROLL_MANAGER']}>
+                  <BonusAllocationPage />
                 </ProtectedRoute>
               }
             />

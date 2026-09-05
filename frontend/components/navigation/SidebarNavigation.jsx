@@ -16,6 +16,7 @@ import {
   SlidersIcon,
   RulesIcon,
   MessageSquareIcon,
+  GiftIcon,
 } from '../ui/Icons';
 
 /**
@@ -100,6 +101,7 @@ export default function SidebarNavigation({ collapsed = false, onNavigate }) {
         heading: 'Payroll Processing',
         items: [
           { label: 'Payruns', href: '/payroll/payruns', Icon: CreditCardIcon },
+          { label: 'Bonus Allocation', href: '/payroll/bonus', Icon: GiftIcon },
           { label: 'Itemized Payslips', href: '/payroll/payslips', Icon: BanknoteIcon },
           { label: 'Salary Structures', href: '/payroll/salary-structures', Icon: SlidersIcon },
           { label: 'Calculation Rules', href: '/payroll/salary-rules', Icon: RulesIcon },
@@ -140,6 +142,7 @@ export default function SidebarNavigation({ collapsed = false, onNavigate }) {
         heading: 'Compensation & Payroll',
         items: [
           { label: 'Payrun Batches', href: '/payroll/payruns', Icon: CreditCardIcon },
+          { label: 'Bonus Allocation', href: '/payroll/bonus', Icon: GiftIcon },
           { label: 'Itemized Payslips', href: '/payroll/payslips', Icon: BanknoteIcon },
           { label: 'Salary Structures', href: '/payroll/salary-structures', Icon: SlidersIcon },
           { label: 'Ordered Rules', href: '/payroll/salary-rules', Icon: RulesIcon },

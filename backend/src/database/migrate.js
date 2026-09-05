@@ -86,6 +86,14 @@ async function runMigration() {
       console.log('[Migration] ✅ Concerns Communication schema updated successfully.');
     }
 
+    const bonusAllocationMigration = path.resolve(__dirname, '../../../database/migrations/011_bonus_allocation.sql');
+    if (fs.existsSync(bonusAllocationMigration)) {
+      const bonusAllocationSql = fs.readFileSync(bonusAllocationMigration, 'utf8');
+      console.log('[Migration] Executing 011_bonus_allocation.sql...');
+      await db.query(bonusAllocationSql);
+      console.log('[Migration] ✅ Bonus Allocation schema created successfully.');
+    }
+
     // Check if employee seed data is needed
     const countRes = await db.query('SELECT COUNT(*) FROM employees');
     if (parseInt(countRes.rows[0].count, 10) === 0) {

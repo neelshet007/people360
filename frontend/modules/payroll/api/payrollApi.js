@@ -53,6 +53,20 @@ export const payrollApi = {
   getPayslipById: (id) => apiClient.get(`/payroll/payslips/${id}`),
   getPayslipPdfUrl: (id) => `${apiClient.baseURL || '/api'}/payroll/payslips/${id}/pdf`,
   emailPayrunPayslips: (payrunId) => apiClient.post(`/payroll/payruns/${payrunId}/email-payslips`),
+
+  // Bonus Allocation
+  listBonusCycles: (params = {}) => {
+    const query = new URLSearchParams(params).toString();
+    return apiClient.get(`/payroll/bonus/cycles${query ? `?${query}` : ''}`);
+  },
+  createBonusCycle: (data) => apiClient.post('/payroll/bonus/cycles', data),
+  getBonusCycleDetail: (id) => apiClient.get(`/payroll/bonus/cycles/${id}`),
+  approveBonusCycle: (id) => apiClient.post(`/payroll/bonus/cycles/${id}/approve`),
+  disburseBonusCycle: (id) => apiClient.post(`/payroll/bonus/cycles/${id}/disburse`),
+  updateBonusAllocation: (cycleId, allocId, data) =>
+    apiClient.put(`/payroll/bonus/cycles/${cycleId}/allocations/${allocId}`, data),
+  rejectBonusAllocation: (cycleId, allocId) =>
+    apiClient.post(`/payroll/bonus/cycles/${cycleId}/allocations/${allocId}/reject`),
 };
 
 export default payrollApi;
