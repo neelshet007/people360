@@ -1,8 +1,12 @@
 import React from 'react';
 
 /**
- * Shared Table Component
- * Owner: P1 (Core HR)
+ * Enterprise Data Table Component
+ * Features:
+ * - Sticky header styling with uppercase muted column titles
+ * - Numeric right-alignment support (col.align === 'right')
+ * - Tabular figures for financial and date precision
+ * - Subtle hover transitions and interactive row callbacks
  */
 export default function Table({
   columns = [],
@@ -14,32 +18,16 @@ export default function Table({
   style = {},
 }) {
   return (
-    <div style={{ width: '100%', overflowX: 'auto', ...style }} className={`table-responsive ${className}`}>
-      <table
-        style={{
-          width: '100%',
-          borderCollapse: 'collapse',
-          textAlign: 'left',
-          fontSize: '0.875rem',
-        }}
-      >
+    <div style={style} className={`pp-table-container ${className}`}>
+      <table className="pp-table">
         <thead>
-          <tr
-            style={{
-              borderBottom: '1px solid var(--neutral-200, #e2e8f0)',
-              backgroundColor: 'var(--neutral-50, #f8fafc)',
-            }}
-          >
+          <tr>
             {columns.map((col, idx) => (
               <th
-                key={idx}
+                key={col.key || col.accessor || idx}
+                className="pp-th"
                 style={{
-                  padding: '12px 16px',
-                  fontWeight: 600,
-                  color: 'var(--neutral-600, #475569)',
-                  fontSize: '0.75rem',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.05em',
+                  textAlign: col.align || 'left',
                   width: col.width || 'auto',
                 }}
               >
@@ -53,23 +41,25 @@ export default function Table({
             <tr>
               <td
                 colSpan={columns.length}
+                className="pp-td"
                 style={{
                   padding: '36px 16px',
                   textAlign: 'center',
-                  color: 'var(--neutral-500, #64748b)',
+                  color: 'var(--text-muted, #64748b)',
                 }}
               >
                 <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
                   <span
                     style={{
                       display: 'inline-block',
-                      width: '16px',
-                      height: '16px',
-                      border: '2px solid var(--primary-600, #4f46e5)',
+                      width: '15px',
+                      height: '15px',
+                      border: '2px solid var(--primary-600, #2563eb)',
                       borderRightColor: 'transparent',
                       borderRadius: '50%',
                       animation: 'spin 0.6s linear infinite',
                     }}
+                    aria-hidden="true"
                   />
                   <span>Loading records...</span>
                 </div>
@@ -79,10 +69,11 @@ export default function Table({
             <tr>
               <td
                 colSpan={columns.length}
+                className="pp-td"
                 style={{
                   padding: '36px 16px',
                   textAlign: 'center',
-                  color: 'var(--neutral-500, #64748b)',
+                  color: 'var(--text-muted, #64748b)',
                 }}
               >
                 {emptyText}
@@ -93,25 +84,15 @@ export default function Table({
               <tr
                 key={row.id || rowIdx}
                 onClick={() => onRowClick && onRowClick(row)}
-                style={{
-                  borderBottom: '1px solid var(--neutral-200, #e2e8f0)',
-                  cursor: onRowClick ? 'pointer' : 'default',
-                  transition: 'background-color var(--transition-fast)',
-                }}
-                onMouseEnter={(e) => {
-                  if (onRowClick) e.currentTarget.style.backgroundColor = 'var(--neutral-50, #f8fafc)';
-                }}
-                onMouseLeave={(e) => {
-                  if (onRowClick) e.currentTarget.style.backgroundColor = 'transparent';
-                }}
+                className={`pp-tr ${onRowClick ? 'pp-tr-interactive' : ''}`}
               >
                 {columns.map((col, colIdx) => (
                   <td
-                    key={colIdx}
+                    key={col.key || col.accessor || colIdx}
+                    className="pp-td"
                     style={{
-                      padding: '12px 16px',
-                      color: 'var(--neutral-800, #1e293b)',
-                      verticalAlign: 'middle',
+                      textAlign: col.align || 'left',
+                      fontVariantNumeric: col.numeric ? 'tabular-nums' : 'inherit',
                     }}
                   >
                     {col.render ? col.render(row) : row[col.accessor]}

@@ -7,6 +7,7 @@ import Alert from '../../../components/feedback/Alert';
 import PayrunStatusBadge from './PayrunStatusBadge';
 import { formatCurrency } from '../../../lib/utils';
 import payrollApi from '../api/payrollApi';
+import { DownloadIcon, PrinterIcon } from '../../../components/ui/Icons';
 
 /**
  * Payslip View Modal Component
@@ -93,16 +94,16 @@ export default function PayslipViewModal({ payslipId, isOpen, onClose }) {
                 })
                 .catch((err) => alert(err.message));
             }}
-            style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+            icon={<DownloadIcon size={14} />}
           >
-            📥 Download PDF
+            Download PDF
           </Button>
           <Button
             variant="primary"
             onClick={() => window.print()}
-            style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+            icon={<PrinterIcon size={14} />}
           >
-            🖨️ Print Payslip
+            Print Payslip
           </Button>
         </div>
       }

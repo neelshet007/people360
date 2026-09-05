@@ -19,6 +19,16 @@ import contractsApi from '../../contracts/api/contractsApi';
 import payrollApi from '../../payroll/api/payrollApi';
 import { formatDate, formatCurrency } from '../../../lib/utils';
 import { useAuth } from '../../../context/AuthContext';
+import {
+  UserIcon,
+  PhoneIcon,
+  FileTextIcon,
+  ClockIcon,
+  CalendarIcon,
+  CreditCardIcon,
+  EditIcon,
+  BriefcaseIcon,
+} from '../../../components/ui/Icons';
 
 /**
  * Employee Profile — 360 Degree Workforce Hub
@@ -186,13 +196,13 @@ export default function EmployeeDetailPage() {
   const fullName = employee.display_name || `${employee.first_name || ''} ${employee.last_name || ''}`.trim() || 'Unnamed';
 
   const tabs = [
-    { id: 'overview', label: 'Overview & Personal', icon: '👤' },
-    { id: 'contact', label: 'Contact Details', icon: '📞' },
-    { id: 'contract', label: 'Contracts (P1)', icon: '📝' },
-    { id: 'schedule', label: 'Schedule (P1)', icon: '⏰' },
-    { id: 'attendance', label: 'Attendance (P2)', icon: '📅' },
-    { id: 'time-off', label: 'Time Off (P2)', icon: '🏖️' },
-    { id: 'payroll', label: 'Compensation & Salary (P3)', icon: '💳' },
+    { id: 'overview', label: 'Overview & Personal', icon: <UserIcon size={15} /> },
+    { id: 'contact', label: 'Contact Details', icon: <PhoneIcon size={15} /> },
+    { id: 'contract', label: 'Contracts', icon: <FileTextIcon size={15} /> },
+    { id: 'schedule', label: 'Schedule', icon: <ClockIcon size={15} /> },
+    { id: 'attendance', label: 'Attendance', icon: <CalendarIcon size={15} /> },
+    { id: 'time-off', label: 'Time Off', icon: <BriefcaseIcon size={15} /> },
+    { id: 'payroll', label: 'Compensation & Salary', icon: <CreditCardIcon size={15} /> },
   ];
 
   return (
@@ -226,7 +236,7 @@ export default function EmployeeDetailPage() {
             </Button>
             <Button
               variant="primary"
-              icon="✏️"
+              icon={<EditIcon size={16} />}
               onClick={() => navigate(`/employees/${id}/edit`)}
             >
               Edit Profile

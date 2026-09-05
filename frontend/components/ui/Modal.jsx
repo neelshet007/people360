@@ -1,8 +1,9 @@
 import React, { useEffect } from 'react';
+import { XIcon } from './Icons';
 
 /**
- * Shared Modal Component
- * Owner: P1 (Core HR)
+ * Enterprise Modal Component
+ * Features keyboard Esc dismiss, backdrop click dismiss, clean header/footer, and vector close icon
  */
 export default function Modal({
   isOpen,
@@ -11,7 +12,7 @@ export default function Modal({
   children,
   footer = null,
   actions = null,
-  size = 'md', // sm, md, lg
+  size = 'md', // sm, md, lg, xl
   className = '',
 }) {
   const modalFooter = footer || actions;
@@ -32,6 +33,7 @@ export default function Modal({
     sm: '420px',
     md: '540px',
     lg: '760px',
+    xl: '900px',
   };
 
   return (
@@ -42,7 +44,7 @@ export default function Modal({
         left: 0,
         right: 0,
         bottom: 0,
-        backgroundColor: 'rgba(15, 23, 42, 0.55)',
+        backgroundColor: 'rgba(15, 23, 42, 0.45)',
         backdropFilter: 'blur(2px)',
         display: 'flex',
         alignItems: 'center',
@@ -51,11 +53,13 @@ export default function Modal({
         padding: '16px',
       }}
       onClick={onClose}
+      role="dialog"
+      aria-modal="true"
     >
       <div
         style={{
           backgroundColor: '#ffffff',
-          borderRadius: 'var(--radius-lg, 12px)',
+          borderRadius: 'var(--radius-lg, 8px)',
           width: '100%',
           maxWidth: maxWidthMap[size] || maxWidthMap.md,
           boxShadow: 'var(--shadow-xl)',
@@ -63,7 +67,8 @@ export default function Modal({
           display: 'flex',
           flexDirection: 'column',
           overflow: 'hidden',
-          animation: 'fadeIn 0.2s ease-out',
+          animation: 'fadeIn 0.15s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+          border: '1px solid var(--border-subtle, #e2e8f0)',
         }}
         onClick={(e) => e.stopPropagation()}
         className={`modal-dialog ${className}`}
@@ -73,11 +78,12 @@ export default function Modal({
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
-            padding: '16px 20px',
-            borderBottom: '1px solid var(--neutral-200, #e2e8f0)',
+            padding: '14px 20px',
+            borderBottom: '1px solid var(--border-subtle, #e2e8f0)',
+            backgroundColor: '#ffffff',
           }}
         >
-          <h3 style={{ fontSize: '1.125rem', fontWeight: 600, color: 'var(--neutral-900, #0f172a)', margin: 0 }}>
+          <h3 style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-main, #0f172a)', margin: 0, letterSpacing: '-0.01em' }}>
             {title}
           </h3>
           <button
@@ -86,21 +92,26 @@ export default function Modal({
             style={{
               background: 'transparent',
               border: 'none',
-              fontSize: '1.25rem',
               cursor: 'pointer',
-              color: 'var(--neutral-400, #94a3b8)',
+              color: 'var(--text-muted, #64748b)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               width: '28px',
               height: '28px',
-              borderRadius: 'var(--radius-sm)',
-              transition: 'color var(--transition-fast)',
+              borderRadius: 'var(--radius-sm, 4px)',
+              transition: 'all var(--transition-fast)',
             }}
-            onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--neutral-800, #1e293b)')}
-            onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--neutral-400, #94a3b8)')}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = 'var(--neutral-100, #f1f5f9)';
+              e.currentTarget.style.color = 'var(--text-main, #0f172a)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = 'transparent';
+              e.currentTarget.style.color = 'var(--text-muted, #64748b)';
+            }}
           >
-            ✕
+            <XIcon size={16} />
           </button>
         </div>
 
@@ -109,12 +120,12 @@ export default function Modal({
         {modalFooter && (
           <div
             style={{
-              padding: '14px 20px',
+              padding: '12px 20px',
               backgroundColor: 'var(--neutral-50, #f8fafc)',
-              borderTop: '1px solid var(--neutral-200, #e2e8f0)',
+              borderTop: '1px solid var(--border-subtle, #e2e8f0)',
               display: 'flex',
               justifyContent: 'flex-end',
-              gap: '10px',
+              gap: '8px',
             }}
           >
             {modalFooter}
@@ -124,4 +135,3 @@ export default function Modal({
     </div>
   );
 }
-

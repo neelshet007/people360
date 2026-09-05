@@ -14,6 +14,7 @@ import Toast from '../../../components/feedback/Toast';
 import AttendanceStatusBadge from '../components/AttendanceStatusBadge';
 import { attendanceApi } from '../api/attendanceApi';
 import employeesApi from '../../employees/api/employeesApi';
+import { EditIcon, PlusIcon, SearchIcon } from '../../../components/ui/Icons';
 
 /**
  * HR Attendance Management Page — Phase 5
@@ -299,10 +300,11 @@ export default function AttendanceListPage() {
         <Button
           variant="secondary"
           size="sm"
+          icon={<EditIcon size={13} />}
           onClick={() => openCorrection(row)}
           style={{ fontSize: '0.75rem', padding: '4px 10px' }}
         >
-          ✏️ Correct
+          Correct
         </Button>
       ),
     },
@@ -315,8 +317,8 @@ export default function AttendanceListPage() {
       title="Attendance Management"
       subtitle="HR Operations — View, search, filter and correct employee attendance records"
       actions={
-        <Button variant="primary" onClick={() => setShowLogModal(true)}>
-          + Log Attendance
+        <Button variant="primary" icon={<PlusIcon size={16} />} onClick={() => setShowLogModal(true)}>
+          Log Attendance
         </Button>
       }
     >
@@ -330,25 +332,13 @@ export default function AttendanceListPage() {
       <Card style={{ marginBottom: '20px' }}>
         <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-end', flexWrap: 'wrap' }}>
           {/* Employee search */}
-          <form onSubmit={handleSearch} style={{ display: 'flex', gap: '8px', flex: '1 1 240px' }}>
-            <div style={{ flex: 1, position: 'relative' }}>
-              <span style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: 'var(--neutral-400)', pointerEvents: 'none' }}>
-                🔍
-              </span>
-              <input
-                type="text"
+          <form onSubmit={handleSearch} style={{ display: 'flex', gap: '8px', flex: '1 1 260px' }}>
+            <div style={{ flex: 1 }}>
+              <Input
                 placeholder="Search employee name or code..."
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: '8px 12px 8px 32px',
-                  borderRadius: 'var(--radius-md, 8px)',
-                  border: '1px solid var(--neutral-200, #e2e8f0)',
-                  fontSize: '0.875rem',
-                  outline: 'none',
-                  boxSizing: 'border-box',
-                }}
+                leftIcon={<SearchIcon size={15} />}
               />
             </div>
             <Button type="submit" variant="secondary" size="sm">Search</Button>
@@ -381,7 +371,7 @@ export default function AttendanceListPage() {
 
           {hasActiveFilters && (
             <Button variant="secondary" size="sm" onClick={clearFilters}>
-              Clear ✕
+              Clear
             </Button>
           )}
 

@@ -1,8 +1,8 @@
 import React from 'react';
 
 /**
- * Shared Input Component
- * Owner: P1 (Core HR)
+ * Enterprise Form Input Component
+ * Supports left/right icons, validation error states, focus rings, and helper text
  */
 export default function Input({
   label,
@@ -22,21 +22,11 @@ export default function Input({
   ...props
 }) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginBottom: '12px' }}>
+    <div className="pp-form-group">
       {label && (
-        <label
-          htmlFor={id}
-          style={{
-            fontSize: '0.875rem',
-            fontWeight: 500,
-            color: 'var(--neutral-700, #334155)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '4px',
-          }}
-        >
+        <label htmlFor={id} className="pp-label">
           <span>{label}</span>
-          {required && <span style={{ color: 'var(--danger, #ef4444)' }}>*</span>}
+          {required && <span style={{ color: 'var(--danger, #dc2626)' }}>*</span>}
         </label>
       )}
 
@@ -45,11 +35,12 @@ export default function Input({
           <span
             style={{
               position: 'absolute',
-              left: '12px',
-              color: 'var(--neutral-400, #94a3b8)',
+              left: '11px',
+              color: 'var(--text-muted, #64748b)',
               display: 'flex',
               alignItems: 'center',
               pointerEvents: 'none',
+              zIndex: 1,
             }}
           >
             {leftIcon}
@@ -65,23 +56,11 @@ export default function Input({
           disabled={disabled}
           required={required}
           style={{
-            width: '100%',
-            padding: '8px 12px',
-            paddingLeft: leftIcon ? '36px' : '12px',
-            paddingRight: rightIcon ? '36px' : '12px',
-            fontSize: '0.875rem',
-            borderRadius: 'var(--radius-md, 8px)',
-            border: error
-              ? '1px solid var(--danger, #ef4444)'
-              : '1px solid var(--neutral-300, #cbd5e1)',
-            outline: 'none',
-            backgroundColor: disabled ? 'var(--neutral-100, #f1f5f9)' : '#ffffff',
-            color: 'var(--neutral-900, #0f172a)',
-            transition: 'border-color var(--transition-fast)',
-            boxShadow: 'var(--shadow-xs)',
+            paddingLeft: leftIcon ? '32px' : '10px',
+            paddingRight: rightIcon ? '32px' : '10px',
             ...style,
           }}
-          className={`form-input ${className}`}
+          className={`pp-input ${error ? 'pp-input-error' : ''} ${className}`}
           {...props}
         />
 
@@ -89,10 +68,11 @@ export default function Input({
           <span
             style={{
               position: 'absolute',
-              right: '12px',
-              color: 'var(--neutral-400, #94a3b8)',
+              right: '11px',
+              color: 'var(--text-muted, #64748b)',
               display: 'flex',
               alignItems: 'center',
+              zIndex: 1,
             }}
           >
             {rightIcon}
@@ -100,17 +80,8 @@ export default function Input({
         )}
       </div>
 
-      {helperText && !error && (
-        <span style={{ fontSize: '0.75rem', color: 'var(--neutral-500, #64748b)' }}>
-          {helperText}
-        </span>
-      )}
-
-      {error && (
-        <span style={{ fontSize: '0.75rem', color: 'var(--danger, #ef4444)', fontWeight: 500 }}>
-          {error}
-        </span>
-      )}
+      {helperText && !error && <span className="pp-helper-text">{helperText}</span>}
+      {error && <span className="pp-error-text">{error}</span>}
     </div>
   );
 }

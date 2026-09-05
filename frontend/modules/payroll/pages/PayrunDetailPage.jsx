@@ -12,6 +12,16 @@ import PayrunStatusBadge from '../components/PayrunStatusBadge';
 import PayslipViewModal from '../components/PayslipViewModal';
 import { formatCurrency } from '../../../lib/utils';
 import payrollApi from '../api/payrollApi';
+import {
+  SlidersIcon,
+  RefreshIcon,
+  CheckCircleIcon,
+  MailIcon,
+  CreditCardIcon,
+  FileTextIcon,
+  AlertTriangleIcon,
+  ChevronRightIcon,
+} from '../../../components/ui/Icons';
 
 /**
  * Payrun Detail Page
@@ -234,12 +244,16 @@ export default function PayrunDetailPage() {
       header: 'Statement',
       accessor: 'action',
       render: (row) => (
-        <Button variant="secondary" size="sm" onClick={() => handleOpenPayslip(row.id)}>
-          📄 View Payslip
+        <Button variant="secondary" size="sm" icon={<FileTextIcon size={14} />} onClick={() => handleOpenPayslip(row.id)}>
+          View Payslip
         </Button>
       ),
     },
   ];
+
+  const stepOrder = ['DRAFT', 'COMPUTED', 'VALIDATED', 'PAID'];
+  const currentStepKey = payrun.status === 'CONFIRMED' ? 'VALIDATED' : payrun.status;
+  const currentIdx = stepOrder.indexOf(currentStepKey);
 
   return (
     <PageContainer
@@ -265,9 +279,9 @@ export default function PayrunDetailPage() {
               size="sm"
               loading={actionLoading}
               onClick={handleCompute}
-              style={{ backgroundColor: 'var(--primary-600, #4f46e5)' }}
+              icon={<SlidersIcon size={14} />}
             >
-              ⚙️ Compute Payroll
+              Compute Payroll
             </Button>
           )}
 
@@ -279,17 +293,18 @@ export default function PayrunDetailPage() {
                 size="sm"
                 loading={actionLoading}
                 onClick={handleCompute}
+                icon={<RefreshIcon size={14} />}
               >
-                ↺ Recompute
+                Recompute
               </Button>
               <Button
                 variant="primary"
                 size="sm"
                 loading={actionLoading}
                 onClick={handleValidate}
-                style={{ backgroundColor: '#0284c7' }}
+                icon={<CheckCircleIcon size={14} />}
               >
-                ✓ Validate Payrun
+                Validate Payrun
               </Button>
             </>
           )}
@@ -302,18 +317,19 @@ export default function PayrunDetailPage() {
                 size="sm"
                 loading={actionLoading}
                 onClick={handleEmailPayslips}
-                style={{ display: 'flex', alignItems: 'center', gap: '4px' }}
+                icon={<MailIcon size={14} />}
               >
-                ✉️ Email Payslips
+                Email Payslips
               </Button>
               <Button
                 variant="primary"
                 size="sm"
                 loading={actionLoading}
                 onClick={handleMarkPaid}
-                style={{ backgroundColor: '#16a34a' }}
+                icon={<CreditCardIcon size={14} />}
+                style={{ backgroundColor: 'var(--success-600, #16a34a)' }}
               >
-                💰 Mark as Paid
+                Mark as Paid
               </Button>
             </>
           )}
@@ -326,12 +342,12 @@ export default function PayrunDetailPage() {
                 size="sm"
                 loading={actionLoading}
                 onClick={handleEmailPayslips}
-                style={{ display: 'flex', alignItems: 'center', gap: '4px' }}
+                icon={<MailIcon size={14} />}
               >
-                ✉️ Email Payslips
+                Email Payslips
               </Button>
-              <span style={{ fontSize: '0.8125rem', color: '#16a34a', fontWeight: 600 }}>
-                ✓ Fully Paid on {payrun.execution_date ? new Date(payrun.execution_date).toLocaleDateString('en-IN') : 'Completed'}
+              <span style={{ fontSize: '0.8125rem', color: 'var(--success-700, #15803d)', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                <CheckCircleIcon size={14} /> Fully Paid on {payrun.execution_date ? new Date(payrun.execution_date).toLocaleDateString('en-IN') : 'Completed'}
               </span>
             </>
           )}
@@ -344,6 +360,83 @@ export default function PayrunDetailPage() {
         </div>
       }
     >
+      {/* Visual Workflow Lifecycle Progression */}
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+          gap: '12px',
+          marginBottom: '24px',
+          backgroundColor: 'var(--bg-surface, #ffffff)',
+          border: '1px solid var(--border-subtle, #e2e8f0)',
+          borderRadius: 'var(--radius-lg, 10px)',
+          padding: '16px 20px',
+        }}
+      >
+        {[
+          { key: 'DRAFT', label: '1. Draft Scope', desc: 'Employee Contract Terms' },
+          { key: 'COMPUTED', label: '2. Calculation Engine', desc: 'Rules & Attendance Evaluated' },
+          { key: 'VALIDATED', label: '3. Audit Verification', desc: 'Managerial Sign-Off' },
+          { key: 'PAID', label: '4. Disbursement', desc: 'Direct Deposit & Statements' },
+        ].map((step, idx) => {
+          const isDone = currentIdx > idx;
+          const isCurrent = currentIdx === idx;
+
+          return (
+            <div
+              key={step.key}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px',
+              }}
+            >
+              <div
+                style={{
+                  width: '32px',
+                  height: '32px',
+                  borderRadius: '50%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '0.8125rem',
+                  fontWeight: 700,
+                  backgroundColor: isDone
+                    ? 'var(--success-600, #16a34a)'
+                    : isCurrent
+                    ? 'var(--primary-600, #2563eb)'
+                    : 'var(--neutral-100, #f1f5f9)',
+                  color: isDone || isCurrent ? '#ffffff' : 'var(--text-muted, #94a3b8)',
+                  flexShrink: 0,
+                  boxShadow: isCurrent ? '0 0 0 3px var(--primary-100, #dbeafe)' : 'none',
+                }}
+              >
+                {isDone ? <CheckCircleIcon size={16} /> : idx + 1}
+              </div>
+              <div style={{ minWidth: 0 }}>
+                <div
+                  style={{
+                    fontSize: '0.8125rem',
+                    fontWeight: isCurrent || isDone ? 700 : 500,
+                    color: isCurrent || isDone ? 'var(--text-primary, #0f172a)' : 'var(--text-muted, #94a3b8)',
+                  }}
+                >
+                  {step.label}
+                </div>
+                <div
+                  style={{
+                    fontSize: '0.6875rem',
+                    color: isCurrent ? 'var(--primary-700, #1d4ed8)' : 'var(--text-muted, #94a3b8)',
+                  }}
+                >
+                  {step.desc}
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
       {/* Action Error / Success Feedback */}
       {actionError && (
         <Alert type="danger" title="Workflow Error" style={{ marginBottom: '16px' }}>
@@ -427,7 +520,9 @@ export default function PayrunDetailPage() {
                   gap: '8px',
                 }}
               >
-                <span>{w.type === 'ERROR' ? '❌' : '⚠️'}</span>
+                <span style={{ display: 'inline-flex', alignItems: 'center', flexShrink: 0 }}>
+                  {w.type === 'ERROR' ? <AlertTriangleIcon size={16} color="var(--danger-600, #dc2626)" /> : <AlertTriangleIcon size={16} color="var(--warning-600, #d97706)" />}
+                </span>
                 <span>
                   <strong>{w.employee_name ? `${w.employee_name}: ` : ''}</strong>
                   {w.message}
@@ -450,7 +545,9 @@ export default function PayrunDetailPage() {
                   gap: '8px',
                 }}
               >
-                <span>✅</span>
+                <span style={{ display: 'inline-flex', alignItems: 'center', flexShrink: 0 }}>
+                  <CheckCircleIcon size={16} color="var(--success-600, #16a34a)" />
+                </span>
                 <span>{n.message}</span>
               </div>
             ))}

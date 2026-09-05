@@ -1,8 +1,9 @@
 import React from 'react';
+import { ChevronDownIcon } from './Icons';
 
 /**
- * Shared Select Component
- * Owner: P1 (Core HR)
+ * Enterprise Select Dropdown Component
+ * Features custom vector chevron, focus states, and validation alerts
  */
 export default function Select({
   label,
@@ -20,21 +21,11 @@ export default function Select({
   ...props
 }) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginBottom: '12px' }}>
+    <div className="pp-form-group">
       {label && (
-        <label
-          htmlFor={id}
-          style={{
-            fontSize: '0.875rem',
-            fontWeight: 500,
-            color: 'var(--neutral-700, #334155)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '4px',
-          }}
-        >
+        <label htmlFor={id} className="pp-label">
           <span>{label}</span>
-          {required && <span style={{ color: 'var(--danger, #ef4444)' }}>*</span>}
+          {required && <span style={{ color: 'var(--danger, #dc2626)' }}>*</span>}
         </label>
       )}
 
@@ -46,23 +37,13 @@ export default function Select({
           disabled={disabled}
           required={required}
           style={{
-            width: '100%',
-            padding: '8px 36px 8px 12px',
-            fontSize: '0.875rem',
-            borderRadius: 'var(--radius-md, 8px)',
-            border: error
-              ? '1px solid var(--danger, #ef4444)'
-              : '1px solid var(--neutral-300, #cbd5e1)',
-            outline: 'none',
-            backgroundColor: disabled ? 'var(--neutral-100, #f1f5f9)' : '#ffffff',
-            color: 'var(--neutral-900, #0f172a)',
+            paddingRight: '32px',
             appearance: 'none',
             WebkitAppearance: 'none',
             cursor: disabled ? 'not-allowed' : 'pointer',
-            boxShadow: 'var(--shadow-xs)',
             ...style,
           }}
-          className={`form-select ${className}`}
+          className={`pp-select ${error ? 'pp-input-error' : ''} ${className}`}
           {...props}
         >
           {placeholder && <option value="">{placeholder}</option>}
@@ -73,33 +54,25 @@ export default function Select({
           ))}
         </select>
 
-        {/* Custom Chevron Indicator */}
+        {/* Vector Chevron Indicator */}
         <div
           style={{
             position: 'absolute',
-            right: '12px',
+            right: '11px',
             top: '50%',
             transform: 'translateY(-50%)',
             pointerEvents: 'none',
-            color: 'var(--neutral-500, #64748b)',
-            fontSize: '0.75rem',
+            color: 'var(--text-muted, #64748b)',
+            display: 'flex',
+            alignItems: 'center',
           }}
         >
-          ▼
+          <ChevronDownIcon size={14} />
         </div>
       </div>
 
-      {helperText && !error && (
-        <span style={{ fontSize: '0.75rem', color: 'var(--neutral-500, #64748b)' }}>
-          {helperText}
-        </span>
-      )}
-
-      {error && (
-        <span style={{ fontSize: '0.75rem', color: 'var(--danger, #ef4444)', fontWeight: 500 }}>
-          {error}
-        </span>
-      )}
+      {helperText && !error && <span className="pp-helper-text">{helperText}</span>}
+      {error && <span className="pp-error-text">{error}</span>}
     </div>
   );
 }

@@ -11,6 +11,7 @@ import Loading from '../../../components/feedback/Loading';
 import ErrorState from '../../../components/feedback/ErrorState';
 import EmptyState from '../../../components/feedback/EmptyState';
 import { useEmployees } from '../hooks/useEmployees';
+import { ListIcon, GridIcon, PlusIcon, SearchIcon } from '../../../components/ui/Icons';
 
 /**
  * Employee Kanban Board Page
@@ -105,7 +106,7 @@ export default function EmployeeKanbanPage() {
             <Button
               variant="ghost"
               size="sm"
-              icon="☰"
+              icon={<ListIcon size={14} />}
               onClick={() => navigate('/employees')}
               style={{
                 backgroundColor: 'transparent',
@@ -118,7 +119,7 @@ export default function EmployeeKanbanPage() {
             <Button
               variant="primary"
               size="sm"
-              icon="▦"
+              icon={<GridIcon size={14} />}
               style={{
                 padding: '4px 10px',
                 boxShadow: 'var(--shadow-xs)',
@@ -130,7 +131,7 @@ export default function EmployeeKanbanPage() {
 
           <Button
             variant="primary"
-            icon="➕"
+            icon={<PlusIcon size={16} />}
             onClick={() => navigate('/employees/new')}
           >
             Add Employee
@@ -155,7 +156,7 @@ export default function EmployeeKanbanPage() {
             placeholder="Search by name, code, or role..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            leftIcon="🔍"
+            leftIcon={<SearchIcon size={16} />}
           />
 
           <Select
@@ -200,7 +201,7 @@ export default function EmployeeKanbanPage() {
           action={
             <Button
               variant="primary"
-              icon="➕"
+              icon={<PlusIcon size={16} />}
               onClick={() => navigate('/employees/new')}
             >
               Add First Employee

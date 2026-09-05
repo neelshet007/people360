@@ -11,6 +11,7 @@ import ErrorState from '../../../components/feedback/ErrorState';
 import ContractStatusBadge from '../components/ContractStatusBadge';
 import { useContracts } from '../hooks/useContracts';
 import { formatDate, formatCurrency } from '../../../lib/utils';
+import { PlusIcon } from '../../../components/ui/Icons';
 
 /**
  * Contracts List Page
@@ -145,7 +146,7 @@ export default function ContractListPage() {
       actions={
         <Button
           variant="primary"
-          icon="➕"
+          icon={<PlusIcon size={16} />}
           onClick={() => navigate('/contracts/new')}
         >
           New Contract
@@ -207,7 +208,7 @@ export default function ContractListPage() {
           action={
             <Button
               variant="primary"
-              icon="➕"
+              icon={<PlusIcon size={16} />}
               onClick={() => navigate('/contracts/new')}
             >
               Issue New Contract

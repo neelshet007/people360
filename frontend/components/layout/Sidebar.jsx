@@ -1,5 +1,6 @@
 import React from 'react';
 import SidebarNavigation from '../navigation/SidebarNavigation';
+import { ChevronLeftIcon, ChevronRightIcon, XIcon } from '../ui/Icons';
 
 /**
  * Shared Sidebar Component
@@ -12,7 +13,7 @@ export default function Sidebar({
   mobileOpen = false,
   onCloseMobile,
 }) {
-  const sidebarWidth = collapsed ? '72px' : '260px';
+  const sidebarWidth = collapsed ? '64px' : '240px';
 
   // Desktop sidebar rendering
   const desktopSidebar = (
@@ -20,17 +21,19 @@ export default function Sidebar({
       style={{
         width: sidebarWidth,
         backgroundColor: '#ffffff',
-        borderRight: '1px solid var(--neutral-200, #e2e8f0)',
-        minHeight: 'calc(100vh - 64px)',
+        borderRight: '1px solid var(--border-subtle, #e2e8f0)',
+        minHeight: 'calc(100vh - 60px)',
         display: 'flex',
         flexDirection: 'column',
         transition: 'width var(--transition-base)',
         position: 'sticky',
-        top: '64px',
-        height: 'calc(100vh - 64px)',
+        top: '60px',
+        height: 'calc(100vh - 60px)',
         overflowY: 'auto',
+        zIndex: 20,
       }}
       className="desktop-sidebar"
+      aria-label="Application sidebar"
     >
       <div style={{ flex: 1 }}>
         <SidebarNavigation collapsed={collapsed} />
@@ -39,8 +42,8 @@ export default function Sidebar({
       {/* Collapse Toggle Footer */}
       <div
         style={{
-          padding: '12px',
-          borderTop: '1px solid var(--neutral-200, #e2e8f0)',
+          padding: '10px 12px',
+          borderTop: '1px solid var(--border-subtle, #e2e8f0)',
           display: 'flex',
           justifyContent: collapsed ? 'center' : 'flex-end',
         }}
@@ -51,21 +54,28 @@ export default function Sidebar({
           aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           style={{
             background: 'transparent',
-            border: '1px solid var(--neutral-200, #e2e8f0)',
-            borderRadius: 'var(--radius-md, 8px)',
-            padding: '6px 10px',
-            color: 'var(--neutral-600, #475569)',
+            border: '1px solid var(--border-subtle, #e2e8f0)',
+            borderRadius: 'var(--radius-md, 6px)',
+            padding: '5px 8px',
+            color: 'var(--text-muted, #64748b)',
             cursor: 'pointer',
-            fontSize: '0.8125rem',
+            fontSize: '0.75rem',
+            fontWeight: 500,
             display: 'flex',
             alignItems: 'center',
             gap: '6px',
             transition: 'all var(--transition-fast)',
           }}
-          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--neutral-100, #f1f5f9)')}
-          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = 'var(--neutral-100, #f1f5f9)';
+            e.currentTarget.style.color = 'var(--text-main, #0f172a)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = 'transparent';
+            e.currentTarget.style.color = 'var(--text-muted, #64748b)';
+          }}
         >
-          <span>{collapsed ? '▶' : '◀'}</span>
+          {collapsed ? <ChevronRightIcon size={15} /> : <ChevronLeftIcon size={15} />}
           {!collapsed && <span>Collapse</span>}
         </button>
       </div>
@@ -84,7 +94,7 @@ export default function Sidebar({
           left: 0,
           right: 0,
           bottom: 0,
-          backgroundColor: 'rgba(15, 23, 42, 0.5)',
+          backgroundColor: 'rgba(15, 23, 42, 0.4)',
           backdropFilter: 'blur(2px)',
           zIndex: 1000,
           display: 'flex',
@@ -93,39 +103,58 @@ export default function Sidebar({
       >
         <div
           style={{
-            width: '280px',
+            width: '260px',
             backgroundColor: '#ffffff',
             height: '100%',
             display: 'flex',
             flexDirection: 'column',
             boxShadow: 'var(--shadow-xl)',
-            animation: 'fadeIn 0.2s ease-out',
+            animation: 'fadeIn 0.15s ease-out',
           }}
           onClick={(e) => e.stopPropagation()}
         >
           <div
             style={{
-              padding: '16px 20px',
-              borderBottom: '1px solid var(--neutral-200, #e2e8f0)',
+              padding: '14px 18px',
+              borderBottom: '1px solid var(--border-subtle, #e2e8f0)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
             }}
           >
-            <span style={{ fontWeight: 700, fontSize: '1.1rem', color: 'var(--primary-600, #4f46e5)' }}>
-              PeoplePay360
-            </span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div
+                style={{
+                  width: '26px',
+                  height: '26px',
+                  borderRadius: '6px',
+                  backgroundColor: 'var(--brand-900, #0f172a)',
+                  color: '#ffffff',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontWeight: 700,
+                  fontSize: '0.875rem',
+                }}
+              >
+                P
+              </div>
+              <span style={{ fontWeight: 700, fontSize: '1rem', color: 'var(--text-main, #0f172a)', letterSpacing: '-0.02em' }}>
+                PeoplePay360
+              </span>
+            </div>
             <button
               onClick={onCloseMobile}
+              aria-label="Close mobile sidebar"
               style={{
                 background: 'transparent',
                 border: 'none',
-                fontSize: '1.25rem',
                 cursor: 'pointer',
                 color: 'var(--neutral-400, #94a3b8)',
+                padding: '4px',
               }}
             >
-              ✕
+              <XIcon size={18} />
             </button>
           </div>
 

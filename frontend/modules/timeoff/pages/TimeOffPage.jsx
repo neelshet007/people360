@@ -17,6 +17,7 @@ import TimeOffStatusBadge from '../components/TimeOffStatusBadge';
 import timeoffApi from '../api/timeoffApi';
 import employeesApi from '../../employees/api/employeesApi';
 import { useAuth } from '../../../context/AuthContext';
+import { CheckCircleIcon, XIcon, PlusIcon } from '../../../components/ui/Icons';
 
 /**
  * Time Off Master Page
@@ -281,49 +282,51 @@ export default function TimeOffPage() {
                       disabled={isLoading}
                       onClick={() => handleUpdateStatus(row.id, 'APPROVED')}
                       style={{
-                        padding: '4px 10px',
+                        padding: '5px 10px',
                         fontSize: '0.75rem',
                         fontWeight: 600,
-                        borderRadius: '6px',
+                        borderRadius: 'var(--radius-sm, 6px)',
                         border: 'none',
-                        backgroundColor: '#16a34a',
+                        backgroundColor: 'var(--success-600, #16a34a)',
                         color: '#ffffff',
                         cursor: isLoading ? 'not-allowed' : 'pointer',
-                        display: 'flex',
+                        display: 'inline-flex',
                         alignItems: 'center',
-                        gap: '3px',
+                        gap: '4px',
+                        transition: 'opacity 0.15s ease',
                       }}
                       title="Approve leave request"
                     >
-                      ✓ Approve
+                      <CheckCircleIcon size={13} /> Approve
                     </button>
                     <button
                       type="button"
                       disabled={isLoading}
                       onClick={() => handleUpdateStatus(row.id, 'REJECTED')}
                       style={{
-                        padding: '4px 10px',
+                        padding: '5px 10px',
                         fontSize: '0.75rem',
                         fontWeight: 600,
-                        borderRadius: '6px',
-                        border: '1px solid #ef4444',
-                        backgroundColor: '#ffffff',
-                        color: '#ef4444',
+                        borderRadius: 'var(--radius-sm, 6px)',
+                        border: '1px solid var(--danger-300, #fca5a5)',
+                        backgroundColor: 'var(--danger-50, #fef2f2)',
+                        color: 'var(--danger-700, #b91c1c)',
                         cursor: isLoading ? 'not-allowed' : 'pointer',
-                        display: 'flex',
+                        display: 'inline-flex',
                         alignItems: 'center',
-                        gap: '3px',
+                        gap: '4px',
+                        transition: 'background-color 0.15s ease',
                       }}
                       title="Refuse leave request"
                     >
-                      ✗ Refuse
+                      <XIcon size={13} /> Refuse
                     </button>
                   </div>
                 );
               }
               return (
-                <span style={{ fontSize: '0.75rem', color: 'var(--neutral-500, #64748b)', fontWeight: 500 }}>
-                  {row.status === 'APPROVED' ? '✓ Approved' : row.status === 'REJECTED' ? '✗ Refused' : '—'}
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted, #64748b)', fontWeight: 500, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                  {row.status === 'APPROVED' ? <><CheckCircleIcon size={13} color="var(--success-600, #16a34a)" /> Approved</> : row.status === 'REJECTED' ? <><XIcon size={13} color="var(--danger-600, #dc2626)" /> Refused</> : '—'}
                 </span>
               );
             },
@@ -381,7 +384,7 @@ export default function TimeOffPage() {
           : "HR Operations • Vacation requests, sick leaves, and annual allocation quotas"
       }
       actions={
-        <Button id="btn-request-timeoff" variant="primary" onClick={handleOpenModal}>
+        <Button id="btn-request-timeoff" variant="primary" icon={<PlusIcon size={16} />} onClick={handleOpenModal}>
           Request Time Off
         </Button>
       }
@@ -408,7 +411,7 @@ export default function TimeOffPage() {
                     : "Staff members have not submitted any active leave applications yet."
                 }
                 action={
-                  <Button id="btn-request-timeoff-empty" variant="primary" size="sm" onClick={handleOpenModal}>
+                  <Button id="btn-request-timeoff-empty" variant="primary" size="sm" icon={<PlusIcon size={16} />} onClick={handleOpenModal}>
                     Request Time Off
                   </Button>
                 }

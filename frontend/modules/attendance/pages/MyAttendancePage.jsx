@@ -11,6 +11,7 @@ import AttendanceStatusBadge from '../components/AttendanceStatusBadge';
 import { attendanceApi } from '../api/attendanceApi';
 import { getStoredUser } from '../../../lib/auth';
 import Toast from '../../../components/feedback/Toast';
+import { LogInIcon, LogOutIcon, ClockIcon } from '../../../components/ui/Icons';
 
 /**
  * My Attendance Page — Phase 5
@@ -201,28 +202,36 @@ export default function MyAttendancePage() {
       <Card
         style={{
           marginBottom: '20px',
-          background: isCheckedIn
-            ? 'linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%)'
-            : 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
-          border: isCheckedIn ? '1px solid #a7f3d0' : '1px solid #e2e8f0',
+          backgroundColor: isCheckedIn ? 'var(--success-50, #f0fdf4)' : 'var(--bg-surface, #ffffff)',
+          border: isCheckedIn ? '1px solid var(--success-200, #bbf7d0)' : '1px solid var(--border-subtle, #e2e8f0)',
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px' }}>
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-              <span style={{ fontSize: '1.5rem' }}>{isCheckedIn ? '🟢' : '🔴'}</span>
-              <span style={{ fontWeight: 700, fontSize: '1rem', color: isCheckedIn ? '#065f46' : 'var(--neutral-700)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '4px' }}>
+              <span
+                style={{
+                  display: 'inline-block',
+                  width: '10px',
+                  height: '10px',
+                  borderRadius: '50%',
+                  backgroundColor: isCheckedIn ? 'var(--success-600, #16a34a)' : 'var(--neutral-400, #94a3b8)',
+                  boxShadow: isCheckedIn ? '0 0 0 3px rgba(22, 163, 74, 0.2)' : 'none',
+                }}
+              />
+              <span style={{ fontWeight: 700, fontSize: '0.9375rem', color: isCheckedIn ? 'var(--success-800, #166534)' : 'var(--neutral-800, #1e293b)' }}>
                 {isCheckedIn ? 'Currently Checked In' : (activeState?.checkInTime ? 'Checked Out' : 'Not Checked In Today')}
               </span>
             </div>
             {isCheckedIn && (
-              <div style={{ fontSize: '0.875rem', color: '#047857' }}>
-                Since {formatTime(activeState?.checkInTime)} • Working:{' '}
+              <div style={{ fontSize: '0.875rem', color: 'var(--success-700, #15803d)', display: 'flex', alignItems: 'center', gap: '6px', marginTop: '4px' }}>
+                <ClockIcon size={14} color="var(--success-600, #16a34a)" />
+                Since {formatTime(activeState?.checkInTime)} • Active Shift:{' '}
                 <strong style={{ fontVariantNumeric: 'tabular-nums' }}>{formatElapsed(elapsedSeconds)}</strong>
               </div>
             )}
             {!isCheckedIn && activeState?.checkInTime && (
-              <div style={{ fontSize: '0.875rem', color: 'var(--neutral-600)' }}>
+              <div style={{ fontSize: '0.875rem', color: 'var(--neutral-600, #475569)', marginTop: '4px' }}>
                 {formatTime(activeState.checkInTime)} — {formatTime(activeState.checkOutTime)} •{' '}
                 Worked: <strong>{parseFloat(activeState.workedHours || 0).toFixed(2)} hrs</strong>
               </div>
@@ -230,8 +239,8 @@ export default function MyAttendancePage() {
           </div>
           <div style={{ display: 'flex', gap: '10px' }}>
             {!isCheckedIn && !activeState?.checkInTime && (
-              <Button variant="primary" loading={checkingIn} onClick={handleCheckIn} disabled={checkingIn}>
-                ▶ Check In
+              <Button variant="primary" loading={checkingIn} onClick={handleCheckIn} disabled={checkingIn} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                <LogInIcon size={16} /> Check In
               </Button>
             )}
             {isCheckedIn && (
@@ -240,9 +249,9 @@ export default function MyAttendancePage() {
                 loading={checkingOut}
                 onClick={handleCheckOut}
                 disabled={checkingOut}
-                style={{ backgroundColor: '#ef4444', color: '#fff', border: 'none' }}
+                style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
               >
-                ⏹ Check Out
+                <LogOutIcon size={16} /> Check Out
               </Button>
             )}
           </div>

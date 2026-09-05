@@ -8,6 +8,7 @@ import Badge from '../../../components/ui/Badge';
 import EmptyState from '../../../components/feedback/EmptyState';
 import ErrorState from '../../../components/feedback/ErrorState';
 import { useSchedules } from '../hooks/useSchedules';
+import { PlusIcon } from '../../../components/ui/Icons';
 
 /**
  * Working Schedules List Page
@@ -100,7 +101,7 @@ export default function ScheduleListPage() {
       actions={
         <Button
           variant="primary"
-          icon="➕"
+          icon={<PlusIcon size={16} />}
           onClick={() => navigate('/schedules/new')}
         >
           New Schedule
@@ -120,7 +121,7 @@ export default function ScheduleListPage() {
           action={
             <Button
               variant="primary"
-              icon="➕"
+              icon={<PlusIcon size={16} />}
               onClick={() => navigate('/schedules/new')}
             >
               Configure First Schedule

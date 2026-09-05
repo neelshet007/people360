@@ -12,6 +12,7 @@ import EmptyState from '../../../components/feedback/EmptyState';
 import Alert from '../../../components/feedback/Alert';
 import { formatCurrency } from '../../../lib/utils';
 import payrollApi from '../api/payrollApi';
+import { PlusIcon } from '../../../components/ui/Icons';
 
 /**
  * Salary Rules Page — PeoplePay360
@@ -294,8 +295,8 @@ export default function SalaryRulesPage() {
       actions={
         <div style={{ display: 'flex', gap: '8px' }}>
           {canManage && (
-            <Button variant="primary" size="sm" onClick={openCreateModal}>
-              + Add Salary Rule
+            <Button variant="primary" size="sm" icon={<PlusIcon size={14} />} onClick={openCreateModal}>
+              Add Salary Rule
             </Button>
           )}
         </div>

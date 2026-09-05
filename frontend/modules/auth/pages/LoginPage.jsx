@@ -5,6 +5,7 @@ import Card from '../../../components/ui/Card';
 import Button from '../../../components/ui/Button';
 import Input from '../../../components/ui/Input';
 import Alert from '../../../components/feedback/Alert';
+import { ZapIcon } from '../../../components/ui/Icons';
 
 /**
  * Sign In Page — PeoplePay360
@@ -196,8 +197,8 @@ export default function LoginPage() {
 
           {/* Hackathon Quick Role Switcher */}
           <div style={{ marginTop: '24px', paddingTop: '20px', borderTop: '1px solid var(--neutral-200, #e2e8f0)' }}>
-            <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--neutral-500, #64748b)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '10px' }}>
-              ⚡ Quick Demo Account Selector (Hackathon)
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.75rem', fontWeight: 700, color: 'var(--neutral-600, #475569)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '10px' }}>
+              <ZapIcon size={14} color="var(--primary-600, #2563eb)" /> Quick Demo Account Selector
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '8px' }}>
               {demoAccounts.map((acc) => (
