@@ -474,6 +474,159 @@ function DashboardView() {
                 )}
               </div>
 
+              {/* Dynamic Live Visual Charts (P3 & P1 Integration) */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: '20px', marginBottom: '24px' }}>
+                {/* 1. Department Payroll Cost Distribution */}
+                {(role === 'ADMIN' || role === 'HR_PAYROLL_MANAGER' || role === 'HR_PAYROLL_USER') && (
+                  <Card title="Department Payroll Disbursement" subtitle="Monthly net payout distribution by department (Live SQL)">
+                    {stats.payroll?.by_department && stats.payroll.by_department.length > 0 ? (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                        {stats.payroll.by_department.map((d, i) => {
+                          const maxNet = Math.max(...stats.payroll.by_department.map((x) => parseFloat(x.total_net) || 1));
+                          const percentage = Math.min(100, Math.round(((parseFloat(d.total_net) || 0) / maxNet) * 100));
+                          const colors = ['#4f46e5', '#0284c7', '#16a34a', '#d97706', '#9333ea'];
+                          const color = colors[i % colors.length];
+
+                          return (
+                            <div key={d.department || i}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8125rem', marginBottom: '4px' }}>
+                                <span style={{ fontWeight: 600, color: 'var(--neutral-800, #1e293b)' }}>
+                                  {d.department || 'General'}
+                                </span>
+                                <span style={{ fontWeight: 700, color }}>
+                                  {formatCurrency(d.total_net)} ({d.payslip_count} staff)
+                                </span>
+                              </div>
+                              <div style={{ width: '100%', height: '8px', backgroundColor: 'var(--neutral-100, #f1f5f9)', borderRadius: '4px', overflow: 'hidden' }}>
+                                <div
+                                  style={{
+                                    width: `${percentage}%`,
+                                    height: '100%',
+                                    backgroundColor: color,
+                                    borderRadius: '4px',
+                                    transition: 'width 0.6s ease-out',
+                                  }}
+                                />
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <div style={{ padding: '20px', textAlign: 'center', color: 'var(--neutral-500, #64748b)', fontSize: '0.875rem' }}>
+                        No payroll disbursement records computed yet.
+                      </div>
+                    )}
+                  </Card>
+                )}
+
+                {/* 2. Attendance Status Distribution */}
+                {(role === 'ADMIN' || role === 'HR_MANAGER' || role === 'HR_PAYROLL_MANAGER') && (
+                  <Card title="Attendance Health & Compliance" subtitle="Live shift logs breakdown across workforce">
+                    {stats.attendance?.total_records > 0 ? (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                        <div style={{ display: 'flex', height: '18px', width: '100%', borderRadius: '6px', overflow: 'hidden' }}>
+                          <div
+                            style={{
+                              width: `${(stats.attendance.present / stats.attendance.total_records) * 100}%`,
+                              backgroundColor: '#16a34a',
+                            }}
+                            title={`Present: ${stats.attendance.present}`}
+                          />
+                          <div
+                            style={{
+                              width: `${(stats.attendance.late / stats.attendance.total_records) * 100}%`,
+                              backgroundColor: '#d97706',
+                            }}
+                            title={`Late: ${stats.attendance.late}`}
+                          />
+                          <div
+                            style={{
+                              width: `${(stats.attendance.half_day / stats.attendance.total_records) * 100}%`,
+                              backgroundColor: '#0284c7',
+                            }}
+                            title={`Half-Day: ${stats.attendance.half_day}`}
+                          />
+                          <div
+                            style={{
+                              width: `${(stats.attendance.absent / stats.attendance.total_records) * 100}%`,
+                              backgroundColor: '#dc2626',
+                            }}
+                            title={`Absent: ${stats.attendance.absent}`}
+                          />
+                        </div>
+
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px', fontSize: '0.8125rem' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <span style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#16a34a' }} />
+                            <span>Present: <strong>{stats.attendance.present}</strong> ({Math.round((stats.attendance.present / stats.attendance.total_records) * 100)}%)</span>
+                          </div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <span style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#d97706' }} />
+                            <span>Late: <strong>{stats.attendance.late}</strong></span>
+                          </div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <span style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#0284c7' }} />
+                            <span>Half-Day: <strong>{stats.attendance.half_day}</strong></span>
+                          </div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <span style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#dc2626' }} />
+                            <span>Absent: <strong>{stats.attendance.absent}</strong></span>
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <div style={{ padding: '20px', textAlign: 'center', color: 'var(--neutral-500, #64748b)', fontSize: '0.875rem' }}>
+                        No attendance records logged yet.
+                      </div>
+                    )}
+                  </Card>
+                )}
+
+                {/* 3. Monthly Payrun History Trend */}
+                {(role === 'ADMIN' || role === 'HR_PAYROLL_MANAGER' || role === 'HR_PAYROLL_USER') && (
+                  <Card title="Periodic Payrun Batch Execution" subtitle="Historical gross vs net compensation batches">
+                    {stats.payroll?.trends && stats.payroll.trends.length > 0 ? (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                        {stats.payroll.trends.map((t) => (
+                          <div
+                            key={t.id}
+                            style={{
+                              display: 'flex',
+                              justifyContent: 'space-between',
+                              alignItems: 'center',
+                              padding: '10px 12px',
+                              backgroundColor: 'var(--neutral-50, #f8fafc)',
+                              borderRadius: '6px',
+                              border: '1px solid var(--neutral-200, #e2e8f0)',
+                            }}
+                          >
+                            <div>
+                              <div style={{ fontWeight: 600, fontSize: '0.875rem', color: 'var(--neutral-900, #0f172a)' }}>
+                                {t.name}
+                              </div>
+                              <div style={{ fontSize: '0.75rem', color: 'var(--neutral-500, #64748b)' }}>
+                                Period End: {t.pay_period_end ? t.pay_period_end.split('T')[0] : '2026-09-30'}
+                              </div>
+                            </div>
+                            <div style={{ textAlign: 'right' }}>
+                              <div style={{ fontWeight: 700, fontSize: '0.875rem', color: 'var(--success-700, #15803d)' }}>
+                                {formatCurrency(t.total_net)} Net
+                              </div>
+                              <Badge variant={t.status === 'PAID' ? 'success' : 'primary'}>{t.status}</Badge>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div style={{ padding: '20px', textAlign: 'center', color: 'var(--neutral-500, #64748b)', fontSize: '0.875rem' }}>
+                        No payrun batches completed yet.
+                      </div>
+                    )}
+                  </Card>
+                )}
+              </div>
+
               {/* Department Breakdown & Recent Staff */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '20px', marginBottom: '24px' }}>
                 <Card title="Department Distribution" subtitle="Workforce headcounts across active departments">

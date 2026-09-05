@@ -13,73 +13,88 @@ const getDashboardStats = async (user = {}) => {
     // 1. ROLE: EMPLOYEE (Personal Self-Service Dashboard)
     // -------------------------------------------------------------------------
     if (role === 'EMPLOYEE' && employeeId) {
-      // (a) Personal Details & Active Contract
-      const empRes = await db.query(`
-        SELECT id, employee_code, first_name, last_name, display_name, email, department, designation, status, date_of_joining
-        FROM employees WHERE id = $1
-      `, [employeeId]);
+      const [
+        empRes,
+        contractRes,
+        todayAttRes,
+        attHistoryRes,
+        attCountRes,
+        leaveAllocRes,
+        leaveReqRes,
+        payslipRes
+      ] = await Promise.all([
+        // (a) Personal Details
+        db.query(`
+          SELECT id, employee_code, first_name, last_name, display_name, email, department, designation, status, date_of_joining
+          FROM employees WHERE id = $1
+        `, [employeeId]),
+
+        // Active Contract
+        db.query(`
+          SELECT c.*, s.name as schedule_name, st.name as structure_name
+          FROM contracts c
+          LEFT JOIN working_schedules s ON c.working_schedule_id = s.id
+          LEFT JOIN salary_structures st ON c.salary_structure_id = st.id
+          WHERE c.employee_id = $1 AND c.status = 'ACTIVE'
+          ORDER BY c.start_date DESC LIMIT 1
+        `, [employeeId]),
+
+        // (b) Personal Attendance Today
+        db.query(`
+          SELECT * FROM attendance WHERE employee_id = $1 AND date = CURRENT_DATE LIMIT 1
+        `, [employeeId]),
+
+        // Recent Attendance
+        db.query(`
+          SELECT id, date, clock_in, clock_out, total_hours, status, notes
+          FROM attendance WHERE employee_id = $1
+          ORDER BY date DESC LIMIT 5
+        `, [employeeId]),
+
+        // Attendance Counts
+        db.query(`
+          SELECT 
+            COUNT(*) FILTER (WHERE status = 'PRESENT') as present_days,
+            COUNT(*) FILTER (WHERE status = 'LATE') as late_days,
+            COUNT(*) FILTER (WHERE status = 'HALF_DAY') as half_days,
+            COALESCE(SUM(total_hours), 0) as total_hours_worked
+          FROM attendance WHERE employee_id = $1
+        `, [employeeId]),
+
+        // (c) Personal Leave Balances & Requests
+        db.query(`
+          SELECT a.id, a.year, a.allocated_days, a.used_days, (a.allocated_days - a.used_days) as remaining_days,
+                 t.name as type_name, t.code as type_code, t.is_paid
+          FROM time_off_allocations a
+          JOIN time_off_types t ON a.time_off_type_id = t.id
+          WHERE a.employee_id = $1 AND a.year = 2026
+          ORDER BY t.name ASC
+        `, [employeeId]),
+
+        db.query(`
+          SELECT r.id, r.start_date, r.end_date, r.total_days, r.reason, r.status, r.created_at,
+                 t.name as type_name, t.code as type_code
+          FROM time_off_requests r
+          JOIN time_off_types t ON r.time_off_type_id = t.id
+          WHERE r.employee_id = $1
+          ORDER BY r.created_at DESC LIMIT 5
+        `, [employeeId]),
+
+        // (d) Personal Payslips
+        db.query(`
+          SELECT p.id, p.gross_amount, p.total_deductions, p.net_amount, p.status, p.worked_days,
+                 pr.name as payrun_name, pr.pay_period_start, pr.pay_period_end
+          FROM payslips p
+          JOIN payruns pr ON p.payrun_id = pr.id
+          WHERE p.employee_id = $1
+          ORDER BY pr.pay_period_end DESC LIMIT 3
+        `, [employeeId]),
+      ]);
+
       const empInfo = empRes.rows[0] || {};
-
-      const contractRes = await db.query(`
-        SELECT c.*, s.name as schedule_name, st.name as structure_name
-        FROM contracts c
-        LEFT JOIN working_schedules s ON c.working_schedule_id = s.id
-        LEFT JOIN salary_structures st ON c.salary_structure_id = st.id
-        WHERE c.employee_id = $1 AND c.status = 'ACTIVE'
-        ORDER BY c.start_date DESC LIMIT 1
-      `, [employeeId]);
       const activeContract = contractRes.rows[0] || null;
-
-      // (b) Personal Attendance
-      const todayAttRes = await db.query(`
-        SELECT * FROM attendance WHERE employee_id = $1 AND date = CURRENT_DATE LIMIT 1
-      `, [employeeId]);
       const todayAttendance = todayAttRes.rows[0] || null;
-
-      const attHistoryRes = await db.query(`
-        SELECT id, date, clock_in, clock_out, total_hours, status, notes
-        FROM attendance WHERE employee_id = $1
-        ORDER BY date DESC LIMIT 5
-      `, [employeeId]);
-
-      const attCountRes = await db.query(`
-        SELECT 
-          COUNT(*) FILTER (WHERE status = 'PRESENT') as present_days,
-          COUNT(*) FILTER (WHERE status = 'LATE') as late_days,
-          COUNT(*) FILTER (WHERE status = 'HALF_DAY') as half_days,
-          COALESCE(SUM(total_hours), 0) as total_hours_worked
-        FROM attendance WHERE employee_id = $1
-      `, [employeeId]);
       const attSummary = attCountRes.rows[0] || {};
-
-      // (c) Personal Leave Balances & Requests
-      const leaveAllocRes = await db.query(`
-        SELECT a.id, a.year, a.allocated_days, a.used_days, (a.allocated_days - a.used_days) as remaining_days,
-               t.name as type_name, t.code as type_code, t.is_paid
-        FROM time_off_allocations a
-        JOIN time_off_types t ON a.time_off_type_id = t.id
-        WHERE a.employee_id = $1 AND a.year = 2026
-        ORDER BY t.name ASC
-      `, [employeeId]);
-
-      const leaveReqRes = await db.query(`
-        SELECT r.id, r.start_date, r.end_date, r.total_days, r.reason, r.status, r.created_at,
-               t.name as type_name, t.code as type_code
-        FROM time_off_requests r
-        JOIN time_off_types t ON r.time_off_type_id = t.id
-        WHERE r.employee_id = $1
-        ORDER BY r.created_at DESC LIMIT 5
-      `, [employeeId]);
-
-      // (d) Personal Payslips
-      const payslipRes = await db.query(`
-        SELECT p.id, p.gross_amount, p.total_deductions, p.net_amount, p.status, p.worked_days,
-               pr.name as payrun_name, pr.pay_period_start, pr.pay_period_end
-        FROM payslips p
-        JOIN payruns pr ON p.payrun_id = pr.id
-        WHERE p.employee_id = $1
-        ORDER BY pr.pay_period_end DESC LIMIT 3
-      `, [employeeId]);
 
       return {
         role: 'EMPLOYEE',
@@ -109,91 +124,139 @@ const getDashboardStats = async (user = {}) => {
     // -------------------------------------------------------------------------
     // 2. MANAGEMENT ROLES (HR_MANAGER, HR_PAYROLL_USER, HR_PAYROLL_MANAGER, ADMIN)
     // -------------------------------------------------------------------------
+    // Execute all independent summary queries in parallel for minimal latency
+    const [
+      empRes,
+      deptRes,
+      contractRes,
+      attRes,
+      leaveRes,
+      payrollRes,
+      payslipCountRes,
+      payrunTrendRes,
+      deptPayrollRes,
+      leaveDistRes,
+      userCountRes,
+      recentEmpRes,
+    ] = await Promise.all([
+      // (a) Employees KPIs
+      db.query(`
+        SELECT 
+          COUNT(*) as total,
+          COUNT(*) FILTER (WHERE status = 'ACTIVE') as active,
+          COUNT(*) FILTER (WHERE status = 'ON_LEAVE') as on_leave,
+          COUNT(*) FILTER (WHERE status = 'INACTIVE') as inactive,
+          COUNT(*) FILTER (WHERE status = 'TERMINATED') as terminated
+        FROM employees
+      `),
 
-    // (a) Employees KPIs
-    const empRes = await db.query(`
-      SELECT 
-        COUNT(*) as total,
-        COUNT(*) FILTER (WHERE status = 'ACTIVE') as active,
-        COUNT(*) FILTER (WHERE status = 'ON_LEAVE') as on_leave,
-        COUNT(*) FILTER (WHERE status = 'INACTIVE') as inactive,
-        COUNT(*) FILTER (WHERE status = 'TERMINATED') as terminated
-      FROM employees
-    `);
+      // Department Breakdown
+      db.query(`
+        SELECT department, COUNT(*) as count 
+        FROM employees 
+        WHERE department IS NOT NULL AND department != ''
+        GROUP BY department 
+        ORDER BY count DESC
+      `),
+
+      // (b) Contracts KPIs
+      db.query(`
+        SELECT 
+          COUNT(*) as total,
+          COUNT(*) FILTER (WHERE status = 'ACTIVE') as active,
+          COALESCE(SUM(wage_rate) FILTER (WHERE status = 'ACTIVE' AND wage_type = 'MONTHLY'), 0) as monthly_commitment
+        FROM contracts
+      `),
+
+      // (c) Attendance KPIs
+      db.query(`
+        SELECT 
+          COUNT(*) as total_records,
+          COUNT(*) FILTER (WHERE status = 'PRESENT') as total_present,
+          COUNT(*) FILTER (WHERE status = 'LATE') as total_late,
+          COUNT(*) FILTER (WHERE status = 'HALF_DAY') as total_half_day,
+          COUNT(*) FILTER (WHERE status = 'ABSENT') as total_absent
+        FROM attendance
+      `),
+
+      // (d) Time Off KPIs
+      db.query(`
+        SELECT 
+          COUNT(*) as total_requests,
+          COUNT(*) FILTER (WHERE status = 'PENDING') as pending,
+          COUNT(*) FILTER (WHERE status = 'APPROVED') as approved,
+          COUNT(*) FILTER (WHERE status = 'REJECTED') as rejected
+        FROM time_off_requests
+      `),
+
+      // (e) Payroll KPIs
+      db.query(`
+        SELECT 
+          COUNT(*) as total_payruns,
+          COUNT(*) FILTER (WHERE status = 'PAID') as paid_payruns,
+          COALESCE(SUM(total_net) FILTER (WHERE status IN ('CONFIRMED', 'PAID')), 0) as total_disbursed,
+          COALESCE(SUM(total_gross) FILTER (WHERE status IN ('CONFIRMED', 'PAID')), 0) as total_gross
+        FROM payruns
+      `),
+
+      // Total Payslips
+      db.query(`SELECT COUNT(*) as total FROM payslips`),
+
+      // Monthly Payruns Trend for live charts
+      db.query(`
+        SELECT id, name, total_gross, total_deductions, total_net, status, pay_period_end
+        FROM payruns
+        ORDER BY pay_period_end ASC
+        LIMIT 6
+      `),
+
+      // Department-wise Monthly Net Payroll Cost
+      db.query(`
+        SELECT e.department, 
+               COUNT(p.id) as payslip_count,
+               COALESCE(SUM(p.gross_amount), 0) as total_gross,
+               COALESCE(SUM(p.total_deductions), 0) as total_deductions,
+               COALESCE(SUM(p.net_amount), 0) as total_net
+        FROM payslips p
+        JOIN employees e ON p.employee_id = e.id
+        GROUP BY e.department
+        ORDER BY total_net DESC
+      `),
+
+      // Leave Types Distribution
+      db.query(`
+        SELECT t.name as type_name, t.code as type_code, COUNT(r.id) as request_count,
+               COALESCE(SUM(r.total_days), 0) as total_days
+        FROM time_off_types t
+        LEFT JOIN time_off_requests r ON t.id = r.time_off_type_id
+        GROUP BY t.id, t.name, t.code
+        ORDER BY total_days DESC
+      `),
+
+      // (f) System Users (for ADMIN role)
+      db.query(`
+        SELECT 
+          COUNT(*) as total_users,
+          COUNT(*) FILTER (WHERE status = 'ACTIVE') as active_users
+        FROM users;
+      `),
+
+      // (g) Recent Employees
+      db.query(`
+        SELECT id, employee_code, first_name, last_name, display_name, department, designation, status, created_at
+        FROM employees
+        ORDER BY created_at DESC
+        LIMIT 5
+      `),
+    ]);
+
     const empStats = empRes.rows[0] || {};
-
-    // Department Breakdown
-    const deptRes = await db.query(`
-      SELECT department, COUNT(*) as count 
-      FROM employees 
-      WHERE department IS NOT NULL AND department != ''
-      GROUP BY department 
-      ORDER BY count DESC
-    `);
-
-    // (b) Contracts KPIs
-    const contractRes = await db.query(`
-      SELECT 
-        COUNT(*) as total,
-        COUNT(*) FILTER (WHERE status = 'ACTIVE') as active,
-        COALESCE(SUM(wage_rate) FILTER (WHERE status = 'ACTIVE' AND wage_type = 'MONTHLY'), 0) as monthly_commitment
-      FROM contracts
-    `);
     const contractStats = contractRes.rows[0] || {};
-
-    // (c) Attendance KPIs
-    const attRes = await db.query(`
-      SELECT 
-        COUNT(*) as total_records,
-        COUNT(*) FILTER (WHERE status = 'PRESENT') as total_present,
-        COUNT(*) FILTER (WHERE status = 'LATE') as total_late,
-        COUNT(*) FILTER (WHERE status = 'HALF_DAY') as total_half_day,
-        COUNT(*) FILTER (WHERE status = 'ABSENT') as total_absent
-      FROM attendance
-    `);
     const attStats = attRes.rows[0] || {};
-
-    // (d) Time Off KPIs
-    const leaveRes = await db.query(`
-      SELECT 
-        COUNT(*) as total_requests,
-        COUNT(*) FILTER (WHERE status = 'PENDING') as pending,
-        COUNT(*) FILTER (WHERE status = 'APPROVED') as approved,
-        COUNT(*) FILTER (WHERE status = 'REJECTED') as rejected
-      FROM time_off_requests
-    `);
     const leaveStats = leaveRes.rows[0] || {};
-
-    // (e) Payroll KPIs
-    const payrollRes = await db.query(`
-      SELECT 
-        COUNT(*) as total_payruns,
-        COUNT(*) FILTER (WHERE status = 'PAID') as paid_payruns,
-        COALESCE(SUM(total_net) FILTER (WHERE status IN ('CONFIRMED', 'PAID')), 0) as total_disbursed,
-        COALESCE(SUM(total_gross) FILTER (WHERE status IN ('CONFIRMED', 'PAID')), 0) as total_gross
-      FROM payruns
-    `);
     const payrollStats = payrollRes.rows[0] || {};
-
-    const payslipCountRes = await db.query(`SELECT COUNT(*) as total FROM payslips`);
     const totalPayslips = payslipCountRes.rows[0]?.total || 0;
-
-    // (f) System Users (for ADMIN role)
-    const userCountRes = await db.query(`
-      SELECT 
-        COUNT(*) as total_users,
-        COUNT(*) FILTER (WHERE status = 'ACTIVE') as active_users
-      FROM users;
-    `);
     const userStats = userCountRes.rows[0] || {};
-
-    // (g) Recent Employees
-    const recentEmpRes = await db.query(`
-      SELECT id, employee_code, first_name, last_name, display_name, department, designation, status, created_at
-      FROM employees
-      ORDER BY created_at DESC
-      LIMIT 5
-    `);
 
     return {
       role,
@@ -227,6 +290,7 @@ const getDashboardStats = async (user = {}) => {
         pending: parseInt(leaveStats.pending || 0, 10),
         approved: parseInt(leaveStats.approved || 0, 10),
         rejected: parseInt(leaveStats.rejected || 0, 10),
+        by_type: leaveDistRes.rows,
       },
       payroll: {
         total_payruns: parseInt(payrollStats.total_payruns || 0, 10),
@@ -234,6 +298,8 @@ const getDashboardStats = async (user = {}) => {
         total_payslips: parseInt(totalPayslips, 10),
         total_disbursed: parseFloat(payrollStats.total_disbursed || 0),
         total_gross: parseFloat(payrollStats.total_gross || 0),
+        trends: payrunTrendRes.rows,
+        by_department: deptPayrollRes.rows,
       },
     };
   } catch (err) {

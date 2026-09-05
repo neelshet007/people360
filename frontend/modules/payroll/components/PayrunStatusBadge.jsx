@@ -11,13 +11,19 @@ export default function PayrunStatusBadge({ status = 'DRAFT' }) {
   const variantMap = {
     DRAFT: 'neutral',
     COMPUTING: 'info',
+    COMPUTED: 'primary',
+    VALIDATING: 'warning',
+    VALIDATED: 'info',
     CONFIRMED: 'primary',
     PAID: 'success',
   };
 
   const labelMap = {
     DRAFT: 'Draft',
-    COMPUTING: 'Computing',
+    COMPUTING: 'Computing...',
+    COMPUTED: 'Computed',
+    VALIDATING: 'Validating...',
+    VALIDATED: 'Validated',
     CONFIRMED: 'Confirmed',
     PAID: 'Paid',
   };
