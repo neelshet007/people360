@@ -6,7 +6,7 @@ import apiClient from '../../../lib/api/apiClient';
  */
 export const attendanceApi = {
   // ── Employee self-service ──────────────────────────────────
-  checkIn: () => apiClient.post('/attendance/check-in', {}),
+  checkIn: (data = {}) => apiClient.post('/attendance/check-in', data),
   checkOut: () => apiClient.post('/attendance/check-out', {}),
   getActive: () => apiClient.get('/attendance/active'),
   getMyHistory: (params = {}) => {

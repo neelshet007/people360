@@ -299,6 +299,10 @@ const attendanceRepository = {
       difference_hours: parseFloat(data.difference_hours || 0.0),
       status: data.status || 'PRESENT',
       notes: data.notes || null,
+      latitude: data.latitude !== undefined ? data.latitude : null,
+      longitude: data.longitude !== undefined ? data.longitude : null,
+      distance_from_office_meters: data.distance_from_office_meters !== undefined ? data.distance_from_office_meters : null,
+      is_out_of_bounds: data.is_out_of_bounds || false,
       created_at: now,
       updated_at: now,
     };
@@ -310,15 +314,17 @@ const attendanceRepository = {
         try {
           const sql = `
             INSERT INTO attendance
-              (id, employee_id, date, clock_in, clock_out, total_hours, expected_hours, difference_hours, status, notes, created_at, updated_at)
-            VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)
+              (id, employee_id, date, clock_in, clock_out, total_hours, expected_hours, difference_hours, status, notes, latitude, longitude, distance_from_office_meters, is_out_of_bounds, created_at, updated_at)
+            VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16)
             RETURNING *
           `;
           const res = await db.query(sql, [
             newRecord.id, newRecord.employee_id, newRecord.date,
             newRecord.clock_in, newRecord.clock_out, newRecord.total_hours,
             newRecord.expected_hours, newRecord.difference_hours,
-            newRecord.status, newRecord.notes, newRecord.created_at, newRecord.updated_at,
+            newRecord.status, newRecord.notes,
+            newRecord.latitude, newRecord.longitude, newRecord.distance_from_office_meters, newRecord.is_out_of_bounds,
+            newRecord.created_at, newRecord.updated_at,
           ]);
           return res.rows[0];
         } catch (colErr) {

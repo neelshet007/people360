@@ -69,14 +69,38 @@ export default function AttendanceWidget() {
 
   const handleCheckIn = async () => {
     setLoading(true);
-    try {
-      await attendanceApi.checkIn();
-      await loadActiveState();
-      showToast('✅ Checked in successfully!', 'success');
-    } catch (err) {
-      showToast(err.message || 'Unable to check in. Please try again.', 'danger');
-    } finally {
-      setLoading(false);
+    showToast('Acquiring GPS location...', 'info');
+
+    const doCheckIn = async (locationData = {}) => {
+      try {
+        await attendanceApi.checkIn(locationData);
+        await loadActiveState();
+        showToast('✅ Checked in successfully!', 'success');
+      } catch (err) {
+        showToast(err.message || 'Unable to check in. Please try again.', 'danger');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if ('geolocation' in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          doCheckIn({
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude
+          });
+        },
+        (error) => {
+          console.warn('GPS Error:', error);
+          // Proceed without GPS if permission denied or error
+          doCheckIn({});
+        },
+        { timeout: 5000, maximumAge: 60000 }
+      );
+    } else {
+      // Fallback if geolocation is not supported
+      doCheckIn({});
     }
   };
 
