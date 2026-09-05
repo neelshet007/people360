@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import PageContainer from '../../../components/layout/PageContainer';
 import Card from '../../../components/ui/Card';
@@ -11,9 +11,11 @@ import ErrorState from '../../../components/feedback/ErrorState';
 import ConfirmationDialog from '../../../components/feedback/ConfirmationDialog';
 import Alert from '../../../components/feedback/Alert';
 import EmployeeStatusBadge from '../components/EmployeeStatusBadge';
+import ContractStatusBadge from '../../contracts/components/ContractStatusBadge';
 import { useEmployee } from '../hooks/useEmployee';
 import employeesApi from '../api/employeesApi';
-import { formatDate } from '../../../lib/utils';
+import contractsApi from '../../contracts/api/contractsApi';
+import { formatDate, formatCurrency } from '../../../lib/utils';
 
 /**
  * Employee Profile — 360 Degree Workforce Hub
@@ -28,6 +30,29 @@ export default function EmployeeDetailPage() {
   const [showDeactivateDialog, setShowDeactivateDialog] = useState(false);
   const [actionSuccess, setActionSuccess] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [contracts, setContracts] = useState([]);
+  const [loadingContracts, setLoadingContracts] = useState(false);
+
+  useEffect(() => {
+    async function loadEmployeeContracts() {
+      if (!id) return;
+      setLoadingContracts(true);
+      try {
+        const response = await contractsApi.getContracts({ employee_id: id, limit: 50 });
+        const items = Array.isArray(response?.data)
+          ? response.data
+          : Array.isArray(response?.data?.items)
+          ? response.data.items
+          : [];
+        setContracts(items);
+      } catch (e) {
+        console.warn('Failed to load employee contracts:', e.message);
+      } finally {
+        setLoadingContracts(false);
+      }
+    }
+    loadEmployeeContracts();
+  }, [id]);
 
   const handleDeactivate = async () => {
     setIsDeleting(true);
@@ -265,43 +290,186 @@ export default function EmployeeDetailPage() {
 
       {/* Tab 3: Contracts (P1) */}
       {activeTab === 'contract' && (
-        <Card
-          title="Employment Contracts (P1 — Core HR)"
-          subtitle="Agreements defining employment terms, duration, and baseline wages"
-          actions={
-            <Button
-              variant="outline"
-              size="sm"
-              icon="➕"
-              onClick={() => navigate('/contracts/new')}
-            >
-              Issue New Contract
-            </Button>
-          }
-        >
-          <div
-            style={{
-              padding: '16px',
-              backgroundColor: 'var(--neutral-50, #f8fafc)',
-              borderRadius: 'var(--radius-md, 8px)',
-              border: '1px solid var(--neutral-200, #e2e8f0)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-            }}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          <Card
+            title="Employment Contracts (P1 — Core HR)"
+            subtitle="Authoritative legal employment agreements, duration validity, and wage baselines"
+            actions={
+              <Button
+                variant="primary"
+                size="sm"
+                icon="➕"
+                onClick={() => navigate(`/contracts/new?employee_id=${employee.id}`)}
+              >
+                Issue New Contract
+              </Button>
+            }
           >
-            <div>
-              <div style={{ fontWeight: 600, fontSize: '0.875rem' }}>Active Primary Contract for {fullName}</div>
-              <div style={{ fontSize: '0.8125rem', color: 'var(--neutral-500, #64748b)', marginTop: '2px' }}>
-                Bound to Employee Code: {employee.employee_code}
+            {loadingContracts ? (
+              <Loading message="Loading contract records..." />
+            ) : contracts.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '32px 16px' }}>
+                <div style={{ fontSize: '2rem', marginBottom: '8px' }}>📝</div>
+                <h4 style={{ fontWeight: 600, color: 'var(--neutral-800, #1e293b)', margin: 0 }}>
+                  No Contracts on Record
+                </h4>
+                <p style={{ fontSize: '0.8125rem', color: 'var(--neutral-500, #64748b)', margin: '8px auto 16px auto', maxWidth: '400px' }}>
+                  No active or historical contracts have been issued for {fullName}. Issue an employment contract to establish wage rates and working schedules.
+                </p>
+                <Button
+                  variant="primary"
+                  icon="➕"
+                  onClick={() => navigate(`/contracts/new?employee_id=${employee.id}`)}
+                >
+                  Issue First Contract
+                </Button>
               </div>
-            </div>
-            <Link to="/contracts" style={{ color: 'var(--primary-600, #4f46e5)', fontWeight: 600, fontSize: '0.8125rem' }}>
-              Open Contracts Module →
-            </Link>
-          </div>
-        </Card>
+            ) : (
+              <div>
+                {/* Active Contract Section */}
+                {(() => {
+                  const activeContract = contracts.find((c) => c.status === 'ACTIVE');
+                  const historicalContracts = contracts.filter((c) => c.id !== activeContract?.id);
+
+                  return (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                      {activeContract ? (
+                        <div
+                          style={{
+                            padding: '20px',
+                            backgroundColor: 'var(--primary-50, #eef2ff)',
+                            borderRadius: 'var(--radius-md, 8px)',
+                            border: '1px solid var(--primary-200, #c7d2fe)',
+                          }}
+                        >
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px' }}>
+                            <div>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                <h4 style={{ fontSize: '1.05rem', fontWeight: 700, margin: 0, color: 'var(--primary-950, #172554)' }}>
+                                  {activeContract.reference || `CNT-${activeContract.id.substring(0, 8).toUpperCase()}`}
+                                </h4>
+                                <ContractStatusBadge status={activeContract.status} />
+                              </div>
+                              <p style={{ fontSize: '0.8125rem', color: 'var(--primary-800, #1e40af)', margin: '4px 0 0 0' }}>
+                                Primary Active Contract • {activeContract.contract_type || 'Permanent'}
+                              </p>
+                            </div>
+
+                            <div style={{ textAlign: 'right' }}>
+                              <span style={{ fontSize: '0.75rem', color: 'var(--primary-700, #4338ca)', fontWeight: 600 }}>Agreed Wage</span>
+                              <div style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--neutral-900, #0f172a)' }}>
+                                {activeContract.wage_rate ? formatCurrency(Number(activeContract.wage_rate)) : '$0.00'}
+                                <span style={{ fontSize: '0.75rem', color: 'var(--neutral-500, #64748b)', fontWeight: 400, marginLeft: '4px' }}>
+                                  / {activeContract.wage_type || 'month'}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px', marginTop: '16px', paddingTop: '16px', borderTop: '1px solid var(--primary-200, #c7d2fe)' }}>
+                            <div>
+                              <span style={{ fontSize: '0.75rem', color: 'var(--neutral-500, #64748b)' }}>Validity Timeline</span>
+                              <div style={{ fontSize: '0.875rem', fontWeight: 600 }}>
+                                {formatDate(activeContract.start_date)} → {activeContract.end_date ? formatDate(activeContract.end_date) : 'Indefinite'}
+                              </div>
+                            </div>
+                            <div>
+                              <span style={{ fontSize: '0.75rem', color: 'var(--neutral-500, #64748b)' }}>Assigned Schedule</span>
+                              <div style={{ fontSize: '0.875rem', fontWeight: 600 }}>
+                                {activeContract.schedule_name || 'Standard 40-Hour Work Week'}
+                              </div>
+                            </div>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '8px' }}>
+                              <Button
+                                variant="secondary"
+                                size="sm"
+                                onClick={() => navigate(`/contracts/${activeContract.id}`)}
+                              >
+                                View Contract
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => navigate(`/contracts/${activeContract.id}/edit`)}
+                              >
+                                Edit Terms
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <div style={{ padding: '16px', backgroundColor: 'var(--neutral-50, #f8fafc)', borderRadius: '8px', border: '1px dashed var(--neutral-300, #cbd5e1)' }}>
+                          <span style={{ fontSize: '0.875rem', color: 'var(--neutral-600, #475569)' }}>
+                            No active contract currently in effect. Past contracts are listed below.
+                          </span>
+                        </div>
+                      )}
+
+                      {/* Historical Contracts Section */}
+                      <div>
+                        <h4 style={{ fontSize: '0.9375rem', fontWeight: 600, marginBottom: '12px', color: 'var(--neutral-800, #1e293b)' }}>
+                          Historical & Secondary Contracts ({historicalContracts.length})
+                        </h4>
+                        {historicalContracts.length === 0 ? (
+                          <p style={{ fontSize: '0.8125rem', color: 'var(--neutral-500, #64748b)', margin: 0 }}>
+                            No prior contracts exist. All contract revisions are archived here historically for period-accurate payroll calculation.
+                          </p>
+                        ) : (
+                          <div style={{ overflowX: 'auto' }}>
+                            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8125rem' }}>
+                              <thead>
+                                <tr style={{ borderBottom: '2px solid var(--neutral-200, #e2e8f0)', color: 'var(--neutral-500, #64748b)', textAlign: 'left' }}>
+                                  <th style={{ padding: '8px' }}>Reference</th>
+                                  <th style={{ padding: '8px' }}>Type</th>
+                                  <th style={{ padding: '8px' }}>Effective Period</th>
+                                  <th style={{ padding: '8px' }}>Wage Rate</th>
+                                  <th style={{ padding: '8px' }}>Status</th>
+                                  <th style={{ padding: '8px', textAlign: 'right' }}>Actions</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {historicalContracts.map((hc) => (
+                                  <tr key={hc.id} style={{ borderBottom: '1px solid var(--neutral-100, #f1f5f9)' }}>
+                                    <td style={{ padding: '10px 8px', fontWeight: 600 }}>
+                                      <Link to={`/contracts/${hc.id}`} style={{ color: 'var(--primary-700, #4338ca)' }}>
+                                        {hc.reference || `CNT-${hc.id.substring(0, 8).toUpperCase()}`}
+                                      </Link>
+                                    </td>
+                                    <td style={{ padding: '10px 8px' }}>{hc.contract_type || 'Permanent'}</td>
+                                    <td style={{ padding: '10px 8px' }}>
+                                      {formatDate(hc.start_date)} → {hc.end_date ? formatDate(hc.end_date) : 'Indefinite'}
+                                    </td>
+                                    <td style={{ padding: '10px 8px', fontWeight: 600 }}>
+                                      {hc.wage_rate ? formatCurrency(Number(hc.wage_rate)) : '-'}
+                                    </td>
+                                    <td style={{ padding: '10px 8px' }}>
+                                      <ContractStatusBadge status={hc.status} />
+                                    </td>
+                                    <td style={{ padding: '10px 8px', textAlign: 'right' }}>
+                                      <Button
+                                        variant="secondary"
+                                        size="sm"
+                                        onClick={() => navigate(`/contracts/${hc.id}`)}
+                                      >
+                                        View
+                                      </Button>
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })()}
+              </div>
+            )}
+          </Card>
+        </div>
       )}
+
 
       {/* Tab 4: Working Schedule (P1) */}
       {activeTab === 'schedule' && (
