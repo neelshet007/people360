@@ -12,6 +12,7 @@ import Loading from '../../../components/feedback/Loading';
 import EmptyState from '../../../components/feedback/EmptyState';
 import Alert from '../../../components/feedback/Alert';
 import PayrunStatusBadge from '../components/PayrunStatusBadge';
+import { formatCurrency } from '../../../lib/utils';
 import payrollApi from '../api/payrollApi';
 
 /**
@@ -124,7 +125,7 @@ export default function PayrunListPage() {
       accessor: 'total_gross',
       render: (row) => (
         <span style={{ fontWeight: 600, color: 'var(--neutral-900, #0f172a)' }}>
-          ${parseFloat(row.total_gross || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+          {formatCurrency(row.total_gross || 0)}
         </span>
       ),
     },
@@ -133,7 +134,7 @@ export default function PayrunListPage() {
       accessor: 'total_net',
       render: (row) => (
         <span style={{ fontWeight: 600, color: 'var(--success-700, #15803d)' }}>
-          ${parseFloat(row.total_net || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+          {formatCurrency(row.total_net || 0)}
         </span>
       ),
     },

@@ -6,6 +6,7 @@ import Badge from '../../../components/ui/Badge';
 import Loading from '../../../components/feedback/Loading';
 import EmptyState from '../../../components/feedback/EmptyState';
 import Alert from '../../../components/feedback/Alert';
+import { formatCurrency } from '../../../lib/utils';
 import payrollApi from '../api/payrollApi';
 
 /**
@@ -79,7 +80,7 @@ export default function SalaryRulesPage() {
         <span style={{ fontWeight: 600 }}>
           {row.calculation_type === 'PERCENTAGE'
             ? `${(parseFloat(row.amount_or_rate) * 100).toFixed(1)}%`
-            : `$${parseFloat(row.amount_or_rate).toLocaleString('en-US', { minimumFractionDigits: 2 })}`}
+            : formatCurrency(row.amount_or_rate)}
         </span>
       ),
     },

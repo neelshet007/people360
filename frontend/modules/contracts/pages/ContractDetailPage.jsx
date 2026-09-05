@@ -107,7 +107,7 @@ export default function ContractDetailPage() {
               Agreed Wage Rate
             </span>
             <span style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--neutral-900, #0f172a)' }}>
-              {contract.wage_rate ? formatCurrency(Number(contract.wage_rate)) : '$0.00'}
+              {contract.wage_rate ? formatCurrency(Number(contract.wage_rate)) : formatCurrency(0)}
               <span style={{ fontSize: '0.8125rem', color: 'var(--neutral-500, #64748b)', fontWeight: 400, marginLeft: '4px' }}>
                 / {contract.wage_type || 'month'}
               </span>

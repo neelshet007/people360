@@ -9,13 +9,21 @@ export const cn = (...classes) => {
 export const formatDate = (dateString) => {
   if (!dateString) return '-';
   const date = new Date(dateString);
-  return isNaN(date.getTime()) ? '-' : date.toLocaleDateString();
+  if (isNaN(date.getTime())) return '-';
+  return date.toLocaleDateString('en-IN', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  });
 };
 
-export const formatCurrency = (amount, currency = 'USD') => {
-  if (typeof amount !== 'number') return '-';
-  return new Intl.NumberFormat('en-US', {
+export const formatCurrency = (amount, currency = 'INR') => {
+  if (amount === undefined || amount === null || isNaN(Number(amount))) return '₹0';
+  const num = Number(amount);
+  return new Intl.NumberFormat('en-IN', {
     style: 'currency',
-    currency,
-  }).format(amount);
+    currency: 'INR',
+    maximumFractionDigits: 0,
+  }).format(num);
 };
+

@@ -46,6 +46,14 @@ async function runMigration() {
       console.log('[Migration] ✅ Contracts and Working Schedules tables created successfully.');
     }
 
+    const attendancePhase5Migration = path.resolve(__dirname, '../../../database/migrations/005_attendance_phase5.sql');
+    if (fs.existsSync(attendancePhase5Migration)) {
+      const attendancePhase5Sql = fs.readFileSync(attendancePhase5Migration, 'utf8');
+      console.log('[Migration] Executing 005_attendance_phase5.sql...');
+      await db.query(attendancePhase5Sql);
+      console.log('[Migration] ✅ Attendance Phase 5 columns & triggers created successfully.');
+    }
+
     // Check if employee seed data is needed
     const countRes = await db.query('SELECT COUNT(*) FROM employees');
     if (parseInt(countRes.rows[0].count, 10) === 0) {

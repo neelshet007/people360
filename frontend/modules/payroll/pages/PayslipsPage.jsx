@@ -7,6 +7,7 @@ import Loading from '../../../components/feedback/Loading';
 import EmptyState from '../../../components/feedback/EmptyState';
 import Alert from '../../../components/feedback/Alert';
 import PayrunStatusBadge from '../components/PayrunStatusBadge';
+import { formatCurrency } from '../../../lib/utils';
 import payrollApi from '../api/payrollApi';
 
 /**
@@ -71,7 +72,7 @@ export default function PayslipsPage() {
       accessor: 'gross_amount',
       render: (row) => (
         <span style={{ fontWeight: 600 }}>
-          ${parseFloat(row.gross_amount || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+          {formatCurrency(row.gross_amount || 0)}
         </span>
       ),
     },
@@ -80,7 +81,7 @@ export default function PayslipsPage() {
       accessor: 'total_deductions',
       render: (row) => (
         <span style={{ color: 'var(--danger-600, #dc2626)' }}>
-          -${parseFloat(row.total_deductions || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+          -{formatCurrency(row.total_deductions || 0)}
         </span>
       ),
     },
@@ -89,7 +90,7 @@ export default function PayslipsPage() {
       accessor: 'net_amount',
       render: (row) => (
         <span style={{ fontWeight: 700, color: 'var(--success-700, #15803d)' }}>
-          ${parseFloat(row.net_amount || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+          {formatCurrency(row.net_amount || 0)}
         </span>
       ),
     },

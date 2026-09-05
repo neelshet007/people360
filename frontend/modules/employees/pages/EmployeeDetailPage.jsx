@@ -358,7 +358,7 @@ export default function EmployeeDetailPage() {
                             <div style={{ textAlign: 'right' }}>
                               <span style={{ fontSize: '0.75rem', color: 'var(--primary-700, #4338ca)', fontWeight: 600 }}>Agreed Wage</span>
                               <div style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--neutral-900, #0f172a)' }}>
-                                {activeContract.wage_rate ? formatCurrency(Number(activeContract.wage_rate)) : '$0.00'}
+                                {activeContract.wage_rate ? formatCurrency(Number(activeContract.wage_rate)) : formatCurrency(0)}
                                 <span style={{ fontSize: '0.75rem', color: 'var(--neutral-500, #64748b)', fontWeight: 400, marginLeft: '4px' }}>
                                   / {activeContract.wage_type || 'month'}
                                 </span>

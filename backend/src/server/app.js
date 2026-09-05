@@ -11,6 +11,7 @@ const schedulesModule = require('../modules/schedules');
 const attendanceModule = require('../modules/attendance');
 const timeoffModule = require('../modules/timeoff');
 const payrollModule = require('../modules/payroll');
+const dashboardModule = require('../modules/dashboard');
 
 const app = express();
 
@@ -44,6 +45,7 @@ app.use('/api/schedules', schedulesModule.routes);
 app.use('/api/attendance', attendanceModule.routes);
 app.use('/api/timeoff', timeoffModule.routes);
 app.use('/api/payroll', payrollModule.routes);
+app.use('/api/dashboard', dashboardModule.routes);
 
 // Central Error Handling
 app.use(errorHandler);

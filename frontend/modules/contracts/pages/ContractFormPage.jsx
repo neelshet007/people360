@@ -304,11 +304,11 @@ export default function ContractFormPage() {
             type="number"
             required
             step="0.01"
-            placeholder="e.g. 7500"
+            placeholder="e.g. 75000"
             value={formData.wage_rate}
             onChange={(e) => handleChange('wage_rate', e.target.value)}
             error={errors.wage_rate}
-            leftIcon="$"
+            leftIcon="₹"
             helperText={formData.wage_type === 'hourly' ? 'Rate per hour worked' : 'Base salary per calendar month'}
           />
 
