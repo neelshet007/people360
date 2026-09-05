@@ -103,12 +103,44 @@ const timeoffRepository = {
   // ---------------------------------------------------------------------------
   // ALLOCATIONS
   // ---------------------------------------------------------------------------
-  findAllocations: async ({ employee_id, year } = {}) => {
+  findAllocations: async ({
+    employee_id,
+    year,
+    search,
+    department,
+    time_off_type_id,
+    balance_status,
+    employment_status,
+  } = {}) => {
     try {
       const isLive = await db.testConnection();
       if (isLive) {
         let sql = `
-          SELECT a.*, e.display_name as employee_name, e.employee_code, t.name as leave_type_name, t.code as leave_type_code
+          SELECT 
+            a.*, 
+            e.display_name as employee_name, 
+            e.first_name,
+            e.last_name,
+            e.employee_code,
+            e.department,
+            e.status as employment_status,
+            t.name as leave_type_name, 
+            t.code as leave_type_code,
+            COALESCE((
+              SELECT SUM(r.total_days)
+              FROM time_off_requests r
+              WHERE r.employee_id = a.employee_id
+                AND r.time_off_type_id = a.time_off_type_id
+                AND r.status = 'PENDING'
+                AND EXTRACT(YEAR FROM r.start_date) = a.year
+            ), 0.00)::numeric(5,2) as pending_days,
+            (a.allocated_days - a.used_days)::numeric(5,2) as remaining_days,
+            CASE
+              WHEN (a.allocated_days - a.used_days) < 0 THEN 'OVERDRAWN'
+              WHEN (a.allocated_days - a.used_days) = 0 THEN 'EXHAUSTED'
+              WHEN (a.allocated_days - a.used_days) <= 3 THEN 'LOW'
+              ELSE 'HEALTHY'
+            END as balance_status
           FROM time_off_allocations a
           JOIN employees e ON a.employee_id = e.id
           JOIN time_off_types t ON a.time_off_type_id = t.id
@@ -127,7 +159,41 @@ const timeoffRepository = {
           params.push(parseInt(year, 10));
           pIdx++;
         }
-        sql += ' ORDER BY a.year DESC, e.display_name ASC';
+        if (search && search.trim()) {
+          const s = `%${search.trim()}%`;
+          sql += ` AND (e.display_name ILIKE $${pIdx} OR e.first_name ILIKE $${pIdx} OR e.last_name ILIKE $${pIdx} OR e.employee_code ILIKE $${pIdx})`;
+          params.push(s);
+          pIdx++;
+        }
+        if (department && department.trim()) {
+          sql += ` AND e.department = $${pIdx}`;
+          params.push(department.trim());
+          pIdx++;
+        }
+        if (time_off_type_id && time_off_type_id.trim()) {
+          sql += ` AND a.time_off_type_id = $${pIdx}`;
+          params.push(time_off_type_id.trim());
+          pIdx++;
+        }
+        if (employment_status && employment_status.trim()) {
+          sql += ` AND e.status = $${pIdx}`;
+          params.push(employment_status.trim().toUpperCase());
+          pIdx++;
+        }
+        if (balance_status && balance_status.trim()) {
+          const bs = balance_status.trim().toUpperCase();
+          if (bs === 'OVERDRAWN') {
+            sql += ` AND (a.allocated_days - a.used_days) < 0`;
+          } else if (bs === 'EXHAUSTED') {
+            sql += ` AND (a.allocated_days - a.used_days) = 0`;
+          } else if (bs === 'LOW') {
+            sql += ` AND (a.allocated_days - a.used_days) > 0 AND (a.allocated_days - a.used_days) <= 3`;
+          } else if (bs === 'HEALTHY') {
+            sql += ` AND (a.allocated_days - a.used_days) > 3`;
+          }
+        }
+
+        sql += ' ORDER BY a.year DESC, e.display_name ASC, t.name ASC';
         const res = await db.query(sql, params);
         return res.rows;
       }
@@ -137,7 +203,18 @@ const timeoffRepository = {
     let filtered = [...memoryAllocations];
     if (employee_id) filtered = filtered.filter((a) => a.employee_id === employee_id);
     if (year) filtered = filtered.filter((a) => a.year === parseInt(year, 10));
-    return filtered;
+    if (department) filtered = filtered.filter((a) => a.department === department);
+    if (time_off_type_id) filtered = filtered.filter((a) => a.time_off_type_id === time_off_type_id);
+    if (search) {
+      const s = search.toLowerCase();
+      filtered = filtered.filter((a) => (a.employee_name || '').toLowerCase().includes(s) || (a.employee_code || '').toLowerCase().includes(s));
+    }
+    return filtered.map((a) => ({
+      ...a,
+      pending_days: a.pending_days || 0,
+      remaining_days: parseFloat(a.allocated_days || 0) - parseFloat(a.used_days || 0),
+      balance_status: (parseFloat(a.allocated_days || 0) - parseFloat(a.used_days || 0)) <= 0 ? 'EXHAUSTED' : (parseFloat(a.allocated_days || 0) - parseFloat(a.used_days || 0)) <= 3 ? 'LOW' : 'HEALTHY',
+    }));
   },
 
   createAllocation: async (data) => {

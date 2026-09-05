@@ -3,10 +3,24 @@ import { Link, useLocation } from 'react-router-dom';
 import Tooltip from '../ui/Tooltip';
 import { useAuth } from '../../context/AuthContext';
 import { ROLES } from '../../lib/auth';
+import {
+  DashboardIcon,
+  UserIcon,
+  UsersIcon,
+  FileTextIcon,
+  ClockIcon,
+  CalendarIcon,
+  TimeOffIcon,
+  CreditCardIcon,
+  BanknoteIcon,
+  SlidersIcon,
+  RulesIcon,
+  MessageSquareIcon,
+} from '../ui/Icons';
 
 /**
- * Shared SidebarNavigation Component
- * Role-aware navigation dynamically reflecting authenticated permissions
+ * Enterprise Sidebar Navigation Component
+ * Role-aware navigation with geometric SVG iconography and active status indicators
  */
 export default function SidebarNavigation({ collapsed = false, onNavigate }) {
   const location = useLocation();
@@ -18,109 +32,123 @@ export default function SidebarNavigation({ collapsed = false, onNavigate }) {
   if (role === ROLES.EMPLOYEE) {
     navSections = [
       {
-        heading: 'Personal Overview',
+        heading: 'Overview',
         items: [
-          { label: 'My Dashboard', href: '/dashboard', icon: '📊' },
+          { label: 'My Dashboard', href: '/dashboard', Icon: DashboardIcon },
         ],
       },
       {
         heading: 'Self Service',
         items: [
-          ...(user?.employeeId ? [{ label: 'My Profile', href: `/employees/${user.employeeId}`, icon: '👤' }] : []),
-          { label: 'My Attendance', href: '/my-attendance', icon: '🕐' },
-          { label: 'My Time Off', href: '/time-off', icon: '🏖️' },
-          { label: 'My Payslips', href: '/payroll/payslips', icon: '📄' },
+          ...(user?.employeeId ? [{ label: 'My Profile', href: `/employees/${user.employeeId}`, Icon: UserIcon }] : []),
+          { label: 'My Attendance', href: '/my-attendance', Icon: ClockIcon },
+          { label: 'My Time Off', href: '/time-off', Icon: TimeOffIcon },
+          { label: 'My Payslips', href: '/payroll/payslips', Icon: BanknoteIcon },
+          { label: 'My Concerns', href: '/my-concerns', Icon: MessageSquareIcon },
         ],
       },
     ];
   } else if (role === ROLES.HR_MANAGER) {
     navSections = [
       {
-        heading: 'General',
+        heading: 'Overview',
         items: [
-          { label: 'Dashboard', href: '/dashboard', icon: '📊' },
+          { label: 'Dashboard', href: '/dashboard', Icon: DashboardIcon },
         ],
       },
       {
-        heading: 'Core HR',
+        heading: 'Workforce',
         items: [
-          { label: 'Employees', href: '/employees', icon: '👥' },
-          { label: 'Contracts', href: '/contracts', icon: '📝' },
-          { label: 'Working Schedules', href: '/schedules', icon: '⏰' },
+          { label: 'Employees', href: '/employees', Icon: UsersIcon },
+          { label: 'Contracts', href: '/contracts', Icon: FileTextIcon },
+          { label: 'Working Schedules', href: '/schedules', Icon: ClockIcon },
         ],
       },
       {
-        heading: 'HR Operations',
+        heading: 'Time & Leave',
         items: [
-          { label: 'Attendance', href: '/attendance', icon: '📅' },
-          { label: 'Time Off Requests', href: '/time-off', icon: '🏖️' },
+          { label: 'Attendance', href: '/attendance', Icon: CalendarIcon },
+          { label: 'Time Off Requests', href: '/time-off', Icon: TimeOffIcon },
+        ],
+      },
+      {
+        heading: 'HR Communication',
+        items: [
+          { label: 'Concerns', href: '/concerns', Icon: MessageSquareIcon },
         ],
       },
     ];
   } else if (role === ROLES.HR_PAYROLL_USER) {
     navSections = [
       {
-        heading: 'General',
+        heading: 'Overview',
         items: [
-          { label: 'Dashboard', href: '/dashboard', icon: '📊' },
+          { label: 'Dashboard', href: '/dashboard', Icon: DashboardIcon },
         ],
       },
       {
-        heading: 'Core HR',
+        heading: 'Workforce & Shifts',
         items: [
-          { label: 'Employees', href: '/employees', icon: '👥' },
-          { label: 'Contracts', href: '/contracts', icon: '📝' },
-          { label: 'Working Schedules', href: '/schedules', icon: '⏰' },
+          { label: 'Employees', href: '/employees', Icon: UsersIcon },
+          { label: 'Contracts', href: '/contracts', Icon: FileTextIcon },
+          { label: 'Working Schedules', href: '/schedules', Icon: ClockIcon },
+          { label: 'Attendance', href: '/attendance', Icon: CalendarIcon },
+          { label: 'Time Off', href: '/time-off', Icon: TimeOffIcon },
         ],
       },
       {
-        heading: 'HR Operations',
+        heading: 'Payroll Processing',
         items: [
-          { label: 'Attendance', href: '/attendance', icon: '📅' },
-          { label: 'Time Off', href: '/time-off', icon: '🏖️' },
+          { label: 'Payruns', href: '/payroll/payruns', Icon: CreditCardIcon },
+          { label: 'Itemized Payslips', href: '/payroll/payslips', Icon: BanknoteIcon },
+          { label: 'Salary Structures', href: '/payroll/salary-structures', Icon: SlidersIcon },
+          { label: 'Calculation Rules', href: '/payroll/salary-rules', Icon: RulesIcon },
         ],
       },
       {
-        heading: 'Payroll Batches',
+        heading: 'HR Communication',
         items: [
-          { label: 'Payruns', href: '/payroll/payruns', icon: '💳' },
-          { label: 'Payslips', href: '/payroll/payslips', icon: '📄' },
-          { label: 'Salary Structures', href: '/payroll/salary-structures', icon: '🏛️' },
-          { label: 'Salary Rules', href: '/payroll/salary-rules', icon: '📏' },
+          { label: 'Concerns', href: '/concerns', Icon: MessageSquareIcon },
         ],
       },
     ];
   } else {
-    // HR_PAYROLL_MANAGER and ADMIN (Full HR + Payroll)
+    // HR_PAYROLL_MANAGER and ADMIN (Full HR + Payroll Command)
     navSections = [
       {
-        heading: 'General',
+        heading: 'Operations',
         items: [
-          { label: 'Dashboard', href: '/dashboard', icon: '📊' },
+          { label: 'Dashboard', href: '/dashboard', Icon: DashboardIcon },
         ],
       },
       {
-        heading: 'Core HR',
+        heading: 'Workforce',
         items: [
-          { label: 'Employees', href: '/employees', icon: '👥' },
-          { label: 'Contracts', href: '/contracts', icon: '📝' },
-          { label: 'Working Schedules', href: '/schedules', icon: '⏰' },
+          { label: 'Employees', href: '/employees', Icon: UsersIcon },
+          { label: 'Contracts', href: '/contracts', Icon: FileTextIcon },
+          { label: 'Working Schedules', href: '/schedules', Icon: ClockIcon },
         ],
       },
       {
-        heading: 'HR Operations',
+        heading: 'Time & Attendance',
         items: [
-          { label: 'Attendance', href: '/attendance', icon: '📅' },
-          { label: 'Time Off', href: '/time-off', icon: '🏖️' },
+          { label: 'Attendance Tracking', href: '/attendance', Icon: CalendarIcon },
+          { label: 'Time Off Approvals', href: '/time-off', Icon: TimeOffIcon },
         ],
       },
       {
         heading: 'Compensation & Payroll',
         items: [
-          { label: 'Salary Structures', href: '/payroll/salary-structures', icon: '🏛️' },
-          { label: 'Salary Rules', href: '/payroll/salary-rules', icon: '📏' },
-          { label: 'Payruns', href: '/payroll/payruns', icon: '💳' },
-          { label: 'Payslips', href: '/payroll/payslips', icon: '📄' },
+          { label: 'Payrun Batches', href: '/payroll/payruns', Icon: CreditCardIcon },
+          { label: 'Itemized Payslips', href: '/payroll/payslips', Icon: BanknoteIcon },
+          { label: 'Salary Structures', href: '/payroll/salary-structures', Icon: SlidersIcon },
+          { label: 'Ordered Rules', href: '/payroll/salary-rules', Icon: RulesIcon },
+        ],
+      },
+      {
+        heading: 'Communication & Cases',
+        items: [
+          { label: 'Concerns', href: '/concerns', Icon: MessageSquareIcon },
         ],
       },
     ];
@@ -129,11 +157,12 @@ export default function SidebarNavigation({ collapsed = false, onNavigate }) {
   return (
     <nav
       style={{
-        padding: collapsed ? '16px 4px' : '16px 10px',
+        padding: collapsed ? '16px 8px' : '16px 12px',
         display: 'flex',
         flexDirection: 'column',
         gap: '20px',
       }}
+      aria-label="Sidebar navigation"
     >
       {navSections.map((sec, idx) => (
         <div key={idx}>
@@ -143,32 +172,31 @@ export default function SidebarNavigation({ collapsed = false, onNavigate }) {
                 fontSize: '0.6875rem',
                 fontWeight: 700,
                 textTransform: 'uppercase',
-                color: 'var(--neutral-400, #94a3b8)',
-                padding: '0 12px 8px 12px',
+                color: 'var(--text-muted, #64748b)',
+                padding: '0 8px 6px 8px',
                 letterSpacing: '0.06em',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
               }}
             >
-              <span>{sec.heading}</span>
+              {sec.heading}
             </div>
           ) : (
             <div
               style={{
                 height: '1px',
-                backgroundColor: 'var(--neutral-200, #e2e8f0)',
-                margin: '4px 8px 8px 8px',
+                backgroundColor: 'var(--border-subtle, #e2e8f0)',
+                margin: '6px 4px 10px 4px',
               }}
             />
           )}
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
             {sec.items.map((item) => {
               const isDashboard = item.href === '/dashboard';
               const isActive = isDashboard
                 ? pathname === '/dashboard'
                 : pathname === item.href || pathname.startsWith(`${item.href}/`);
+
+              const ItemIcon = item.Icon;
 
               const linkContent = (
                 <Link
@@ -180,14 +208,16 @@ export default function SidebarNavigation({ collapsed = false, onNavigate }) {
                     alignItems: 'center',
                     gap: collapsed ? '0' : '10px',
                     justifyContent: collapsed ? 'center' : 'flex-start',
-                    padding: collapsed ? '9px 0' : '8px 12px',
-                    borderRadius: 'var(--radius-md, 8px)',
-                    fontSize: '0.875rem',
+                    padding: collapsed ? '9px 0' : '7px 10px',
+                    borderRadius: 'var(--radius-md, 6px)',
+                    fontSize: '0.8125rem',
                     fontWeight: isActive ? 600 : 500,
-                    color: isActive ? 'var(--primary-700, #4338ca)' : 'var(--neutral-700, #334155)',
-                    backgroundColor: isActive ? 'var(--primary-50, #eef2ff)' : 'transparent',
+                    color: isActive ? 'var(--primary-700, #1d4ed8)' : 'var(--neutral-700, #334155)',
+                    backgroundColor: isActive ? 'var(--primary-50, #eff6ff)' : 'transparent',
+                    borderLeft: !collapsed && isActive ? '3px solid var(--primary-600, #2563eb)' : '3px solid transparent',
                     textDecoration: 'none',
                     transition: 'all var(--transition-fast)',
+                    position: 'relative',
                   }}
                   onMouseEnter={(e) => {
                     if (!isActive) e.currentTarget.style.backgroundColor = 'var(--neutral-100, #f1f5f9)';
@@ -196,8 +226,16 @@ export default function SidebarNavigation({ collapsed = false, onNavigate }) {
                     if (!isActive) e.currentTarget.style.backgroundColor = 'transparent';
                   }}
                 >
-                  <span style={{ fontSize: '1.125rem', flexShrink: 0 }}>{item.icon}</span>
-                  {!collapsed && <span style={{ whiteSpace: 'nowrap' }}>{item.label}</span>}
+                  <ItemIcon
+                    size={17}
+                    color={isActive ? 'var(--primary-600, #2563eb)' : 'var(--neutral-500, #64748b)'}
+                    style={{ flexShrink: 0 }}
+                  />
+                  {!collapsed && (
+                    <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {item.label}
+                    </span>
+                  )}
                 </Link>
               );
 

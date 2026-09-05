@@ -29,6 +29,13 @@ const ROLE_PERMISSIONS = {
     'timeoff.approve',
     'salary.read',
     'reports.read',
+    'concerns.read',
+    'concerns.write',
+    'concerns.reply',
+    'concerns.assign',
+    'concerns.status',
+    'concerns.resolve',
+    'concerns.close',
   ],
 
   [ROLES.HR_PAYROLL_USER]: [
@@ -37,12 +44,18 @@ const ROLE_PERMISSIONS = {
     'schedules.read',
     'attendance.read',
     'timeoff.read',
+    'timeoff.write',
+    'timeoff.approve',
     'salary.read',          // View only for structures/rules
     'payruns.read',
     'payruns.write',         // Can execute batches
     'payslips.read',
     'payslips.write',
     'reports.read',
+    'concerns.read',
+    'concerns.write',
+    'concerns.reply',
+    'concerns.status',
   ],
 
   [ROLES.HR_PAYROLL_MANAGER]: [
@@ -64,6 +77,13 @@ const ROLE_PERMISSIONS = {
     'payslips.read',
     'payslips.write',
     'reports.read',
+    'concerns.read',
+    'concerns.write',
+    'concerns.reply',
+    'concerns.assign',
+    'concerns.status',
+    'concerns.resolve',
+    'concerns.close',
   ],
 
   [ROLES.EMPLOYEE]: [
@@ -73,6 +93,7 @@ const ROLE_PERMISSIONS = {
     'self.payslips',
     'attendance.checkin',
     'salary.read',
+    'self.concerns',
   ],
 };
 

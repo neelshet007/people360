@@ -22,10 +22,7 @@ const timeoffService = {
 
   // Allocations
   async getAllocations(query = {}) {
-    return timeoffRepository.findAllocations({
-      employee_id: query.employee_id,
-      year: query.year,
-    });
+    return timeoffRepository.findAllocations(query);
   },
 
   async createAllocation(data) {

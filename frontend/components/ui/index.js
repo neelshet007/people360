@@ -14,3 +14,4 @@ export { default as Avatar } from './Avatar';
 export { default as DatePicker } from './DatePicker';
 export { default as Pagination } from './Pagination';
 export { default as Tooltip } from './Tooltip';
+export * from './Icons';

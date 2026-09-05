@@ -16,6 +16,7 @@ import EmployeeStatusBadge from '../components/EmployeeStatusBadge';
 import { useEmployees } from '../hooks/useEmployees';
 import employeesApi from '../api/employeesApi';
 import { formatDate } from '../../../lib/utils';
+import { SearchIcon, PlusIcon, TrashIcon, ListIcon, GridIcon } from '../../../components/ui/Icons';
 
 /**
  * Employee Directory List Page
@@ -179,17 +180,29 @@ export default function EmployeeListPage() {
                 setEmployeeToDelete(row);
               }}
               style={{
-                border: 'none',
-                background: 'transparent',
+                border: '1px solid var(--border-subtle, #e2e8f0)',
+                background: 'var(--bg-surface, #ffffff)',
                 cursor: 'pointer',
-                fontSize: '0.875rem',
-                color: 'var(--neutral-400, #94a3b8)',
-                padding: '4px',
+                borderRadius: 'var(--radius-sm, 6px)',
+                color: 'var(--text-muted, #94a3b8)',
+                padding: '5px 7px',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                transition: 'all 0.15s ease',
               }}
-              onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--danger, #ef4444)')}
-              onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--neutral-400, #94a3b8)')}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.color = 'var(--danger-600, #dc2626)';
+                e.currentTarget.style.borderColor = 'var(--danger-300, #fca5a5)';
+                e.currentTarget.style.backgroundColor = 'var(--danger-50, #fef2f2)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.color = 'var(--text-muted, #94a3b8)';
+                e.currentTarget.style.borderColor = 'var(--border-subtle, #e2e8f0)';
+                e.currentTarget.style.backgroundColor = 'var(--bg-surface, #ffffff)';
+              }}
             >
-              🗑️
+              <TrashIcon size={14} />
             </button>
           )}
         </div>
@@ -216,7 +229,7 @@ export default function EmployeeListPage() {
             <Button
               variant="primary"
               size="sm"
-              icon="☰"
+              icon={<ListIcon size={14} />}
               style={{
                 padding: '4px 10px',
                 boxShadow: 'var(--shadow-xs)',
@@ -227,7 +240,7 @@ export default function EmployeeListPage() {
             <Button
               variant="ghost"
               size="sm"
-              icon="▦"
+              icon={<GridIcon size={14} />}
               onClick={() => navigate('/employees/kanban')}
               style={{
                 backgroundColor: 'transparent',
@@ -241,7 +254,7 @@ export default function EmployeeListPage() {
 
           <Button
             variant="primary"
-            icon="➕"
+            icon={<PlusIcon size={16} />}
             onClick={() => navigate('/employees/new')}
           >
             Add Employee
@@ -272,7 +285,7 @@ export default function EmployeeListPage() {
             placeholder="Name, code, or email..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            leftIcon="🔍"
+            leftIcon={<SearchIcon size={16} />}
           />
 
           <Select
@@ -324,7 +337,7 @@ export default function EmployeeListPage() {
           action={
             <Button
               variant="primary"
-              icon="➕"
+              icon={<PlusIcon size={16} />}
               onClick={() => navigate('/employees/new')}
             >
               Add New Employee

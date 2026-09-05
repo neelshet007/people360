@@ -25,6 +25,26 @@ function round2(n) {
   return Math.round(n * 100) / 100;
 }
 
+/** 
+ * Calculate distance between two points in meters using the Haversine formula.
+ * Simple, vanilla JS math implementation for hackathon requirements.
+ */
+function haversineDistance(lat1, lon1, lat2, lon2) {
+  if (!lat1 || !lon1 || !lat2 || !lon2) return null;
+  const toRad = (value) => (value * Math.PI) / 180;
+  
+  const R = 6371e3; // Earth radius in meters
+  const dLat = toRad(lat2 - lat1);
+  const dLon = toRad(lon2 - lon1);
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  
+  return R * c; // Distance in meters
+}
+
 /**
  * Determine check-in status using server time vs schedule start.
  * PRESENT if within LATE_GRACE_MINUTES of schedule start, else LATE.
@@ -53,20 +73,28 @@ const attendanceService = {
   // ─────────────────────────────────────────────────────────────
   // EMPLOYEE: CHECK IN
   // ─────────────────────────────────────────────────────────────
-  async checkIn(employeeId, ipAddress) {
+  async checkIn(employeeId, ipAddress, latitude, longitude) {
     if (!employeeId) throw ApiError.badRequest('Employee ID is required');
 
     const now = new Date();
     const todayDate = now.toISOString().split('T')[0]; // YYYY-MM-DD UTC
 
-    // Prevent duplicate check-in
+    // Check if already currently checked in without check-out
     const existing = await attendanceRepository.findByEmployeeAndDate(employeeId, todayDate);
     if (existing) {
       if (existing.clock_in && !existing.clock_out) {
         throw ApiError.conflict('You are already checked in.');
       }
       if (existing.clock_in && existing.clock_out) {
-        throw ApiError.conflict('You have already checked out for today.');
+        // Allow re-checking in for overtime, extra shift, or flexible hours
+        const schedule = await attendanceRepository.getScheduleForEmployee(employeeId, todayDate);
+        const checkInStatus = determineCheckInStatus(now.toISOString(), schedule.start_time);
+        const updated = await attendanceRepository.updateAttendance(existing.id, {
+          clock_in: now.toISOString(),
+          clock_out: null,
+          status: checkInStatus,
+        });
+        return updated;
       }
     }
 
@@ -74,6 +102,23 @@ const attendanceService = {
     const schedule = await attendanceRepository.getScheduleForEmployee(employeeId, todayDate);
     const expectedHours = schedule.standard_hours_per_day || 8.0;
     const checkInStatus = determineCheckInStatus(now.toISOString(), schedule.start_time);
+
+    // GPS Bounds Check (Hardcoded Office Location for simplicity)
+    const OFFICE_LAT = 28.6139; // Example: New Delhi
+    const OFFICE_LON = 77.2090;
+    const ALLOWED_RADIUS_METERS = 200;
+
+    let distanceMeters = null;
+    let isOutOfBounds = false;
+
+    if (latitude && longitude) {
+      distanceMeters = haversineDistance(latitude, longitude, OFFICE_LAT, OFFICE_LON);
+      if (distanceMeters > ALLOWED_RADIUS_METERS) {
+        isOutOfBounds = true;
+      } else {
+        isOutOfBounds = false;
+      }
+    }
 
     const record = await attendanceRepository.createAttendance({
       employee_id: employeeId,
@@ -85,6 +130,10 @@ const attendanceService = {
       difference_hours: -expectedHours,
       status: checkInStatus,
       notes: null,
+      latitude: latitude || null,
+      longitude: longitude || null,
+      distance_from_office_meters: distanceMeters ? round2(distanceMeters) : null,
+      is_out_of_bounds: isOutOfBounds,
     });
 
     return record;
@@ -112,8 +161,9 @@ const attendanceService = {
 
     const clockIn = new Date(existing.clock_in);
     const clockOut = now;
-    const workedMs = clockOut.getTime() - clockIn.getTime();
-    const workedHours = round2(workedMs / (1000 * 60 * 60));
+    const sessionWorkedMs = Math.max(0, clockOut.getTime() - clockIn.getTime());
+    const sessionHours = round2(sessionWorkedMs / (1000 * 60 * 60));
+    const workedHours = round2(parseFloat(existing.total_hours || 0) + sessionHours);
     const expectedHours = parseFloat(existing.expected_hours || 8.0);
     const differenceHours = round2(workedHours - expectedHours);
     const wasLate = existing.status === 'LATE';

@@ -12,6 +12,7 @@ import Loading from '../../../components/feedback/Loading';
 import EmptyState from '../../../components/feedback/EmptyState';
 import Alert from '../../../components/feedback/Alert';
 import payrollApi from '../api/payrollApi';
+import { PlusIcon } from '../../../components/ui/Icons';
 
 /**
  * Salary Structures Page — PeoplePay360
@@ -204,8 +205,8 @@ export default function SalaryStructuresPage() {
             Manage Salary Rules →
           </Button>
           {canManage && (
-            <Button variant="primary" size="sm" onClick={openCreateModal}>
-              + New Structure
+            <Button variant="primary" size="sm" icon={<PlusIcon size={14} />} onClick={openCreateModal}>
+              New Structure
             </Button>
           )}
         </div>
@@ -239,7 +240,7 @@ export default function SalaryStructuresPage() {
             description="Salary structures define the compensation frameworks used across payroll calculation cycles."
             action={
               canManage && (
-                <Button variant="primary" size="sm" onClick={openCreateModal}>
+                <Button variant="primary" size="sm" icon={<PlusIcon size={14} />} onClick={openCreateModal}>
                   Create First Structure
                 </Button>
               )

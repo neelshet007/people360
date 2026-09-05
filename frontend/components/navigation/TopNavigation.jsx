@@ -4,10 +4,20 @@ import Avatar from '../ui/Avatar';
 import Dropdown from '../ui/Dropdown';
 import { useAuth } from '../../context/AuthContext';
 import AttendanceWidget from '../../modules/attendance/components/AttendanceWidget';
+import {
+  MenuIcon,
+  SearchIcon,
+  BellIcon,
+  UserIcon,
+  DashboardIcon,
+  LogOutIcon,
+  LogInIcon,
+  ChevronDownIcon,
+} from '../ui/Icons';
 
 /**
- * Shared TopNavigation / Navbar Component
- * Owner: P1 (Core HR)
+ * Enterprise TopNavigation Header Component
+ * Precision layout with route context, search, attendance widget, notifications, and user session controls
  */
 export default function TopNavigation({ onToggleMobileSidebar }) {
   const location = useLocation();
@@ -15,21 +25,32 @@ export default function TopNavigation({ onToggleMobileSidebar }) {
   const { user, role, logout, isAuthenticated } = useAuth();
   const [showNotifications, setShowNotifications] = useState(false);
 
-  // Route title helper
-  const getPageTitle = (path) => {
-    if (path.startsWith('/employees')) return 'Core HR / Employees';
-    if (path.startsWith('/contracts')) return 'Core HR / Contracts';
-    if (path.startsWith('/schedules')) return 'Core HR / Working Schedules';
-    if (path.startsWith('/attendance')) return 'HR Operations / Attendance';
-    if (path.startsWith('/time-off')) return 'HR Operations / Time Off';
-    if (path.startsWith('/payroll')) return 'Payroll Operations';
-    return 'Dashboard Overview';
+  // Route context helper
+  const getContextParts = (path) => {
+    if (path.startsWith('/employees/new')) return ['Workforce', 'New Employee'];
+    if (path.startsWith('/employees/')) return ['Workforce', 'Employee Profile'];
+    if (path.startsWith('/employees')) return ['Workforce', 'Employees'];
+    if (path.startsWith('/contracts/new')) return ['Workforce', 'Issue Contract'];
+    if (path.startsWith('/contracts/')) return ['Workforce', 'Contract Details'];
+    if (path.startsWith('/contracts')) return ['Workforce', 'Contracts'];
+    if (path.startsWith('/schedules')) return ['Workforce', 'Working Schedules'];
+    if (path.startsWith('/attendance')) return ['Time & Leave', 'Attendance Tracking'];
+    if (path.startsWith('/my-attendance')) return ['Self Service', 'My Attendance'];
+    if (path.startsWith('/time-off')) return ['Time & Leave', 'Time Off Requests'];
+    if (path.startsWith('/payroll/payruns/')) return ['Compensation', 'Payrun Batch'];
+    if (path.startsWith('/payroll/payruns')) return ['Compensation', 'Payruns'];
+    if (path.startsWith('/payroll/payslips')) return ['Compensation', 'Itemized Payslips'];
+    if (path.startsWith('/payroll/salary-structures')) return ['Compensation', 'Salary Structures'];
+    if (path.startsWith('/payroll/salary-rules')) return ['Compensation', 'Calculation Rules'];
+    return ['Platform', 'Dashboard'];
   };
 
+  const contextParts = getContextParts(location.pathname);
+
   const notifications = [
-    { id: 1, title: 'New Employee Onboarded', time: '10m ago', unread: true },
-    { id: 2, title: 'Contract Expiring in 14 Days', time: '1h ago', unread: true },
-    { id: 3, title: 'Working Schedule Updated', time: '1d ago', unread: false },
+    { id: 1, title: 'Contract Expiring in 14 Days', time: '1h ago', unread: true },
+    { id: 2, title: 'October Payroll Batch Ready', time: '2h ago', unread: true },
+    { id: 3, title: 'Leave Request Awaiting Review', time: '1d ago', unread: false },
   ];
 
   const userMenuItems = [
@@ -37,21 +58,21 @@ export default function TopNavigation({ onToggleMobileSidebar }) {
       ? [
           {
             label: 'My Profile',
-            icon: '👤',
+            icon: <UserIcon size={16} />,
             onClick: () => navigate(`/employees/${user.employeeId}`),
           },
         ]
       : []),
     {
       label: 'Platform Dashboard',
-      icon: '📊',
+      icon: <DashboardIcon size={16} />,
       onClick: () => navigate('/dashboard'),
     },
     { divider: true },
     {
       label: isAuthenticated ? 'Sign Out' : 'Sign In',
       danger: isAuthenticated,
-      icon: isAuthenticated ? '🚪' : '🔑',
+      icon: isAuthenticated ? <LogOutIcon size={16} /> : <LogInIcon size={16} />,
       onClick: () => {
         if (isAuthenticated) {
           logout();
@@ -65,9 +86,9 @@ export default function TopNavigation({ onToggleMobileSidebar }) {
   return (
     <header
       style={{
-        height: '64px',
+        height: '60px',
         backgroundColor: '#ffffff',
-        borderBottom: '1px solid var(--neutral-200, #e2e8f0)',
+        borderBottom: '1px solid var(--border-subtle, #e2e8f0)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
@@ -77,30 +98,30 @@ export default function TopNavigation({ onToggleMobileSidebar }) {
         zIndex: 40,
         boxShadow: 'var(--shadow-xs)',
       }}
+      aria-label="Application header"
     >
-      {/* Left side: Mobile Toggle + Logo + Current Context */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+      {/* Left side: Mobile Toggle + Logo + Breadcrumb Context */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
         {/* Mobile Hamburger Button */}
         <button
           type="button"
           onClick={onToggleMobileSidebar}
           aria-label="Toggle navigation menu"
           style={{
-            display: 'flex',
+            display: 'none',
             alignItems: 'center',
             justifyContent: 'center',
-            width: '36px',
-            height: '36px',
-            borderRadius: 'var(--radius-md, 8px)',
-            border: '1px solid var(--neutral-200, #e2e8f0)',
+            width: '32px',
+            height: '32px',
+            borderRadius: 'var(--radius-md, 6px)',
+            border: '1px solid var(--border-subtle, #e2e8f0)',
             backgroundColor: '#ffffff',
-            color: 'var(--neutral-700, #334155)',
+            color: 'var(--text-secondary, #475569)',
             cursor: 'pointer',
-            fontSize: '1.125rem',
           }}
           className="mobile-nav-toggle"
         >
-          ☰
+          <MenuIcon size={18} />
         </button>
 
         <Link
@@ -114,59 +135,60 @@ export default function TopNavigation({ onToggleMobileSidebar }) {
         >
           <div
             style={{
-              width: '32px',
-              height: '32px',
-              borderRadius: '8px',
-              backgroundColor: 'var(--primary-600, #4f46e5)',
+              width: '28px',
+              height: '28px',
+              borderRadius: '6px',
+              backgroundColor: 'var(--brand-900, #0f172a)',
               color: '#ffffff',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               fontWeight: 800,
-              fontSize: '1rem',
-              boxShadow: '0 2px 4px rgba(79, 70, 229, 0.25)',
+              fontSize: '0.875rem',
+              letterSpacing: '-0.03em',
             }}
           >
             P
           </div>
           <span
             style={{
-              fontSize: '1.2rem',
+              fontSize: '1.0625rem',
               fontWeight: 700,
-              color: 'var(--neutral-900, #0f172a)',
+              color: 'var(--brand-900, #0f172a)',
               letterSpacing: '-0.02em',
             }}
           >
-            PeoplePay<span style={{ color: 'var(--primary-600, #4f46e5)' }}>360</span>
+            PeoplePay<span style={{ color: 'var(--primary-600, #2563eb)' }}>360</span>
           </span>
         </Link>
 
         <div
           style={{
-            height: '20px',
+            height: '18px',
             width: '1px',
-            backgroundColor: 'var(--neutral-200, #e2e8f0)',
+            backgroundColor: 'var(--border-subtle, #e2e8f0)',
             margin: '0 4px',
           }}
           className="header-divider"
         />
 
-        <span
-          style={{
-            fontSize: '0.8125rem',
-            color: 'var(--neutral-500, #64748b)',
-            fontWeight: 500,
-          }}
-          className="header-context-badge"
-        >
-          {getPageTitle(location.pathname)}
-        </span>
+        {/* Crisp Breadcrumb */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8125rem' }} className="header-context-badge">
+          <span style={{ color: 'var(--text-muted, #64748b)', fontWeight: 500 }}>
+            {contextParts[0]}
+          </span>
+          <span style={{ color: 'var(--neutral-400, #94a3b8)', fontSize: '0.75rem' }}>/</span>
+          <span style={{ color: 'var(--text-main, #0f172a)', fontWeight: 600 }}>
+            {contextParts[1]}
+          </span>
+        </div>
       </div>
 
       {/* Right side: Attendance Widget + Global Search + Notifications + Profile */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
         <AttendanceWidget />
-        {/* Quick Search Placeholder UI */}
+
+        {/* Quick Search */}
         <div
           style={{
             position: 'relative',
@@ -180,35 +202,38 @@ export default function TopNavigation({ onToggleMobileSidebar }) {
               position: 'absolute',
               left: '10px',
               color: 'var(--neutral-400, #94a3b8)',
-              fontSize: '0.875rem',
+              display: 'flex',
+              alignItems: 'center',
               pointerEvents: 'none',
             }}
           >
-            🔍
+            <SearchIcon size={14} />
           </span>
           <input
             type="search"
-            placeholder="Search records..."
+            placeholder="Quick search..."
             aria-label="Quick search"
             style={{
-              padding: '6px 12px 6px 32px',
+              padding: '5px 10px 5px 30px',
               fontSize: '0.8125rem',
-              borderRadius: 'var(--radius-full, 9999px)',
-              border: '1px solid var(--neutral-200, #e2e8f0)',
+              borderRadius: 'var(--radius-md, 6px)',
+              border: '1px solid var(--border-subtle, #e2e8f0)',
               backgroundColor: 'var(--neutral-50, #f8fafc)',
-              width: '180px',
+              width: '170px',
               outline: 'none',
               transition: 'all var(--transition-fast)',
             }}
             onFocus={(e) => {
-              e.target.style.width = '240px';
+              e.target.style.width = '220px';
               e.target.style.backgroundColor = '#ffffff';
-              e.target.style.borderColor = 'var(--primary-400, #818cf8)';
+              e.target.style.borderColor = 'var(--primary-600, #2563eb)';
+              e.target.style.boxShadow = 'var(--focus-ring)';
             }}
             onBlur={(e) => {
-              e.target.style.width = '180px';
+              e.target.style.width = '170px';
               e.target.style.backgroundColor = 'var(--neutral-50, #f8fafc)';
-              e.target.style.borderColor = 'var(--neutral-200, #e2e8f0)';
+              e.target.style.borderColor = 'var(--border-subtle, #e2e8f0)';
+              e.target.style.boxShadow = 'none';
             }}
           />
         </div>
@@ -224,28 +249,28 @@ export default function TopNavigation({ onToggleMobileSidebar }) {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              width: '36px',
-              height: '36px',
-              borderRadius: 'var(--radius-full, 9999px)',
-              border: '1px solid var(--neutral-200, #e2e8f0)',
+              width: '32px',
+              height: '32px',
+              borderRadius: 'var(--radius-md, 6px)',
+              border: '1px solid var(--border-subtle, #e2e8f0)',
               backgroundColor: '#ffffff',
               cursor: 'pointer',
-              fontSize: '1rem',
-              color: 'var(--neutral-600, #475569)',
+              color: 'var(--text-secondary, #475569)',
               transition: 'all var(--transition-fast)',
             }}
+            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--neutral-50, #f8fafc)')}
+            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#ffffff')}
           >
-            🔔
+            <BellIcon size={15} />
             <span
               style={{
                 position: 'absolute',
-                top: '4px',
-                right: '4px',
-                width: '8px',
-                height: '8px',
+                top: '5px',
+                right: '5px',
+                width: '6px',
+                height: '6px',
                 borderRadius: '50%',
-                backgroundColor: 'var(--danger, #ef4444)',
-                border: '2px solid #ffffff',
+                backgroundColor: 'var(--primary-600, #2563eb)',
               }}
             />
           </button>
@@ -256,11 +281,11 @@ export default function TopNavigation({ onToggleMobileSidebar }) {
                 position: 'absolute',
                 right: 0,
                 marginTop: '8px',
-                width: '300px',
+                width: '290px',
                 backgroundColor: '#ffffff',
-                borderRadius: 'var(--radius-lg, 12px)',
+                borderRadius: 'var(--radius-lg, 8px)',
                 boxShadow: 'var(--shadow-lg)',
-                border: '1px solid var(--neutral-200, #e2e8f0)',
+                border: '1px solid var(--border-subtle, #e2e8f0)',
                 zIndex: 100,
                 overflow: 'hidden',
                 animation: 'fadeIn 0.15s ease-out',
@@ -268,42 +293,45 @@ export default function TopNavigation({ onToggleMobileSidebar }) {
             >
               <div
                 style={{
-                  padding: '12px 16px',
-                  borderBottom: '1px solid var(--neutral-100, #f1f5f9)',
+                  padding: '10px 14px',
+                  borderBottom: '1px solid var(--border-subtle, #e2e8f0)',
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'center',
+                  backgroundColor: 'var(--neutral-50, #f8fafc)',
                 }}
               >
-                <span style={{ fontWeight: 600, fontSize: '0.875rem' }}>Notifications</span>
+                <span style={{ fontWeight: 600, fontSize: '0.8125rem', color: 'var(--text-main, #0f172a)' }}>
+                  Platform Alerts
+                </span>
                 <span
                   style={{
                     fontSize: '0.75rem',
-                    color: 'var(--primary-600, #4f46e5)',
+                    color: 'var(--primary-600, #2563eb)',
                     cursor: 'pointer',
                     fontWeight: 500,
                   }}
                   onClick={() => setShowNotifications(false)}
                 >
-                  Close
+                  Dismiss
                 </span>
               </div>
-              <div style={{ maxHeight: '240px', overflowY: 'auto' }}>
+              <div style={{ maxHeight: '220px', overflowY: 'auto' }}>
                 {notifications.map((n) => (
                   <div
                     key={n.id}
                     style={{
-                      padding: '10px 16px',
+                      padding: '10px 14px',
                       borderBottom: '1px solid var(--neutral-100, #f1f5f9)',
-                      backgroundColor: n.unread ? 'var(--primary-50, #eef2ff)' : '#ffffff',
+                      backgroundColor: n.unread ? 'var(--primary-50, #eff6ff)' : '#ffffff',
                       cursor: 'pointer',
                     }}
                     onClick={() => setShowNotifications(false)}
                   >
-                    <div style={{ fontSize: '0.8125rem', fontWeight: n.unread ? 600 : 500 }}>
+                    <div style={{ fontSize: '0.8125rem', fontWeight: n.unread ? 600 : 500, color: 'var(--text-main, #0f172a)' }}>
                       {n.title}
                     </div>
-                    <div style={{ fontSize: '0.75rem', color: 'var(--neutral-400, #94a3b8)', marginTop: '2px' }}>
+                    <div style={{ fontSize: '0.6875rem', color: 'var(--text-muted, #64748b)', marginTop: '2px' }}>
                       {n.time}
                     </div>
                   </div>
@@ -322,24 +350,31 @@ export default function TopNavigation({ onToggleMobileSidebar }) {
                 display: 'flex',
                 alignItems: 'center',
                 gap: '8px',
-                padding: '4px 8px',
-                borderRadius: 'var(--radius-full, 9999px)',
+                padding: '3px 6px',
+                borderRadius: 'var(--radius-md, 6px)',
                 cursor: 'pointer',
-                transition: 'background-color var(--transition-fast)',
+                border: '1px solid transparent',
+                transition: 'all var(--transition-fast)',
               }}
-              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--neutral-100, #f1f5f9)')}
-              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = 'var(--neutral-100, #f1f5f9)';
+                e.currentTarget.style.borderColor = 'var(--border-subtle, #e2e8f0)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = 'transparent';
+                e.currentTarget.style.borderColor = 'transparent';
+              }}
             >
               <Avatar name={user?.name || 'Authorized User'} size="sm" status="online" />
               <div style={{ display: 'flex', flexDirection: 'column', textAlign: 'left' }} className="header-user-text">
-                <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--neutral-900, #0f172a)', lineHeight: 1.2 }}>
+                <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--text-main, #0f172a)', lineHeight: 1.2 }}>
                   {user?.name || 'Authorized User'}
                 </span>
-                <span style={{ fontSize: '0.6875rem', color: 'var(--primary-700, #4338ca)', fontWeight: 600 }}>
+                <span style={{ fontSize: '0.6875rem', color: 'var(--text-muted, #64748b)', fontWeight: 500 }}>
                   {role || 'EMPLOYEE'}
                 </span>
               </div>
-              <span style={{ fontSize: '0.625rem', color: 'var(--neutral-400, #94a3b8)' }}>▼</span>
+              <ChevronDownIcon size={12} color="var(--neutral-400, #94a3b8)" />
             </div>
           }
           items={userMenuItems}

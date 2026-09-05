@@ -258,8 +258,38 @@ const getDashboardStats = async (user = {}) => {
     const totalPayslips = payslipCountRes.rows[0]?.total || 0;
     const userStats = userCountRes.rows[0] || {};
 
+    const deptPayrollMapped = deptPayrollRes.rows.map(d => ({
+      ...d,
+      net_payout: parseFloat(d.total_net || 0),
+      employee_count: parseInt(d.payslip_count || 0, 10),
+    }));
+
+    const trendsList = payrunTrendRes.rows || [];
+    const latestPayrun = trendsList.length > 0 ? trendsList[trendsList.length - 1] : null;
+
     return {
       role,
+      // Top-level aliases for direct access
+      total_employees: parseInt(empStats.total || 0, 10),
+      active_contracts: parseInt(contractStats.active || 0, 10),
+      pending_onboarding: parseInt(empStats.inactive || 0, 10),
+      today_attendance: {
+        present: parseInt(attStats.total_present || 0, 10),
+        late: parseInt(attStats.total_late || 0, 10),
+        half_day: parseInt(attStats.total_half_day || 0, 10),
+        absent: parseInt(attStats.total_absent || 0, 10),
+      },
+      payroll_overview: {
+        total_net_disbursed: parseFloat(payrollStats.total_disbursed || 0),
+        total_gross_processed: parseFloat(payrollStats.total_gross || 0),
+        total_payruns_count: parseInt(payrollStats.total_payruns || 0, 10),
+      },
+      pending_leaves_count: parseInt(leaveStats.pending || 0, 10),
+      by_department: deptPayrollMapped,
+      trends: trendsList,
+      latest_payrun: latestPayrun,
+
+      // Nested domain groupings
       users: {
         total: parseInt(userStats.total_users || 0, 10),
         active: parseInt(userStats.active_users || 0, 10),
@@ -298,8 +328,8 @@ const getDashboardStats = async (user = {}) => {
         total_payslips: parseInt(totalPayslips, 10),
         total_disbursed: parseFloat(payrollStats.total_disbursed || 0),
         total_gross: parseFloat(payrollStats.total_gross || 0),
-        trends: payrunTrendRes.rows,
-        by_department: deptPayrollRes.rows,
+        trends: trendsList,
+        by_department: deptPayrollMapped,
       },
     };
   } catch (err) {

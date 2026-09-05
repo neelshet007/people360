@@ -4,6 +4,16 @@ import { useAuth } from '../../../context/AuthContext';
 import Button from '../../../components/ui/Button';
 import Card from '../../../components/ui/Card';
 import Badge from '../../../components/ui/Badge';
+import {
+  UsersIcon,
+  UserIcon,
+  ClockIcon,
+  CalendarIcon,
+  TimeOffIcon,
+  BanknoteIcon,
+  FileTextIcon,
+  CheckCircleIcon,
+} from '../../../components/ui/Icons';
 
 /**
  * Public Landing Page — PeoplePay360
@@ -23,37 +33,37 @@ export default function LandingPage() {
 
   const capabilities = [
     {
-      icon: '👥',
+      icon: <UsersIcon size={24} color="var(--primary-600, #2563eb)" />,
       title: 'Core HR Master',
       desc: 'Centralized directory for personnel profiles, department hierarchy, PAN tax records, and compliant employment agreements.',
       badge: 'P1 Foundation',
     },
     {
-      icon: '⏰',
+      icon: <ClockIcon size={24} color="var(--primary-600, #2563eb)" />,
       title: 'Shift Calendars',
       desc: 'Configurable working schedules with automated weekly-hour calculations and Indian Standard Time (IST) support.',
       badge: 'Automated',
     },
     {
-      icon: '📅',
+      icon: <CalendarIcon size={24} color="var(--primary-600, #2563eb)" />,
       title: 'Live Attendance',
       desc: 'Real-time clock-in/clock-out tracking with automated late detection, half-day computations, and HR correction audits.',
       badge: 'P2 Operations',
     },
     {
-      icon: '🏖️',
+      icon: <TimeOffIcon size={24} color="var(--primary-600, #2563eb)" />,
       title: 'Time Off Management',
       desc: 'Multi-category leave balances (Earned, Casual, Sick, Maternity) with manager approval workflows and live balance recalculation.',
       badge: 'Self-Service',
     },
     {
-      icon: '💰',
+      icon: <BanknoteIcon size={24} color="var(--primary-600, #2563eb)" />,
       title: 'Statutory Indian Payroll',
       desc: 'Accurate CTC gross-to-net engine with HRA, Transport, Special Allowance, Employee PF (12%), and Professional Tax (PT).',
       badge: 'P3 Engine',
     },
     {
-      icon: '📄',
+      icon: <FileTextIcon size={24} color="var(--primary-600, #2563eb)" />,
       title: 'Itemized Payslips',
       desc: 'Automated monthly payrun batch execution producing verifiable, itemized compensation statements in Indian Rupees (₹).',
       badge: 'Compliant',
@@ -61,11 +71,11 @@ export default function LandingPage() {
   ];
 
   const workflowSteps = [
-    { num: '01', title: 'Onboard Staff', desc: 'Register employee master data & legal contracts', icon: '👤' },
-    { num: '02', title: 'Assign Shifts', desc: 'Define weekly working hours and schedules', icon: '⏰' },
-    { num: '03', title: 'Track Time', desc: 'Capture daily check-ins & approved leaves', icon: '📅' },
-    { num: '04', title: 'Execute Payroll', desc: 'Process attendance-adjusted gross-to-net', icon: '💳' },
-    { num: '05', title: 'Disburse Payouts', desc: 'Generate itemized employee payslips in ₹', icon: '📄' },
+    { num: '01', title: 'Onboard Staff', desc: 'Register employee master data & legal contracts', icon: <UserIcon size={20} color="var(--primary-600, #2563eb)" /> },
+    { num: '02', title: 'Assign Shifts', desc: 'Define weekly working hours and schedules', icon: <ClockIcon size={20} color="var(--primary-600, #2563eb)" /> },
+    { num: '03', title: 'Track Time', desc: 'Capture daily check-ins & approved leaves', icon: <CalendarIcon size={20} color="var(--primary-600, #2563eb)" /> },
+    { num: '04', title: 'Execute Payroll', desc: 'Process attendance-adjusted gross-to-net', icon: <BanknoteIcon size={20} color="var(--primary-600, #2563eb)" /> },
+    { num: '05', title: 'Disburse Payouts', desc: 'Generate itemized employee payslips in ₹', icon: <FileTextIcon size={20} color="var(--primary-600, #2563eb)" /> },
   ];
 
   const keyBenefits = [
@@ -273,7 +283,7 @@ export default function LandingPage() {
           {capabilities.map((c, i) => (
             <Card key={i}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
-                <span style={{ fontSize: '2rem', padding: '10px', backgroundColor: 'var(--neutral-50, #f8fafc)', borderRadius: '10px' }}>
+                <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '44px', height: '44px', backgroundColor: 'var(--primary-50, #eff6ff)', borderRadius: '8px', border: '1px solid var(--primary-100, #dbeafe)' }}>
                   {c.icon}
                 </span>
                 <Badge variant="neutral">{c.badge}</Badge>
@@ -315,10 +325,14 @@ export default function LandingPage() {
                   position: 'relative',
                 }}
               >
-                <div style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--primary-600, #4f46e5)', marginBottom: '8px' }}>
-                  STEP {step.num}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+                  <span style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--primary-600, #2563eb)' }}>
+                    STEP {step.num}
+                  </span>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '32px', height: '32px', backgroundColor: 'var(--primary-50, #eff6ff)', borderRadius: '6px' }}>
+                    {step.icon}
+                  </span>
                 </div>
-                <div style={{ fontSize: '1.75rem', marginBottom: '8px' }}>{step.icon}</div>
                 <h4 style={{ fontSize: '1rem', fontWeight: 700, margin: '0 0 6px', color: 'var(--neutral-900, #0f172a)' }}>
                   {step.title}
                 </h4>

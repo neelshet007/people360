@@ -10,10 +10,11 @@ const { successResponse } = require('../../../utils/responseHelper');
 const checkIn = async (req, res, next) => {
   try {
     const employeeId = req.user.employeeId;
+    const { latitude, longitude } = req.body || {};
     if (!employeeId) {
       return next(Object.assign(new Error('No employee profile linked to your account'), { statusCode: 400, code: 'INVALID_INPUT' }));
     }
-    const record = await attendanceService.checkIn(employeeId, req.ip);
+    const record = await attendanceService.checkIn(employeeId, req.ip, latitude, longitude);
     return successResponse(res, record, null, 201);
   } catch (error) {
     next(error);

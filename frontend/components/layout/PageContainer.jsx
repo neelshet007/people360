@@ -1,8 +1,8 @@
 import React from 'react';
 
 /**
- * Shared PageContainer Component
- * Owner: P1 (Core HR)
+ * Enterprise PageContainer Component
+ * Establishes consistent margin rhythm, executive header, and contextual action cluster
  */
 export default function PageContainer({
   title,
@@ -16,16 +16,17 @@ export default function PageContainer({
   return (
     <div
       style={{
-        padding: '24px 20px',
-        maxWidth: '1280px',
+        padding: '24px 28px',
+        maxWidth: '1360px',
         margin: '0 auto',
         width: '100%',
+        boxSizing: 'border-box',
         ...style,
       }}
       className={`page-container ${className}`}
     >
       {breadcrumbs && (
-        <div style={{ marginBottom: '12px', fontSize: '0.8125rem', color: 'var(--neutral-500, #64748b)' }}>
+        <div style={{ marginBottom: '10px', fontSize: '0.75rem', color: 'var(--text-muted, #64748b)' }}>
           {breadcrumbs}
         </div>
       )}
@@ -36,7 +37,7 @@ export default function PageContainer({
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'flex-start',
-            marginBottom: '24px',
+            marginBottom: '20px',
             flexWrap: 'wrap',
             gap: '16px',
           }}
@@ -45,11 +46,12 @@ export default function PageContainer({
             {title && (
               <h1
                 style={{
-                  fontSize: '1.5rem',
+                  fontSize: '1.375rem',
                   fontWeight: 700,
-                  color: 'var(--neutral-900, #0f172a)',
+                  color: 'var(--text-main, #0f172a)',
                   margin: 0,
                   letterSpacing: '-0.02em',
+                  lineHeight: 1.25,
                 }}
               >
                 {title}
@@ -58,17 +60,22 @@ export default function PageContainer({
             {subtitle && (
               <p
                 style={{
-                  fontSize: '0.875rem',
-                  color: 'var(--neutral-500, #64748b)',
+                  fontSize: '0.8125rem',
+                  color: 'var(--text-muted, #64748b)',
                   marginTop: '4px',
                   marginBottom: 0,
+                  lineHeight: 1.4,
                 }}
               >
                 {subtitle}
               </p>
             )}
           </div>
-          {actions && <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>{actions}</div>}
+          {actions && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+              {actions}
+            </div>
+          )}
         </div>
       )}
       <div>{children}</div>
