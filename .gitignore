@@ -58,3 +58,6 @@ Thumbs.db
 *.sqlite3
 prisma/*.db
 prisma/*.db-journal
+
+# Local Learning / Personal notes
+LEARNING_GUIDE.md
