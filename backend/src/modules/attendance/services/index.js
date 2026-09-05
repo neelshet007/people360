@@ -79,14 +79,22 @@ const attendanceService = {
     const now = new Date();
     const todayDate = now.toISOString().split('T')[0]; // YYYY-MM-DD UTC
 
-    // Prevent duplicate check-in
+    // Check if already currently checked in without check-out
     const existing = await attendanceRepository.findByEmployeeAndDate(employeeId, todayDate);
     if (existing) {
       if (existing.clock_in && !existing.clock_out) {
         throw ApiError.conflict('You are already checked in.');
       }
       if (existing.clock_in && existing.clock_out) {
-        throw ApiError.conflict('You have already checked out for today.');
+        // Allow re-checking in for overtime, extra shift, or flexible hours
+        const schedule = await attendanceRepository.getScheduleForEmployee(employeeId, todayDate);
+        const checkInStatus = determineCheckInStatus(now.toISOString(), schedule.start_time);
+        const updated = await attendanceRepository.updateAttendance(existing.id, {
+          clock_in: now.toISOString(),
+          clock_out: null,
+          status: checkInStatus,
+        });
+        return updated;
       }
     }
 
@@ -153,8 +161,9 @@ const attendanceService = {
 
     const clockIn = new Date(existing.clock_in);
     const clockOut = now;
-    const workedMs = clockOut.getTime() - clockIn.getTime();
-    const workedHours = round2(workedMs / (1000 * 60 * 60));
+    const sessionWorkedMs = Math.max(0, clockOut.getTime() - clockIn.getTime());
+    const sessionHours = round2(sessionWorkedMs / (1000 * 60 * 60));
+    const workedHours = round2(parseFloat(existing.total_hours || 0) + sessionHours);
     const expectedHours = parseFloat(existing.expected_hours || 8.0);
     const differenceHours = round2(workedHours - expectedHours);
     const wasLate = existing.status === 'LATE';

@@ -238,9 +238,9 @@ export default function MyAttendancePage() {
             )}
           </div>
           <div style={{ display: 'flex', gap: '10px' }}>
-            {!isCheckedIn && !activeState?.checkInTime && (
+            {!isCheckedIn && (
               <Button variant="primary" loading={checkingIn} onClick={handleCheckIn} disabled={checkingIn} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-                <LogInIcon size={16} /> Check In
+                <LogInIcon size={16} /> {activeState?.checkInTime ? 'Check In Again' : 'Check In'}
               </Button>
             )}
             {isCheckedIn && (

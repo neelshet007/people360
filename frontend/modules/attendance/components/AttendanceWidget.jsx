@@ -10,8 +10,8 @@ import { getStoredUser } from '../../../lib/auth';
 export default function AttendanceWidget() {
   const user = getStoredUser();
 
-  // Only render for EMPLOYEE role users with an employeeId
-  if (!user || !user.employeeId || user.role === 'HR_ADMIN' || user.role === 'ADMIN') return null;
+  // Only render for users with an employeeId linked
+  if (!user || !user.employeeId) return null;
 
   const [state, setState] = useState(null); // null = loading
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
@@ -92,14 +92,12 @@ export default function AttendanceWidget() {
           });
         },
         (error) => {
-          console.warn('GPS Error:', error);
-          // Proceed without GPS if permission denied or error
+          // Proceed without GPS if permission denied or slow
           doCheckIn({});
         },
-        { timeout: 5000, maximumAge: 60000 }
+        { timeout: 1000, maximumAge: 60000 }
       );
     } else {
-      // Fallback if geolocation is not supported
       doCheckIn({});
     }
   };
@@ -264,10 +262,10 @@ export default function AttendanceWidget() {
                 )}
                 <button
                   onClick={handleCheckIn}
-                  disabled={loading || !!state.checkInTime}
-                  style={actionBtnStyle('#4f46e5', loading || !!state.checkInTime)}
+                  disabled={loading}
+                  style={actionBtnStyle('#4f46e5', loading)}
                 >
-                  {loading ? '⏳ Processing...' : '▶ Check In'}
+                  {loading ? '⏳ Processing...' : (state.checkInTime ? '▶ Check In Again' : '▶ Check In')}
                 </button>
               </>
             )}
