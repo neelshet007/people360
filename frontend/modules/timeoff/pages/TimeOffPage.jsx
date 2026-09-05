@@ -16,6 +16,7 @@ import Alert from '../../../components/feedback/Alert';
 import TimeOffStatusBadge from '../components/TimeOffStatusBadge';
 import timeoffApi from '../api/timeoffApi';
 import employeesApi from '../../employees/api/employeesApi';
+import { useAuth } from '../../../context/AuthContext';
 
 /**
  * Time Off Master Page
@@ -23,6 +24,14 @@ import employeesApi from '../../employees/api/employeesApi';
  * Foundation view for Leave Requests, Allocations, and Policy Categories
  */
 export default function TimeOffPage() {
+  const { user, hasPermission } = useAuth();
+  const isEmployee = user?.role === 'EMPLOYEE';
+  const canApprove =
+    user?.role === 'ADMIN' ||
+    user?.role === 'HR_MANAGER' ||
+    user?.role === 'HR_PAYROLL_MANAGER' ||
+    hasPermission('timeoff.approve');
+
   const [activeTab, setActiveTab] = useState('requests');
 
   // Requests State
@@ -30,6 +39,8 @@ export default function TimeOffPage() {
   const [loadingReqs, setLoadingReqs] = useState(true);
   const [errorReqs, setErrorReqs] = useState(null);
   const [pagination, setPagination] = useState({ page: 1, limit: 10, total: 0, totalPages: 1 });
+  const [actionLoadingId, setActionLoadingId] = useState(null);
+
 
   // Types State
   const [types, setTypes] = useState([]);
@@ -93,6 +104,33 @@ export default function TimeOffPage() {
     }
   };
 
+  const handleOpenModal = () => {
+
+    setModalError(null);
+    setNewRequest({
+      employee_id: isEmployee ? (user?.employeeId || '') : '',
+      time_off_type_id: '',
+      start_date: '',
+      end_date: '',
+      total_days: '1',
+      reason: '',
+    });
+    setShowModal(true);
+  };
+
+  const handleUpdateStatus = async (id, status) => {
+    setActionLoadingId(id);
+    try {
+      await timeoffApi.updateRequestStatus(id, { status });
+      await fetchRequests();
+      await fetchAllocations();
+    } catch (err) {
+      alert(err.message || `Failed to ${status.toLowerCase()} request`);
+    } finally {
+      setActionLoadingId(null);
+    }
+  };
+
   useEffect(() => {
     fetchRequests();
     fetchTypes();
@@ -101,6 +139,7 @@ export default function TimeOffPage() {
 
   useEffect(() => {
     async function loadEmployees() {
+      if (isEmployee) return; // Employee role only requests for self
       try {
         const res = await employeesApi.getEmployees({ limit: 100 });
         setEmployees(res.data || []);
@@ -109,11 +148,12 @@ export default function TimeOffPage() {
       }
     }
     loadEmployees();
-  }, []);
+  }, [isEmployee]);
 
   const handleCreateSubmit = async (e) => {
     e.preventDefault();
-    if (!newRequest.employee_id || !newRequest.time_off_type_id || !newRequest.start_date || !newRequest.end_date) {
+    const applicantId = isEmployee ? user?.employeeId : newRequest.employee_id;
+    if (!applicantId || !newRequest.time_off_type_id || !newRequest.start_date || !newRequest.end_date) {
       setModalError('Please complete all required fields');
       return;
     }
@@ -122,11 +162,12 @@ export default function TimeOffPage() {
     try {
       await timeoffApi.createRequest({
         ...newRequest,
+        employee_id: applicantId,
         total_days: parseFloat(newRequest.total_days || 1),
       });
       setShowModal(false);
       setNewRequest({
-        employee_id: '',
+        employee_id: isEmployee ? (user?.employeeId || '') : '',
         time_off_type_id: '',
         start_date: '',
         end_date: '',
@@ -134,6 +175,7 @@ export default function TimeOffPage() {
         reason: '',
       });
       fetchRequests();
+      fetchAllocations();
     } catch (err) {
       setModalError(err.message || 'Failed to submit time off request');
     } finally {
@@ -182,7 +224,72 @@ export default function TimeOffPage() {
       accessor: 'status',
       render: (row) => <TimeOffStatusBadge status={row.status} />,
     },
+    ...(canApprove
+      ? [
+          {
+            header: 'HR Actions',
+            accessor: 'actions',
+            render: (row) => {
+              if (row.status === 'PENDING') {
+                const isLoading = actionLoadingId === row.id;
+                return (
+                  <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                    <button
+                      type="button"
+                      disabled={isLoading}
+                      onClick={() => handleUpdateStatus(row.id, 'APPROVED')}
+                      style={{
+                        padding: '4px 10px',
+                        fontSize: '0.75rem',
+                        fontWeight: 600,
+                        borderRadius: '6px',
+                        border: 'none',
+                        backgroundColor: '#16a34a',
+                        color: '#ffffff',
+                        cursor: isLoading ? 'not-allowed' : 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '3px',
+                      }}
+                      title="Approve leave request"
+                    >
+                      ✓ Approve
+                    </button>
+                    <button
+                      type="button"
+                      disabled={isLoading}
+                      onClick={() => handleUpdateStatus(row.id, 'REJECTED')}
+                      style={{
+                        padding: '4px 10px',
+                        fontSize: '0.75rem',
+                        fontWeight: 600,
+                        borderRadius: '6px',
+                        border: '1px solid #ef4444',
+                        backgroundColor: '#ffffff',
+                        color: '#ef4444',
+                        cursor: isLoading ? 'not-allowed' : 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '3px',
+                      }}
+                      title="Refuse leave request"
+                    >
+                      ✗ Refuse
+                    </button>
+                  </div>
+                );
+              }
+              return (
+                <span style={{ fontSize: '0.75rem', color: 'var(--neutral-500, #64748b)', fontWeight: 500 }}>
+                  {row.status === 'APPROVED' ? '✓ Approved' : row.status === 'REJECTED' ? '✗ Refused' : '—'}
+                </span>
+              );
+            },
+          },
+        ]
+      : []),
   ];
+
 
   const typeColumns = [
     {
@@ -226,9 +333,13 @@ export default function TimeOffPage() {
   return (
     <PageContainer
       title="Time Off"
-      subtitle="Owner: P2 — HR Operations • Vacation requests, sick leaves, and annual allocation quotas"
+      subtitle={
+        isEmployee
+          ? "My Time Off • Submit leave applications, check approval status, and monitor vacation balance"
+          : "HR Operations • Vacation requests, sick leaves, and annual allocation quotas"
+      }
       actions={
-        <Button variant="primary" onClick={() => setShowModal(true)}>
+        <Button id="btn-request-timeoff" variant="primary" onClick={handleOpenModal}>
           Request Time Off
         </Button>
       }
@@ -249,13 +360,18 @@ export default function TimeOffPage() {
             ) : requests.length === 0 ? (
               <EmptyState
                 title="No time off requests found"
-                description="Staff members have not submitted any active leave applications yet."
+                description={
+                  isEmployee
+                    ? "You haven't submitted any leave applications yet. Click below to request time off."
+                    : "Staff members have not submitted any active leave applications yet."
+                }
                 action={
-                  <Button variant="primary" size="sm" onClick={() => setShowModal(true)}>
+                  <Button id="btn-request-timeoff-empty" variant="primary" size="sm" onClick={handleOpenModal}>
                     Request Time Off
                   </Button>
                 }
               />
+
             ) : (
               <>
                 <Table columns={requestColumns} data={requests} />
@@ -311,7 +427,7 @@ export default function TimeOffPage() {
       {/* Submit Leave Request Modal */}
       {showModal && (
         <Modal
-          title="Submit Time Off Application"
+          title={isEmployee ? "Request My Time Off" : "Submit Time Off Application"}
           isOpen={showModal}
           onClose={() => setShowModal(false)}
           actions={
@@ -332,19 +448,53 @@ export default function TimeOffPage() {
           )}
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            <Select
-              label="Applicant Employee"
-              required
-              options={[
-                { value: '', label: 'Select employee...' },
-                ...employees.map((e) => ({
-                  value: e.id,
-                  label: `${e.display_name || `${e.first_name} ${e.last_name}`} (${e.employee_code})`,
-                })),
-              ]}
-              value={newRequest.employee_id}
-              onChange={(e) => setNewRequest((prev) => ({ ...prev, employee_id: e.target.value }))}
-            />
+            {isEmployee ? (
+              <div>
+                <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 600, color: 'var(--neutral-700, #334155)', marginBottom: '6px' }}>
+                  Applicant Employee
+                </label>
+                <div
+                  style={{
+                    padding: '10px 14px',
+                    backgroundColor: 'var(--neutral-50, #f8fafc)',
+                    border: '1px solid var(--neutral-300, #cbd5e1)',
+                    borderRadius: 'var(--radius-md, 8px)',
+                    fontSize: '0.875rem',
+                    color: 'var(--neutral-900, #0f172a)',
+                    fontWeight: 600,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span>👤</span>
+                    <span>{user?.name || 'Self'}</span>
+                  </div>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--primary-700, #4338ca)', backgroundColor: 'var(--primary-50, #eef2ff)', padding: '2px 8px', borderRadius: '4px', fontWeight: 700 }}>
+                    {user?.employeeId || 'EMPLOYEE'}
+                  </span>
+                </div>
+                <span style={{ display: 'block', fontSize: '0.75rem', color: 'var(--neutral-500, #64748b)', marginTop: '4px' }}>
+                  Your leave application will be submitted for approval to the HR Manager.
+                </span>
+              </div>
+            ) : (
+              <Select
+                label="Applicant Employee"
+                required
+                options={[
+                  { value: '', label: 'Select employee...' },
+                  ...employees.map((e) => ({
+                    value: e.id,
+                    label: `${e.display_name || `${e.first_name} ${e.last_name}`} (${e.employee_code})`,
+                  })),
+                ]}
+                value={newRequest.employee_id}
+                onChange={(e) => setNewRequest((prev) => ({ ...prev, employee_id: e.target.value }))}
+              />
+            )}
+
 
             <Select
               label="Leave Category"

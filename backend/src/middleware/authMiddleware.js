@@ -135,9 +135,43 @@ const checkEmployeeOwnership = (paramKey = 'id') => {
   };
 };
 
+/**
+ * Authorize read on employee-scoped endpoints:
+ * Allows if user has permission (e.g. 'employees.read') OR
+ * is an EMPLOYEE accessing their own record (matching req.user.employeeId).
+ */
+const authorizeEmployeeSelfOrPermission = (permission, paramKey = 'id') => {
+  return (req, res, next) => {
+    if (!req.user) {
+      return errorResponse(res, 'User not authenticated', 'UNAUTHORIZED', [], 401);
+    }
+
+    if (req.user.role === ROLES.ADMIN || hasPermission(req.user.role, permission)) {
+      return next();
+    }
+
+    if (req.user.role === ROLES.EMPLOYEE && req.user.employeeId) {
+      const requestedId = req.params[paramKey] || req.query[paramKey] || req.body?.employee_id;
+      if (requestedId && requestedId === req.user.employeeId) {
+        return next();
+      }
+    }
+
+    return errorResponse(
+      res,
+      `Access forbidden: Your role (${req.user.role}) does not have permission '${permission}'`,
+      'FORBIDDEN',
+      [],
+      403
+    );
+  };
+};
+
 module.exports = {
   authenticate,
   authorize,
   requireRole,
   checkEmployeeOwnership,
+  authorizeEmployeeSelfOrPermission,
 };
+

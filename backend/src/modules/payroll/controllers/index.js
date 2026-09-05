@@ -46,6 +46,24 @@ const createSalaryStructure = async (req, res, next) => {
   }
 };
 
+const updateSalaryStructure = async (req, res, next) => {
+  try {
+    const structure = await payrollService.updateSalaryStructure(req.params.id, req.body);
+    return successResponse(res, structure);
+  } catch (error) {
+    next(error);
+  }
+};
+
+const deleteSalaryStructure = async (req, res, next) => {
+  try {
+    await payrollService.deleteSalaryStructure(req.params.id);
+    return successResponse(res, { message: 'Salary structure deleted successfully' });
+  } catch (error) {
+    next(error);
+  }
+};
+
 // -----------------------------------------------------------------------------
 // SALARY RULES
 // -----------------------------------------------------------------------------
@@ -62,6 +80,54 @@ const getSalaryRuleById = async (req, res, next) => {
   try {
     const rule = await payrollService.getSalaryRuleById(req.params.id);
     return successResponse(res, rule);
+  } catch (error) {
+    next(error);
+  }
+};
+
+const createSalaryRule = async (req, res, next) => {
+  try {
+    const rule = await payrollService.createSalaryRule(req.body);
+    return successResponse(res, rule, null, 201);
+  } catch (error) {
+    next(error);
+  }
+};
+
+const updateSalaryRule = async (req, res, next) => {
+  try {
+    const rule = await payrollService.updateSalaryRule(req.params.id, req.body);
+    return successResponse(res, rule);
+  } catch (error) {
+    next(error);
+  }
+};
+
+const deleteSalaryRule = async (req, res, next) => {
+  try {
+    await payrollService.deleteSalaryRule(req.params.id);
+    return successResponse(res, { message: 'Salary rule deleted successfully' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const reorderSalaryRules = async (req, res, next) => {
+  try {
+    await payrollService.reorderSalaryRules(req.body.ruleOrders || req.body);
+    return successResponse(res, { message: 'Salary rules reordered successfully' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// -----------------------------------------------------------------------------
+// SALARY CALCULATION ENGINE
+// -----------------------------------------------------------------------------
+const calculateSalary = async (req, res, next) => {
+  try {
+    const calculation = await payrollService.calculateSalary(req.body);
+    return successResponse(res, calculation);
   } catch (error) {
     next(error);
   }
@@ -133,8 +199,15 @@ module.exports = {
   getSalaryStructures,
   getSalaryStructureById,
   createSalaryStructure,
+  updateSalaryStructure,
+  deleteSalaryStructure,
   getSalaryRules,
   getSalaryRuleById,
+  createSalaryRule,
+  updateSalaryRule,
+  deleteSalaryRule,
+  reorderSalaryRules,
+  calculateSalary,
   getPayruns,
   getPayrunById,
   createPayrun,

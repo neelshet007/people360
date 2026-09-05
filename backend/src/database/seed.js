@@ -71,26 +71,29 @@ async function runSeed() {
     const opsScheduleId = scheduleRes.rows[2].id;
     console.log(`[Seed] ✓ Created ${scheduleRes.rows.length} working schedules.`);
 
-    console.log('[Seed] 2. Creating Indian Salary Structure & Atomic Rules...');
+    console.log('[Seed] 2. Creating Indian Salary Structure & Ordered Rules...');
     const structRes = await client.query(`
       INSERT INTO salary_structures (name, code, description, is_active)
       VALUES 
-      ('Indian Standard Corporate Structure', 'IN-CORP-STD', 'Standard CTC breakdown with Basic, HRA, Allowances, PF, and Professional Tax', true)
+      ('Standard Monthly Salary — Corporate', 'IN-CORP-STD', 'Standard corporate salary structure with Basic, Allowances, Gross, Deductions, and Net', true)
       RETURNING id;
     `);
     const structureId = structRes.rows[0].id;
 
     await client.query(`
-      INSERT INTO salary_rules (salary_structure_id, name, code, category, calculation_type, amount_or_rate, sequence_order)
+      INSERT INTO salary_rules (salary_structure_id, name, code, category, calculation_type, amount_or_rate, percentage_base, formula, sequence_order, is_active)
       VALUES
-      ($1, 'Basic Salary', 'BASIC', 'ALLOWANCE', 'PERCENTAGE', 0.50, 1),
-      ($1, 'House Rent Allowance (HRA)', 'HRA', 'ALLOWANCE', 'PERCENTAGE', 0.20, 2),
-      ($1, 'Special Allowance', 'SPL_ALLOW', 'ALLOWANCE', 'PERCENTAGE', 0.25, 3),
-      ($1, 'Transport Allowance', 'TRANSPORT', 'ALLOWANCE', 'FIXED', 3000.00, 4),
-      ($1, 'Provident Fund (PF - Employee)', 'PF_EMP', 'DEDUCTION', 'PERCENTAGE', 0.12, 5),
-      ($1, 'Professional Tax (PT)', 'PT', 'DEDUCTION', 'FIXED', 200.00, 6);
+      ($1, 'Basic Salary', 'BASIC', 'BASIC', 'FIXED', 30000.00, NULL, NULL, 10, true),
+      ($1, 'House Rent Allowance (HRA)', 'HRA', 'ALLOWANCE', 'PERCENTAGE', 40.00, 'BASIC', NULL, 20, true),
+      ($1, 'Transport Allowance', 'TRANSPORT', 'ALLOWANCE', 'FIXED', 3000.00, NULL, NULL, 30, true),
+      ($1, 'Special Allowance', 'SPL_ALLOW', 'ALLOWANCE', 'FIXED', 5000.00, NULL, NULL, 40, true),
+      ($1, 'Gross Earnings', 'GROSS', 'GROSS', 'FORMULA', 0.00, NULL, 'BASIC + HRA + TRANSPORT + SPL_ALLOW', 50, true),
+      ($1, 'Provident Fund (PF - Employee)', 'PF_EMP', 'DEDUCTION', 'PERCENTAGE', 12.00, 'BASIC', NULL, 60, true),
+      ($1, 'Professional Tax (PT)', 'PT', 'DEDUCTION', 'FIXED', 200.00, NULL, NULL, 70, true),
+      ($1, 'Total Deductions', 'TOTAL_DEDUCTIONS', 'DEDUCTION', 'FORMULA', 0.00, NULL, 'PF_EMP + PT', 80, true),
+      ($1, 'Net Salary Take-Home', 'NET', 'NET', 'FORMULA', 0.00, NULL, 'GROSS - TOTAL_DEDUCTIONS', 90, true);
     `, [structureId]);
-    console.log('[Seed] ✓ Created Indian Salary Structure with 6 component calculation rules.');
+    console.log('[Seed] ✓ Created Indian Salary Structure with 9 ordered calculation rules (Basic, Allowances, Gross, Deductions, Net).');
 
     console.log('[Seed] 3. Creating Time Off Types (Earned, Casual, Sick, Maternity)...');
     const totRes = await client.query(`

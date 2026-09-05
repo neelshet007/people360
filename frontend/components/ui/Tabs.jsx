@@ -27,6 +27,8 @@ export default function Tabs({
         return (
           <button
             key={tab.id}
+            id={`tab-${tab.id}`}
+            data-tab-id={tab.id}
             type="button"
             onClick={() => onChange && onChange(tab.id)}
             style={{

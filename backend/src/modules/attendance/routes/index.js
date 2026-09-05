@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const controllers = require('../controllers');
-const { authenticate, requireRole } = require('../../../middleware/authMiddleware');
+const { authenticate, authorize } = require('../../../middleware/authMiddleware');
 
 /**
  * Attendance Route Definitions — Phase 5
@@ -13,7 +13,7 @@ const { authenticate, requireRole } = require('../../../middleware/authMiddlewar
  *   GET    /active      — get active attendance state
  *   GET    /me          — employee's own history
  *
- * HR endpoints (HR_ADMIN, ADMIN only):
+ * HR endpoints (HR_MANAGER, HR_PAYROLL_MANAGER, ADMIN):
  *   GET    /            — list all attendance (with filters)
  *   POST   /            — manual attendance log
  *   GET    /:id         — get single record
@@ -27,9 +27,10 @@ router.get('/active', authenticate, controllers.getActive);
 router.get('/me', authenticate, controllers.getMyHistory);
 
 // HR management routes — must be declared before /:id
-router.get('/', authenticate, requireRole('HR_ADMIN', 'ADMIN'), controllers.getAttendance);
-router.post('/', authenticate, requireRole('HR_ADMIN', 'ADMIN'), controllers.recordAttendance);
-router.get('/:id', authenticate, controllers.getAttendanceById);
-router.patch('/:id', authenticate, requireRole('HR_ADMIN', 'ADMIN'), controllers.correctAttendance);
+router.get('/', authenticate, authorize('attendance.read'), controllers.getAttendance);
+router.post('/', authenticate, authorize('attendance.write'), controllers.recordAttendance);
+router.get('/:id', authenticate, authorize('attendance.read'), controllers.getAttendanceById);
+router.patch('/:id', authenticate, authorize('attendance.write'), controllers.correctAttendance);
 
 module.exports = router;
+
