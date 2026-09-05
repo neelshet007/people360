@@ -113,7 +113,8 @@ export default function EmployeeFormPage() {
         navigate('/employees');
       }, 800);
     } catch (err) {
-      setApiError(err.message || 'Failed to save employee. Please try again.');
+      const detailsMsg = Array.isArray(err.details) && err.details.length > 0 ? `: ${err.details.join(', ')}` : '';
+      setApiError((err.message || 'Failed to save employee. Please try again.') + detailsMsg);
     } finally {
       setSubmitting(false);
     }
