@@ -1,8 +1,9 @@
 import React from 'react';
+import { ChevronDownIcon } from './Icons';
 
 /**
- * Shared Select Component
- * Owner: P1 (Core HR)
+ * Enterprise Select Dropdown Component
+ * Features custom vector chevron, focus states, and validation alerts
  */
 export default function Select({
   label,
@@ -12,51 +13,66 @@ export default function Select({
   onChange,
   placeholder = 'Select an option',
   error,
+  helperText,
   disabled = false,
   required = false,
   className = '',
+  style = {},
   ...props
 }) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginBottom: '12px' }}>
+    <div className="pp-form-group">
       {label && (
-        <label
-          htmlFor={id}
-          style={{ fontSize: '0.875rem', fontWeight: 500, color: 'var(--neutral-700, #334155)' }}
-        >
-          {label} {required && <span style={{ color: 'var(--danger, #ef4444)' }}>*</span>}
+        <label htmlFor={id} className="pp-label">
+          <span>{label}</span>
+          {required && <span style={{ color: 'var(--danger, #dc2626)' }}>*</span>}
         </label>
       )}
-      <select
-        id={id}
-        value={value}
-        onChange={onChange}
-        disabled={disabled}
-        required={required}
-        style={{
-          padding: '8px 12px',
-          fontSize: '0.875rem',
-          borderRadius: 'var(--radius-md, 8px)',
-          border: error
-            ? '1px solid var(--danger, #ef4444)'
-            : '1px solid var(--neutral-300, #cbd5e1)',
-          outline: 'none',
-          backgroundColor: disabled ? 'var(--neutral-100, #f1f5f9)' : '#ffffff',
-          color: 'var(--neutral-900, #0f172a)',
-        }}
-        className={`form-select ${className}`}
-        {...props}
-      >
-        {placeholder && <option value="">{placeholder}</option>}
-        {options.map((opt) => (
-          <option key={opt.value} value={opt.value}>
-            {opt.label}
-          </option>
-        ))}
-      </select>
-      {error && (
-        <span style={{ fontSize: '0.75rem', color: 'var(--danger, #ef4444)' }}>{error}</span>
-      )}
+
+      <div style={{ position: 'relative' }}>
+        <select
+          id={id}
+          value={value}
+          onChange={onChange}
+          disabled={disabled}
+          required={required}
+          style={{
+            paddingRight: '32px',
+            appearance: 'none',
+            WebkitAppearance: 'none',
+            cursor: disabled ? 'not-allowed' : 'pointer',
+            ...style,
+          }}
+          className={`pp-select ${error ? 'pp-input-error' : ''} ${className}`}
+          {...props}
+        >
+          {placeholder && <option value="">{placeholder}</option>}
+          {options.map((opt) => (
+            <option key={opt.value} value={opt.value}>
+              {opt.label}
+            </option>
+          ))}
+        </select>
+
+        {/* Vector Chevron Indicator */}
+        <div
+          style={{
+            position: 'absolute',
+            right: '11px',
+            top: '50%',
+            transform: 'translateY(-50%)',
+            pointerEvents: 'none',
+            color: 'var(--text-muted, #64748b)',
+            display: 'flex',
+            alignItems: 'center',
+          }}
+        >
+          <ChevronDownIcon size={14} />
+        </div>
+      </div>
+
+      {helperText && !error && <span className="pp-helper-text">{helperText}</span>}
+      {error && <span className="pp-error-text">{error}</span>}
     </div>
   );
 }

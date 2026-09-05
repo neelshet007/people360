@@ -1,4 +1,3 @@
-/**
- * Shared Form Components Directory
- */
-export const FormPlaceholder = () => null;
+export { default as FormField } from './FormField';
+export { default as FormSection } from './FormSection';
+export { default as FormActions } from './FormActions';

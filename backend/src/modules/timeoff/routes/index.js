@@ -1,13 +1,27 @@
+const express = require('express');
+const router = express.Router();
+const controllers = require('../controllers');
+const { authenticate, authorize } = require('../../../middleware/authMiddleware');
+
 /**
  * Time Off Route Definitions
  * Owner: P2 (HR Operations)
- * Note: Placeholder structure only - CRUD not implemented yet.
+ * Protected with Centralized RBAC
  */
-const express = require('express');
-const router = express.Router();
 
-router.get('/', (req, res) => {
-  res.json({ success: true, message: 'Time Off endpoint placeholder' });
-});
+// Types
+router.get('/types', authenticate, controllers.getTypes);
+router.post('/types', authenticate, authorize('timeoff.write'), controllers.createType);
+
+// Allocations
+router.get('/allocations', authenticate, controllers.getAllocations);
+router.post('/allocations', authenticate, authorize('timeoff.write'), controllers.createAllocation);
+
+// Requests
+router.get('/calculate-days', authenticate, controllers.calculateWorkingDays);
+router.get('/requests', authenticate, controllers.getRequests);
+router.get('/requests/:id', authenticate, controllers.getRequestById);
+router.post('/requests', authenticate, controllers.createRequest);
+router.patch('/requests/:id', authenticate, authorize('timeoff.approve'), controllers.updateRequestStatus);
 
 module.exports = router;

@@ -1,29 +1,34 @@
 import React from 'react';
 
 /**
- * Shared Table Component
- * Owner: P1 (Core HR)
+ * Enterprise Data Table Component
+ * Features:
+ * - Sticky header styling with uppercase muted column titles
+ * - Numeric right-alignment support (col.align === 'right')
+ * - Tabular figures for financial and date precision
+ * - Subtle hover transitions and interactive row callbacks
  */
-export default function Table({ columns = [], data = [], emptyText = 'No records found' }) {
+export default function Table({
+  columns = [],
+  data = [],
+  emptyText = 'No records found',
+  onRowClick = null,
+  loading = false,
+  className = '',
+  style = {},
+}) {
   return (
-    <div style={{ width: '100%', overflowX: 'auto' }}>
-      <table
-        style={{
-          width: '100%',
-          borderCollapse: 'collapse',
-          textAlign: 'left',
-          fontSize: '0.875rem',
-        }}
-      >
+    <div style={style} className={`pp-table-container ${className}`}>
+      <table className="pp-table">
         <thead>
-          <tr style={{ borderBottom: '1px solid var(--neutral-200, #e2e8f0)', backgroundColor: 'var(--neutral-50, #f8fafc)' }}>
+          <tr>
             {columns.map((col, idx) => (
               <th
-                key={idx}
+                key={col.key || col.accessor || idx}
+                className="pp-th"
                 style={{
-                  padding: '12px 16px',
-                  fontWeight: 600,
-                  color: 'var(--neutral-600, #475569)',
+                  textAlign: col.align || 'left',
+                  width: col.width || 'auto',
                 }}
               >
                 {col.header}
@@ -32,14 +37,43 @@ export default function Table({ columns = [], data = [], emptyText = 'No records
           </tr>
         </thead>
         <tbody>
-          {data.length === 0 ? (
+          {loading ? (
             <tr>
               <td
                 colSpan={columns.length}
+                className="pp-td"
                 style={{
-                  padding: '24px 16px',
+                  padding: '36px 16px',
                   textAlign: 'center',
-                  color: 'var(--neutral-500, #64748b)',
+                  color: 'var(--text-muted, #64748b)',
+                }}
+              >
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+                  <span
+                    style={{
+                      display: 'inline-block',
+                      width: '15px',
+                      height: '15px',
+                      border: '2px solid var(--primary-600, #2563eb)',
+                      borderRightColor: 'transparent',
+                      borderRadius: '50%',
+                      animation: 'spin 0.6s linear infinite',
+                    }}
+                    aria-hidden="true"
+                  />
+                  <span>Loading records...</span>
+                </div>
+              </td>
+            </tr>
+          ) : data.length === 0 ? (
+            <tr>
+              <td
+                colSpan={columns.length}
+                className="pp-td"
+                style={{
+                  padding: '36px 16px',
+                  textAlign: 'center',
+                  color: 'var(--text-muted, #64748b)',
                 }}
               >
                 {emptyText}
@@ -48,11 +82,19 @@ export default function Table({ columns = [], data = [], emptyText = 'No records
           ) : (
             data.map((row, rowIdx) => (
               <tr
-                key={rowIdx}
-                style={{ borderBottom: '1px solid var(--neutral-200, #e2e8f0)' }}
+                key={row.id || rowIdx}
+                onClick={() => onRowClick && onRowClick(row)}
+                className={`pp-tr ${onRowClick ? 'pp-tr-interactive' : ''}`}
               >
                 {columns.map((col, colIdx) => (
-                  <td key={colIdx} style={{ padding: '12px 16px', color: 'var(--neutral-800, #1e293b)' }}>
+                  <td
+                    key={col.key || col.accessor || colIdx}
+                    className="pp-td"
+                    style={{
+                      textAlign: col.align || 'left',
+                      fontVariantNumeric: col.numeric ? 'tabular-nums' : 'inherit',
+                    }}
+                  >
                     {col.render ? col.render(row) : row[col.accessor]}
                   </td>
                 ))}

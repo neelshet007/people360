@@ -1,13 +1,17 @@
 import React from 'react';
+import { FileTextIcon } from '../ui/Icons';
 
 /**
- * Shared EmptyState Component
- * Owner: P1 (Core HR)
+ * Enterprise EmptyState Component
+ * Contextual zero-data illustration with title, explanation, and clear call-to-action
  */
 export default function EmptyState({
   title = 'No records available',
   description = 'There are currently no items to display in this view.',
-  action,
+  icon = null,
+  action = null,
+  className = '',
+  style = {},
 }) {
   return (
     <div
@@ -16,39 +20,41 @@ export default function EmptyState({
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: '48px 24px',
+        padding: '44px 24px',
         textAlign: 'center',
         backgroundColor: '#ffffff',
-        borderRadius: 'var(--radius-lg, 12px)',
-        border: '1px dashed var(--neutral-300, #cbd5e1)',
+        borderRadius: 'var(--radius-lg, 8px)',
+        border: '1px dashed var(--border-default, #cbd5e1)',
         margin: '16px 0',
+        ...style,
       }}
+      className={`pp-empty-state ${className}`}
     >
       <div
         style={{
-          width: '48px',
-          height: '48px',
-          borderRadius: '50%',
+          width: '42px',
+          height: '42px',
+          borderRadius: '8px',
           backgroundColor: 'var(--neutral-100, #f1f5f9)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          marginBottom: '16px',
-          color: 'var(--neutral-400, #94a3b8)',
-          fontSize: '1.25rem',
+          marginBottom: '14px',
+          color: 'var(--text-muted, #64748b)',
         }}
       >
-        📂
+        {icon || <FileTextIcon size={22} />}
       </div>
-      <h4 style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--neutral-800, #1e293b)', margin: 0 }}>
+      <h4 style={{ fontSize: '0.9375rem', fontWeight: 600, color: 'var(--text-main, #0f172a)', margin: 0 }}>
         {title}
       </h4>
       <p
         style={{
-          fontSize: '0.875rem',
-          color: 'var(--neutral-500, #64748b)',
+          fontSize: '0.8125rem',
+          color: 'var(--text-muted, #64748b)',
           marginTop: '6px',
-          maxWidth: '400px',
+          maxWidth: '420px',
+          lineHeight: 1.45,
         }}
       >
         {description}
