@@ -18,6 +18,7 @@ router.get('/allocations', authenticate, controllers.getAllocations);
 router.post('/allocations', authenticate, authorize('timeoff.write'), controllers.createAllocation);
 
 // Requests
+router.get('/calculate-days', authenticate, controllers.calculateWorkingDays);
 router.get('/requests', authenticate, controllers.getRequests);
 router.get('/requests/:id', authenticate, controllers.getRequestById);
 router.post('/requests', authenticate, controllers.createRequest);

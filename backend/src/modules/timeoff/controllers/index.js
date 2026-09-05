@@ -101,7 +101,22 @@ const updateRequestStatus = async (req, res, next) => {
   }
 };
 
-
+const calculateWorkingDays = async (req, res, next) => {
+  try {
+    let employeeId = req.query.employee_id;
+    if (req.user && req.user.role === 'EMPLOYEE' && req.user.employeeId) {
+      employeeId = req.user.employeeId;
+    }
+    const result = await timeoffService.calculateWorkingDays(
+      employeeId,
+      req.query.start_date,
+      req.query.end_date
+    );
+    return successResponse(res, result);
+  } catch (error) {
+    next(error);
+  }
+};
 
 module.exports = {
   getTypes,
@@ -112,4 +127,5 @@ module.exports = {
   getRequestById,
   createRequest,
   updateRequestStatus,
+  calculateWorkingDays,
 };

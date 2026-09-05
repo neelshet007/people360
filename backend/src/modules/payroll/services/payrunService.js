@@ -65,15 +65,31 @@ class PayrunService {
         }
       }
 
-      // 3. Salary Structure Verification (Using pre-cached structures & rules)
-      const targetStructureId = salaryStructureId || contract?.salary_structure_id;
-      let structure = targetStructureId ? structureCache.get(targetStructureId) : null;
-      if (!structure && targetStructureId) {
-        structure = await payrollRepository.findStructureById(targetStructureId);
-        if (structure) structureCache.set(structure.id, structure);
+      // 3. Salary Structure Verification (Contract-specific, Wage-type, or Passed Structure)
+      let structure = null;
+      const cType = (contract?.contract_type || '').toUpperCase();
+      const wType = (contract?.wage_type || '').toUpperCase();
+
+      if (contract?.salary_structure_id) {
+        structure = structureCache.get(contract.salary_structure_id);
+      }
+      if (!structure && salaryStructureId && !cType.includes('INTERN') && wType !== 'HOURLY' && wType !== 'WEEKLY') {
+        structure = structureCache.get(salaryStructureId);
       }
       if (!structure) {
-        structure = standardStructure;
+        if (cType.includes('INTERN')) {
+          structure = activeStructures.find((s) => s.code === 'IN-INTERN-FLEX');
+        } else if (wType === 'HOURLY') {
+          structure = activeStructures.find((s) => s.code === 'IN-HOURLY-FLEX');
+        } else if (wType === 'WEEKLY') {
+          structure = activeStructures.find((s) => s.code === 'IN-WEEKLY-CONTR');
+        }
+        if (!structure && salaryStructureId) {
+          structure = structureCache.get(salaryStructureId);
+        }
+        if (!structure) {
+          structure = standardStructure;
+        }
       }
 
       if (!structure) {

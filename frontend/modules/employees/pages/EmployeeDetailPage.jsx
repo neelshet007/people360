@@ -100,6 +100,17 @@ export default function EmployeeDetailPage() {
       if (activeC?.salary_structure_id) {
         assignedStruct = structList.find((s) => s.id === activeC.salary_structure_id);
       }
+      if (!assignedStruct && activeC) {
+        const cType = (activeC.contract_type || '').toUpperCase();
+        const wType = (activeC.wage_type || '').toUpperCase();
+        if (cType.includes('INTERN')) {
+          assignedStruct = structList.find((s) => s.code === 'IN-INTERN-FLEX');
+        } else if (wType === 'HOURLY') {
+          assignedStruct = structList.find((s) => s.code === 'IN-HOURLY-FLEX');
+        } else if (wType === 'WEEKLY') {
+          assignedStruct = structList.find((s) => s.code === 'IN-WEEKLY-CONTR');
+        }
+      }
       if (!assignedStruct) {
         assignedStruct = structList.find((s) => s.code === 'IN-CORP-STD') || structList[0];
       }
@@ -714,6 +725,9 @@ export default function EmployeeDetailPage() {
                       </div>
                       <div style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--primary-700, #4338ca)', marginTop: '4px' }}>
                         {activeC?.wage_rate ? formatCurrency(Number(activeC.wage_rate)) : '—'}
+                        <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--neutral-500, #64748b)', marginLeft: '4px' }}>
+                          {activeC?.wage_type === 'HOURLY' ? '/ hr' : activeC?.wage_type === 'WEEKLY' ? '/ wk' : activeC?.wage_type === 'DAILY' ? '/ day' : '/ mo'}
+                        </span>
                       </div>
                       <div style={{ fontSize: '0.8125rem', color: 'var(--neutral-600, #475569)', marginTop: '2px' }}>
                         {activeC?.wage_type || 'MONTHLY'} • {activeC?.contract_type || 'Permanent'}
@@ -741,7 +755,7 @@ export default function EmployeeDetailPage() {
                         {salaryRules.length || 9} Rules
                       </div>
                       <div style={{ fontSize: '0.8125rem', color: 'var(--neutral-600, #475569)', marginTop: '2px' }}>
-                        Evaluated in sequence (10 → 90)
+                        Evaluated in sequence ({salaryRules.length > 0 ? `${salaryRules[0].sequence_order} → ${salaryRules[salaryRules.length - 1].sequence_order}` : '10 → 90'})
                       </div>
                     </div>
                   </div>
@@ -759,13 +773,15 @@ export default function EmployeeDetailPage() {
             title="Ordered Salary Rules Blueprint"
             subtitle="Mathematical sequence evaluated during payroll computation for this employee"
             actions={
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => navigate('/payroll/salary-rules')}
-              >
-                Open Rules Hub →
-              </Button>
+              canManageEmployees && (
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => navigate('/payroll/salary-rules')}
+                >
+                  Open Rules Hub →
+                </Button>
+              )
             }
           >
             {loadingSalary ? (
@@ -889,8 +905,8 @@ export default function EmployeeDetailPage() {
                 <h4 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--neutral-800, #1e293b)', margin: 0 }}>
                   Ready to Calculate Salary
                 </h4>
-                <p style={{ fontSize: '0.875rem', color: 'var(--neutral-500, #64748b)', maxWidth: '520px', margin: '8px auto 16px auto' }}>
-                  Click the button above to execute the real backend salary calculation engine. It will evaluate all 9 ordered rules sequentially using this employee's active contract terms and attendance inputs.
+                <p style={{ fontSize: '0.875rem', color: 'var(--neutral-500, #64748b)', maxWidth: '560px', margin: '8px auto 16px auto' }}>
+                  Click the button above to execute the real backend salary calculation engine. It will evaluate all {salaryRules.length || 9} ordered rules sequentially ({salaryStructure?.name || 'Assigned Salary Structure'}) using this employee's active contract terms and attendance inputs.
                 </p>
                 <Button id="btn-run-salary-calc-main" variant="primary" onClick={handleRunSalaryCalculation}>
                   ⚡ Run Live Salary Calculation Engine
@@ -904,26 +920,56 @@ export default function EmployeeDetailPage() {
                 <div style={{ marginBottom: '20px', padding: '12px 16px', backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                   <div>
                     <span style={{ fontWeight: 700, color: '#166534', fontSize: '0.875rem' }}>
-                      ✓ Live Calculation Verified from PostgreSQL and Express Engine
+                      ✓ Live Calculation Verified from PostgreSQL and Express Engine ({calculationResult.structure?.name || salaryStructure?.name})
                     </span>
                     <p style={{ fontSize: '0.8125rem', color: '#15803d', margin: '2px 0 0 0' }}>
-                      All values calculated via mathematical formula parser without mock or hardcoded numbers. Period: {calculationResult.period?.start} → {calculationResult.period?.end} ({calculationResult.period?.worked_days} days worked).
+                      All values calculated via mathematical formula parser without mock or hardcoded numbers. Period: {calculationResult.period?.start} → {calculationResult.period?.end} ({calculationResult.period?.worked_days} days worked{calculationResult.contract?.wage_type === 'HOURLY' ? `, ${calculationResult.attendance?.total_logged_hours || 0} hrs logged` : ''}).
                     </p>
                   </div>
                   <Badge variant="success">Engine Output</Badge>
                 </div>
 
+                {/* Non-Paid Leave Loss of Pay Deduction Notice */}
+                {calculationResult.attendance?.loss_of_pay_deduction > 0 && (
+                  <div style={{ marginBottom: '20px', padding: '12px 16px', backgroundColor: '#fef2f2', border: '1px solid #fecaca', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ fontSize: '1.25rem' }}>⚠️</span>
+                      <div>
+                        <div style={{ fontWeight: 700, color: '#991b1b', fontSize: '0.875rem' }}>
+                          Automatic Non-Paid Leave Deduction Applied
+                        </div>
+                        <div style={{ fontSize: '0.8125rem', color: '#b91c1c', marginTop: '2px' }}>
+                          {formatCurrency(calculationResult.attendance.loss_of_pay_deduction)} automatically deducted for {calculationResult.attendance.total_non_paid_days} non-working days ({calculationResult.attendance.unpaid_leave_days || 0} unpaid leave + {calculationResult.attendance.absent_days || 0} absent).
+                        </div>
+                      </div>
+                    </div>
+                    <Badge variant="danger">LOP Deducted</Badge>
+                  </div>
+                )}
+
                 {/* 4 Primary KPI Cards */}
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginBottom: '24px' }}>
                   <div style={{ padding: '16px', backgroundColor: '#ffffff', borderRadius: '8px', border: '1px solid var(--neutral-200, #e2e8f0)', boxShadow: 'var(--shadow-sm)' }}>
                     <div style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--neutral-500, #64748b)', textTransform: 'uppercase' }}>
-                      Basic Salary
+                      {calculationResult.contract?.wage_type === 'HOURLY'
+                        ? 'Hourly Base Pay'
+                        : calculationResult.contract?.wage_type === 'WEEKLY'
+                        ? 'Weekly Base Pay'
+                        : calculationResult.contract?.contract_type === 'INTERNSHIP'
+                        ? 'Intern Stipend'
+                        : 'Basic Salary'}
                     </div>
                     <div style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--neutral-900, #0f172a)', marginTop: '4px' }}>
-                      {formatCurrency(calculationResult.components?.find((c) => c.rule_code === 'BASIC')?.amount || 30000)}
+                      {formatCurrency(calculationResult.components?.find((c) => c.rule_code === 'BASIC')?.amount || 0)}
                     </div>
                     <div style={{ fontSize: '0.75rem', color: 'var(--neutral-500, #64748b)', marginTop: '4px' }}>
-                      Base Pay Component
+                      {calculationResult.contract?.wage_type === 'HOURLY'
+                        ? `${calculationResult.attendance?.total_logged_hours || 0} hrs @ ${formatCurrency(calculationResult.contract?.wage_rate)}/hr`
+                        : calculationResult.contract?.wage_type === 'WEEKLY'
+                        ? `${calculationResult.attendance?.worked_weeks || 1} wk @ ${formatCurrency(calculationResult.contract?.wage_rate)}/wk`
+                        : calculationResult.contract?.contract_type === 'INTERNSHIP'
+                        ? 'Base Monthly Stipend'
+                        : 'Base Pay Component'}
                     </div>
                   </div>
 
@@ -947,7 +993,7 @@ export default function EmployeeDetailPage() {
                       {formatCurrency(calculationResult.total_deductions)}
                     </div>
                     <div style={{ fontSize: '0.75rem', color: '#991b1b', marginTop: '4px' }}>
-                      PF + Professional Tax
+                      Tax & Statutory Deductions
                     </div>
                   </div>
 

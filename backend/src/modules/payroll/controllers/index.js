@@ -126,6 +126,9 @@ const reorderSalaryRules = async (req, res, next) => {
 // -----------------------------------------------------------------------------
 const calculateSalary = async (req, res, next) => {
   try {
+    if (req.user && req.user.role === 'EMPLOYEE' && req.user.employeeId) {
+      req.body.employeeId = req.user.employeeId;
+    }
     const calculation = await payrollService.calculateSalary(req.body);
     return successResponse(res, calculation);
   } catch (error) {

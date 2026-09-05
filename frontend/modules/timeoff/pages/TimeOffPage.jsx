@@ -57,6 +57,7 @@ export default function TimeOffPage() {
   const [showModal, setShowModal] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [modalError, setModalError] = useState(null);
+  const [detectedScheduleInfo, setDetectedScheduleInfo] = useState(null);
   const [newRequest, setNewRequest] = useState({
     employee_id: '',
     time_off_type_id: '',
@@ -65,6 +66,47 @@ export default function TimeOffPage() {
     total_days: '1',
     reason: '',
   });
+
+  const detectWorkingDays = async (startDate, endDate, empId) => {
+    if (!startDate || !endDate) {
+      setDetectedScheduleInfo(null);
+      return;
+    }
+    const applicantId = isEmployee ? user?.employeeId : (empId || newRequest.employee_id);
+
+    // Immediate client-side fallback calculation excluding Sat (6) and Sun (0)
+    try {
+      const s = new Date(startDate + 'T00:00:00');
+      const e = new Date(endDate + 'T00:00:00');
+      if (s <= e) {
+        let count = 0;
+        let c = new Date(s);
+        while (c <= e) {
+          const d = c.getDay();
+          if (d !== 0 && d !== 6) count++;
+          c.setDate(c.getDate() + 1);
+        }
+        setNewRequest((prev) => ({ ...prev, total_days: String(count) }));
+      }
+    } catch (err) {
+      // ignore
+    }
+
+    // Authoritative backend schedule calculation
+    try {
+      const res = await timeoffApi.calculateWorkingDays({
+        employee_id: applicantId,
+        start_date: startDate,
+        end_date: endDate,
+      });
+      if (res?.data) {
+        setDetectedScheduleInfo(res.data);
+        setNewRequest((prev) => ({ ...prev, total_days: String(res.data.working_days) }));
+      }
+    } catch (err) {
+      console.warn('Live working days detection:', err.message);
+    }
+  };
 
   const fetchRequests = async () => {
     setLoadingReqs(true);
@@ -105,8 +147,8 @@ export default function TimeOffPage() {
   };
 
   const handleOpenModal = () => {
-
     setModalError(null);
+    setDetectedScheduleInfo(null);
     setNewRequest({
       employee_id: isEmployee ? (user?.employeeId || '') : '',
       time_off_type_id: '',
@@ -491,10 +533,15 @@ export default function TimeOffPage() {
                   })),
                 ]}
                 value={newRequest.employee_id}
-                onChange={(e) => setNewRequest((prev) => ({ ...prev, employee_id: e.target.value }))}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setNewRequest((prev) => ({ ...prev, employee_id: val }));
+                  if (newRequest.start_date && newRequest.end_date) {
+                    detectWorkingDays(newRequest.start_date, newRequest.end_date, val);
+                  }
+                }}
               />
             )}
-
 
             <Select
               label="Leave Category"
@@ -503,7 +550,7 @@ export default function TimeOffPage() {
                 { value: '', label: 'Select category...' },
                 ...types.map((t) => ({
                   value: t.id,
-                  label: `${t.name} (${t.code})`,
+                  label: `${t.name} (${t.code})${t.is_paid === false ? ' — Unpaid (Deducts Pay)' : ''}`,
                 })),
               ]}
               value={newRequest.time_off_type_id}
@@ -516,25 +563,63 @@ export default function TimeOffPage() {
                 type="date"
                 required
                 value={newRequest.start_date}
-                onChange={(e) => setNewRequest((prev) => ({ ...prev, start_date: e.target.value }))}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setNewRequest((prev) => ({ ...prev, start_date: val }));
+                  if (val && newRequest.end_date) {
+                    detectWorkingDays(val, newRequest.end_date, newRequest.employee_id);
+                  }
+                }}
               />
               <Input
                 label="End Date"
                 type="date"
                 required
                 value={newRequest.end_date}
-                onChange={(e) => setNewRequest((prev) => ({ ...prev, end_date: e.target.value }))}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setNewRequest((prev) => ({ ...prev, end_date: val }));
+                  if (newRequest.start_date && val) {
+                    detectWorkingDays(newRequest.start_date, val, newRequest.employee_id);
+                  }
+                }}
               />
             </div>
 
-            <Input
-              label="Total Working Days"
-              type="number"
-              step="0.5"
-              required
-              value={newRequest.total_days}
-              onChange={(e) => setNewRequest((prev) => ({ ...prev, total_days: e.target.value }))}
-            />
+            <div>
+              <Input
+                label="Total Working Days"
+                type="number"
+                step="0.5"
+                required
+                value={newRequest.total_days}
+                onChange={(e) => setNewRequest((prev) => ({ ...prev, total_days: e.target.value }))}
+              />
+              {detectedScheduleInfo && (
+                <div
+                  style={{
+                    marginTop: '6px',
+                    padding: '8px 12px',
+                    backgroundColor: detectedScheduleInfo.working_days > 0 ? '#f0fdf4' : '#fef2f2',
+                    border: `1px solid ${detectedScheduleInfo.working_days > 0 ? '#bbf7d0' : '#fecaca'}`,
+                    borderRadius: '6px',
+                    fontSize: '0.75rem',
+                    color: detectedScheduleInfo.working_days > 0 ? '#166534' : '#991b1b',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                  }}
+                >
+                  <span>{detectedScheduleInfo.working_days > 0 ? '✓' : '⚠️'}</span>
+                  <span>
+                    <strong>{detectedScheduleInfo.working_days} working day(s) detected</strong>
+                    {detectedScheduleInfo.non_working_days > 0
+                      ? ` (${detectedScheduleInfo.non_working_days} off-day(s) like Sat/Sun excluded per ${detectedScheduleInfo.schedule_name || 'work schedule'}).`
+                      : ` (per ${detectedScheduleInfo.schedule_name || 'work schedule'}).`}
+                  </span>
+                </div>
+              )}
+            </div>
 
             <Textarea
               label="Reason / Notes"

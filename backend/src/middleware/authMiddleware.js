@@ -43,7 +43,7 @@ const authenticate = async (req, res, next) => {
       name: decoded.name || decoded.email,
       role: decoded.role || ROLES.EMPLOYEE,
       employeeId: decoded.employeeId || null,
-      permissions: decoded.permissions || getRolePermissions(decoded.role),
+      permissions: getRolePermissions(decoded.role),
     };
 
     next();

@@ -93,16 +93,73 @@ async function runSeed() {
       ($1, 'Total Deductions', 'TOTAL_DEDUCTIONS', 'DEDUCTION', 'FORMULA', 0.00, NULL, 'PF_EMP + PT', 80, true),
       ($1, 'Net Salary Take-Home', 'NET', 'NET', 'FORMULA', 0.00, NULL, 'GROSS - TOTAL_DEDUCTIONS', 90, true);
     `, [structureId]);
-    console.log('[Seed] ✓ Created Indian Salary Structure with 9 ordered calculation rules (Basic, Allowances, Gross, Deductions, Net).');
 
-    console.log('[Seed] 3. Creating Time Off Types (Earned, Casual, Sick, Maternity)...');
+    // 2b. Flexible Intern Stipend Structure
+    const internRes = await client.query(`
+      INSERT INTO salary_structures (name, code, description, is_active)
+      VALUES ('Flexible Intern Stipend Structure', 'IN-INTERN-FLEX', 'Structured stipend model for interns and trainees with project stipends, remote work allowances, and nominal TDS', true)
+      RETURNING id;
+    `);
+    const internStructId = internRes.rows[0].id;
+    await client.query(`
+      INSERT INTO salary_rules (salary_structure_id, name, code, category, calculation_type, amount_or_rate, percentage_base, formula, sequence_order, is_active)
+      VALUES
+      ($1, 'Base Monthly Stipend', 'BASIC', 'BASIC', 'FIXED', 20000.00, NULL, NULL, 10, true),
+      ($1, 'Mentorship & Project Stipend', 'PROJECT_ALLOW', 'ALLOWANCE', 'FIXED', 3000.00, NULL, NULL, 20, true),
+      ($1, 'Work-From-Anywhere Allowance', 'WFA_ALLOW', 'ALLOWANCE', 'FIXED', 2000.00, NULL, NULL, 30, true),
+      ($1, 'Gross Stipend', 'GROSS', 'GROSS', 'FORMULA', 0.00, NULL, 'BASIC + PROJECT_ALLOW + WFA_ALLOW', 40, true),
+      ($1, 'TDS Deduction (5% of Base)', 'TDS_INTERN', 'DEDUCTION', 'PERCENTAGE', 5.00, 'BASIC', NULL, 50, true),
+      ($1, 'Total Deductions', 'TOTAL_DEDUCTIONS', 'DEDUCTION', 'FORMULA', 0.00, NULL, 'TDS_INTERN', 60, true),
+      ($1, 'Net Take-Home Stipend', 'NET', 'NET', 'FORMULA', 0.00, NULL, 'GROSS - TOTAL_DEDUCTIONS', 70, true);
+    `, [internStructId]);
+
+    // 2c. Hourly Rate & Flexible Shift Structure
+    const hourlyRes = await client.query(`
+      INSERT INTO salary_structures (name, code, description, is_active)
+      VALUES ('Hourly Rate & Flexible Shift Structure', 'IN-HOURLY-FLEX', 'Dynamic hourly payroll engine calculated from PostgreSQL logged attendance hours and hourly contract terms', true)
+      RETURNING id;
+    `);
+    const hourlyStructId = hourlyRes.rows[0].id;
+    await client.query(`
+      INSERT INTO salary_rules (salary_structure_id, name, code, category, calculation_type, amount_or_rate, percentage_base, formula, sequence_order, is_active)
+      VALUES
+      ($1, 'Base Hourly Earnings', 'BASIC', 'BASIC', 'FORMULA', 0.00, NULL, 'WORKED_HOURS * WAGE_RATE', 10, true),
+      ($1, 'Flexible Shift Premium (10%)', 'SHIFT_ALLOW', 'ALLOWANCE', 'PERCENTAGE', 10.00, 'BASIC', NULL, 20, true),
+      ($1, 'Remote Telecom Allowance', 'TELECOM_ALLOW', 'ALLOWANCE', 'FIXED', 2500.00, NULL, NULL, 30, true),
+      ($1, 'Gross Earnings', 'GROSS', 'GROSS', 'FORMULA', 0.00, NULL, 'BASIC + SHIFT_ALLOW + TELECOM_ALLOW', 40, true),
+      ($1, 'Professional Tax', 'PT', 'DEDUCTION', 'FIXED', 200.00, NULL, NULL, 50, true),
+      ($1, 'Total Deductions', 'TOTAL_DEDUCTIONS', 'DEDUCTION', 'FORMULA', 0.00, NULL, 'PT', 60, true),
+      ($1, 'Net Take-Home Pay', 'NET', 'NET', 'FORMULA', 0.00, NULL, 'GROSS - TOTAL_DEDUCTIONS', 70, true);
+    `, [hourlyStructId]);
+
+    // 2d. Weekly Contractor Compensation
+    const weeklyRes = await client.query(`
+      INSERT INTO salary_structures (name, code, description, is_active)
+      VALUES ('Weekly Contractor Compensation', 'IN-WEEKLY-CONTR', 'Weekly billing and retainer model for specialist contractors and technical advisors', true)
+      RETURNING id;
+    `);
+    const weeklyStructId = weeklyRes.rows[0].id;
+    await client.query(`
+      INSERT INTO salary_rules (salary_structure_id, name, code, category, calculation_type, amount_or_rate, percentage_base, formula, sequence_order, is_active)
+      VALUES
+      ($1, 'Base Weekly Retainer', 'BASIC', 'BASIC', 'FORMULA', 0.00, NULL, 'WORKED_WEEKS * WAGE_RATE', 10, true),
+      ($1, 'Technology & Tooling Allowance', 'TECH_ALLOW', 'ALLOWANCE', 'FIXED', 4000.00, NULL, NULL, 20, true),
+      ($1, 'Gross Contractor Invoiced', 'GROSS', 'GROSS', 'FORMULA', 0.00, NULL, 'BASIC + TECH_ALLOW', 30, true),
+      ($1, 'Contractor Withholding Tax (10%)', 'TDS_CONTR', 'DEDUCTION', 'PERCENTAGE', 10.00, 'BASIC', NULL, 40, true),
+      ($1, 'Total Withholding', 'TOTAL_DEDUCTIONS', 'DEDUCTION', 'FORMULA', 0.00, NULL, 'TDS_CONTR', 50, true),
+      ($1, 'Net Contractor Payout', 'NET', 'NET', 'FORMULA', 0.00, NULL, 'GROSS - TOTAL_DEDUCTIONS', 60, true);
+    `, [weeklyStructId]);
+    console.log('[Seed] ✓ Created 4 Indian Salary Structures (Corporate, Flexible Intern, Hourly Shift, Weekly Contractor).');
+
+    console.log('[Seed] 3. Creating Time Off Types (Earned, Casual, Sick, Maternity, Unpaid LWP)...');
     const totRes = await client.query(`
       INSERT INTO time_off_types (name, code, is_paid, requires_approval, max_days_allowed)
       VALUES 
       ('Earned Leave (Privilege Leave)', 'EL', true, true, 18),
       ('Casual Leave', 'CL', true, true, 12),
       ('Sick Leave', 'SL', true, true, 10),
-      ('Maternity Leave', 'ML', true, true, 180)
+      ('Maternity Leave', 'ML', true, true, 180),
+      ('Leave Without Pay (Unpaid Leave)', 'LWP', false, true, 30)
       RETURNING id, code;
     `);
     const leaveTypeMap = {};

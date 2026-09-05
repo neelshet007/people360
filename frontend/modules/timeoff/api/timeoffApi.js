@@ -24,6 +24,10 @@ export const timeoffApi = {
   getRequestById: (id) => apiClient.get(`/timeoff/requests/${id}`),
   createRequest: (data) => apiClient.post('/timeoff/requests', data),
   updateRequestStatus: (id, statusData) => apiClient.patch(`/timeoff/requests/${id}`, statusData),
+  calculateWorkingDays: (params = {}) => {
+    const query = new URLSearchParams(params).toString();
+    return apiClient.get(`/timeoff/calculate-days${query ? `?${query}` : ''}`);
+  },
 };
 
 export default timeoffApi;

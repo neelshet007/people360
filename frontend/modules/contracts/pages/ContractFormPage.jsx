@@ -12,6 +12,7 @@ import contractsApi from '../api/contractsApi';
 import { useContract } from '../hooks/useContract';
 import employeesApi from '../../employees/api/employeesApi';
 import schedulesApi from '../../schedules/api/schedulesApi';
+import payrollApi from '../../payroll/api/payrollApi';
 
 /**
  * Contract Form Page (Create / Edit)
@@ -28,6 +29,7 @@ export default function ContractFormPage() {
   const { contract, loading: loadingInitial } = useContract(id);
   const [employeeOptions, setEmployeeOptions] = useState([]);
   const [scheduleOptions, setScheduleOptions] = useState([]);
+  const [structureOptions, setStructureOptions] = useState([]);
 
   const [formData, setFormData] = useState({
     employee_id: queryEmployeeId || '',
@@ -37,6 +39,7 @@ export default function ContractFormPage() {
     start_date: new Date().toISOString().split('T')[0],
     end_date: '',
     working_schedule_id: '',
+    salary_structure_id: '',
     status: 'ACTIVE',
     notes: '',
   });
@@ -104,6 +107,27 @@ export default function ContractFormPage() {
     loadSchedules();
   }, []);
 
+  // Fetch salary structures for compensation binding
+  useEffect(() => {
+    async function loadSalaryStructures() {
+      try {
+        const response = await payrollApi.getSalaryStructures({ is_active: true });
+        const items = Array.isArray(response?.data) ? response.data : [];
+        const opts = [
+          { value: '', label: '⚡ Auto-Detect from Contract & Wage Type' },
+          ...items.map((s) => ({
+            value: String(s.id),
+            label: `${s.name} (${s.code})`,
+          })),
+        ];
+        setStructureOptions(opts);
+      } catch {
+        setStructureOptions([{ value: '', label: '⚡ Auto-Detect from Contract & Wage Type' }]);
+      }
+    }
+    loadSalaryStructures();
+  }, []);
+
   // Populate form if in edit mode
   useEffect(() => {
     if (isEditMode && contract) {
@@ -115,6 +139,7 @@ export default function ContractFormPage() {
         start_date: contract.start_date ? contract.start_date.split('T')[0] : '',
         end_date: contract.end_date ? contract.end_date.split('T')[0] : '',
         working_schedule_id: String(contract.working_schedule_id || ''),
+        salary_structure_id: contract.salary_structure_id ? String(contract.salary_structure_id) : '',
         status: contract.status || 'ACTIVE',
         notes: contract.notes || '',
       });
@@ -160,6 +185,7 @@ export default function ContractFormPage() {
         ...formData,
         wage_rate: Number(formData.wage_rate),
         working_schedule_id: formData.working_schedule_id || null,
+        salary_structure_id: formData.salary_structure_id || null,
         end_date: formData.end_date || null,
       };
 
@@ -309,7 +335,24 @@ export default function ContractFormPage() {
             onChange={(e) => handleChange('wage_rate', e.target.value)}
             error={errors.wage_rate}
             leftIcon="₹"
-            helperText={formData.wage_type === 'hourly' ? 'Rate per hour worked' : 'Base salary per calendar month'}
+            helperText={
+              formData.wage_type === 'hourly'
+                ? 'Rate per hour worked (evaluated as WORKED_HOURS * WAGE_RATE)'
+                : formData.wage_type === 'weekly'
+                ? 'Rate per week worked (evaluated as WORKED_WEEKS * WAGE_RATE)'
+                : formData.contract_type?.toLowerCase().includes('intern')
+                ? 'Monthly stipend baseline'
+                : 'Base salary per calendar month'
+            }
+          />
+
+          <Select
+            label="Assigned Salary Structure"
+            id="salary_structure_id"
+            options={structureOptions}
+            value={formData.salary_structure_id}
+            onChange={(e) => handleChange('salary_structure_id', e.target.value)}
+            helperText="Compensation rules evaluated by Live Engine (Intern, Hourly, Weekly, or Corporate)"
           />
 
           <Select

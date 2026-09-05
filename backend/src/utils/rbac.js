@@ -27,6 +27,7 @@ const ROLE_PERMISSIONS = {
     'timeoff.read',
     'timeoff.write',
     'timeoff.approve',
+    'salary.read',
     'reports.read',
   ],
 
@@ -71,6 +72,7 @@ const ROLE_PERMISSIONS = {
     'self.timeoff',
     'self.payslips',
     'attendance.checkin',
+    'salary.read',
   ],
 };
 
