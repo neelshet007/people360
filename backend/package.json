@@ -6,7 +6,8 @@
   "type": "commonjs",
   "scripts": {
     "start": "node src/server/index.js",
-    "dev": "nodemon src/server/index.js"
+    "dev": "nodemon src/server/index.js",
+    "migrate": "node src/database/migrate.js"
   },
   "keywords": [
     "hr",

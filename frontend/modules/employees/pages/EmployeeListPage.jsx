@@ -10,8 +10,11 @@ import Avatar from '../../../components/ui/Avatar';
 import Pagination from '../../../components/ui/Pagination';
 import EmptyState from '../../../components/feedback/EmptyState';
 import ErrorState from '../../../components/feedback/ErrorState';
+import ConfirmationDialog from '../../../components/feedback/ConfirmationDialog';
+import Alert from '../../../components/feedback/Alert';
 import EmployeeStatusBadge from '../components/EmployeeStatusBadge';
 import { useEmployees } from '../hooks/useEmployees';
+import employeesApi from '../api/employeesApi';
 import { formatDate } from '../../../lib/utils';
 
 /**
@@ -23,6 +26,11 @@ export default function EmployeeListPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedDept, setSelectedDept] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('');
+
+  // Delete / Deactivate dialog state
+  const [employeeToDelete, setEmployeeToDelete] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [actionSuccess, setActionSuccess] = useState(null);
 
   const {
     employees,
@@ -50,6 +58,21 @@ export default function EmployeeListPage() {
     updateFilters({ search: '', department: '', status: '' });
   };
 
+  const confirmDelete = async () => {
+    if (!employeeToDelete) return;
+    setIsDeleting(true);
+    try {
+      await employeesApi.deleteEmployee(employeeToDelete.id);
+      setActionSuccess(`Employee ${employeeToDelete.display_name || employeeToDelete.first_name} was deactivated.`);
+      setEmployeeToDelete(null);
+      refetch();
+    } catch (err) {
+      alert(err.message || 'Failed to deactivate employee.');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   const departmentOptions = [
     { value: 'Engineering', label: 'Engineering' },
     { value: 'Human Resources', label: 'Human Resources' },
@@ -69,10 +92,10 @@ export default function EmployeeListPage() {
     {
       header: 'Employee',
       render: (row) => {
-        const fullName = `${row.first_name || ''} ${row.last_name || ''}`.trim() || row.name || 'Unnamed Employee';
+        const fullName = row.display_name || `${row.first_name || ''} ${row.last_name || ''}`.trim() || 'Unnamed';
         return (
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <Avatar name={fullName} size="sm" />
+            <Avatar name={fullName} size="sm" status={row.status === 'ACTIVE' ? 'online' : 'offline'} />
             <div>
               <Link
                 to={`/employees/${row.id}`}
@@ -97,7 +120,7 @@ export default function EmployeeListPage() {
       header: 'Code',
       accessor: 'employee_code',
       render: (row) => (
-        <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.8125rem', color: 'var(--neutral-700, #334155)' }}>
+        <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.8125rem', color: 'var(--neutral-700, #334155)', fontWeight: 500 }}>
           {row.employee_code || `EMP-${row.id}`}
         </span>
       ),
@@ -105,12 +128,12 @@ export default function EmployeeListPage() {
     {
       header: 'Department',
       accessor: 'department',
-      render: (row) => row.department || row.dept || '-',
+      render: (row) => row.department || '-',
     },
     {
       header: 'Job Title / Role',
       accessor: 'designation',
-      render: (row) => row.designation || row.job_title || row.role || '-',
+      render: (row) => row.designation || '-',
     },
     {
       header: 'Date of Joining',
@@ -124,9 +147,9 @@ export default function EmployeeListPage() {
     },
     {
       header: 'Actions',
-      width: '120px',
+      width: '140px',
       render: (row) => (
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
           <Button
             variant="secondary"
             size="sm"
@@ -147,6 +170,28 @@ export default function EmployeeListPage() {
           >
             Edit
           </Button>
+          {row.status !== 'INACTIVE' && row.status !== 'TERMINATED' && (
+            <button
+              type="button"
+              title="Deactivate Employee"
+              onClick={(e) => {
+                e.stopPropagation();
+                setEmployeeToDelete(row);
+              }}
+              style={{
+                border: 'none',
+                background: 'transparent',
+                cursor: 'pointer',
+                fontSize: '0.875rem',
+                color: 'var(--neutral-400, #94a3b8)',
+                padding: '4px',
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--danger, #ef4444)')}
+              onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--neutral-400, #94a3b8)')}
+            >
+              🗑️
+            </button>
+          )}
         </div>
       ),
     },
@@ -157,15 +202,59 @@ export default function EmployeeListPage() {
       title="Employees Directory"
       subtitle="Core workforce records, personal details, and employment statuses"
       actions={
-        <Button
-          variant="primary"
-          icon="➕"
-          onClick={() => navigate('/employees/new')}
-        >
-          Add Employee
-        </Button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          {/* View Switcher: List | Kanban */}
+          <div
+            style={{
+              display: 'inline-flex',
+              backgroundColor: 'var(--neutral-100, #f1f5f9)',
+              padding: '3px',
+              borderRadius: 'var(--radius-md, 8px)',
+              border: '1px solid var(--neutral-200, #e2e8f0)',
+            }}
+          >
+            <Button
+              variant="primary"
+              size="sm"
+              icon="☰"
+              style={{
+                padding: '4px 10px',
+                boxShadow: 'var(--shadow-xs)',
+              }}
+            >
+              List
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              icon="▦"
+              onClick={() => navigate('/employees/kanban')}
+              style={{
+                backgroundColor: 'transparent',
+                color: 'var(--neutral-600, #475569)',
+                padding: '4px 10px',
+              }}
+            >
+              Kanban
+            </Button>
+          </div>
+
+          <Button
+            variant="primary"
+            icon="➕"
+            onClick={() => navigate('/employees/new')}
+          >
+            Add Employee
+          </Button>
+        </div>
       }
     >
+      {actionSuccess && (
+        <Alert type="success" title="Action Completed">
+          {actionSuccess}
+        </Alert>
+      )}
+
       {/* Filter and Search Bar */}
       <Card style={{ marginBottom: '20px' }}>
         <form
@@ -261,6 +350,18 @@ export default function EmployeeListPage() {
           )}
         </Card>
       )}
+
+      {/* Confirmation Dialog for Deactivation */}
+      <ConfirmationDialog
+        isOpen={Boolean(employeeToDelete)}
+        onClose={() => setEmployeeToDelete(null)}
+        onConfirm={confirmDelete}
+        title="Deactivate Employee"
+        message={`Are you sure you want to deactivate ${employeeToDelete?.display_name || employeeToDelete?.first_name}? Their status will be set to TERMINATED.`}
+        confirmLabel="Deactivate"
+        confirmVariant="danger"
+        loading={isDeleting}
+      />
     </PageContainer>
   );
 }

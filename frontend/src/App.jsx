@@ -6,11 +6,11 @@ import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import Input from '../components/ui/Input';
 import EmptyState from '../components/feedback/EmptyState';
-import Alert from '../components/feedback/Alert';
 import { setStoredToken } from '../lib/auth';
 
 // P1 — Core HR Module Pages
 import EmployeeListPage from '../modules/employees/pages/EmployeeListPage';
+import EmployeeKanbanPage from '../modules/employees/pages/EmployeeKanbanPage';
 import EmployeeDetailPage from '../modules/employees/pages/EmployeeDetailPage';
 import EmployeeFormPage from '../modules/employees/pages/EmployeeFormPage';
 
@@ -48,8 +48,8 @@ function DashboardView() {
             <Button variant="primary" size="sm" onClick={() => navigate('/employees/new')}>
               Add Employee
             </Button>
-            <Button variant="secondary" size="sm" onClick={() => navigate('/contracts/new')}>
-              New Contract
+            <Button variant="secondary" size="sm" onClick={() => navigate('/employees/kanban')}>
+              Kanban Board
             </Button>
           </div>
         </div>
@@ -68,6 +68,9 @@ function DashboardView() {
           <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
             <Button variant="secondary" size="sm" onClick={() => navigate('/employees')}>
               Directory
+            </Button>
+            <Button variant="secondary" size="sm" onClick={() => navigate('/employees/kanban')}>
+              Kanban
             </Button>
             <Button variant="secondary" size="sm" onClick={() => navigate('/contracts')}>
               Contracts
@@ -357,6 +360,7 @@ export default function App() {
 
           {/* Core HR — Employees (P1) */}
           <Route path="employees" element={<EmployeeListPage />} />
+          <Route path="employees/kanban" element={<EmployeeKanbanPage />} />
           <Route path="employees/new" element={<EmployeeFormPage />} />
           <Route path="employees/:id" element={<EmployeeDetailPage />} />
           <Route path="employees/:id/edit" element={<EmployeeFormPage />} />
