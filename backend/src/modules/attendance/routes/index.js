@@ -1,13 +1,15 @@
+const express = require('express');
+const router = express.Router();
+const controllers = require('../controllers');
+
 /**
  * Attendance Route Definitions
  * Owner: P2 (HR Operations)
- * Note: Placeholder structure only - CRUD not implemented yet.
  */
-const express = require('express');
-const router = express.Router();
 
-router.get('/', (req, res) => {
-  res.json({ success: true, message: 'Attendance endpoint placeholder' });
-});
+router.get('/', controllers.getAttendance);
+router.get('/:id', controllers.getAttendanceById);
+router.post('/', controllers.recordAttendance);
+router.patch('/:id', controllers.updateAttendance);
 
 module.exports = router;

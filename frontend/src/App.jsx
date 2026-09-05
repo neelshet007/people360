@@ -22,6 +22,10 @@ import ScheduleListPage from '../modules/schedules/pages/ScheduleListPage';
 import ScheduleDetailPage from '../modules/schedules/pages/ScheduleDetailPage';
 import ScheduleFormPage from '../modules/schedules/pages/ScheduleFormPage';
 
+// P2 — HR Operations Module Pages
+import { AttendanceListPage } from '../modules/attendance';
+import { TimeOffPage } from '../modules/timeoff';
+
 // P3 — Payroll Module Pages
 import {
   PayrunListPage,
@@ -174,32 +178,7 @@ function DashboardView() {
   );
 }
 
-// Preserving strict P2 HR Operations Views
-function AttendanceView() {
-  return (
-    <PageContainer title="Attendance" subtitle="Owner: P2 — HR Operations">
-      <Card title="Daily Attendance Logs" subtitle="Clock-in/out tracking and worked hour calculations">
-        <EmptyState
-          title="No attendance records found"
-          description="P2 HR Operations attendance logs will be displayed here once implemented."
-        />
-      </Card>
-    </PageContainer>
-  );
-}
 
-function TimeOffView() {
-  return (
-    <PageContainer title="Time Off" subtitle="Owner: P2 — HR Operations">
-      <Card title="Leave Requests & Allocations" subtitle="Employee leave requests, approvals, and balances">
-        <EmptyState
-          title="No time off requests found"
-          description="P2 HR Operations leave requests and allocations will appear here once implemented."
-        />
-      </Card>
-    </PageContainer>
-  );
-}
 
 
 
@@ -335,9 +314,9 @@ export default function App() {
           <Route path="schedules/:id" element={<ScheduleDetailPage />} />
           <Route path="schedules/:id/edit" element={<ScheduleFormPage />} />
 
-          {/* HR Operations — Extensible Placeholders (P2) */}
-          <Route path="attendance" element={<AttendanceView />} />
-          <Route path="time-off" element={<TimeOffView />} />
+          {/* HR Operations — P2 Foundation Views */}
+          <Route path="attendance" element={<AttendanceListPage />} />
+          <Route path="time-off" element={<TimeOffPage />} />
 
           {/* Payroll — P3 Foundation Views */}
           <Route path="payroll">

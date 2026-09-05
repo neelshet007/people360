@@ -30,6 +30,14 @@ async function runMigration() {
       console.log('[Migration] ✅ Payroll tables and indexes created successfully.');
     }
 
+    const hrOpsMigration = path.resolve(__dirname, '../../../database/migrations/003_create_hr_operations.sql');
+    if (fs.existsSync(hrOpsMigration)) {
+      const hrOpsSql = fs.readFileSync(hrOpsMigration, 'utf8');
+      console.log('[Migration] Executing 003_create_hr_operations.sql...');
+      await db.query(hrOpsSql);
+      console.log('[Migration] ✅ HR Operations tables and indexes created successfully.');
+    }
+
     // Check if employee seed data is needed
     const countRes = await db.query('SELECT COUNT(*) FROM employees');
     if (parseInt(countRes.rows[0].count, 10) === 0) {

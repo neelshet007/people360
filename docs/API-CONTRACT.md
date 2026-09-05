@@ -274,3 +274,143 @@ Every developer proposing or documenting an endpoint must fill out this exact te
 }
 ```
 
+---
+
+## 6. P2 — Attendance & Time Off Endpoint Specifications
+
+### GET `/api/attendance`
+- **Owner**: P2 (HR Operations)
+- **Description**: Retrieves daily attendance logs across staff with status and working hours.
+- **Query Parameters**: `employee_id` (optional), `date` (optional: `YYYY-MM-DD`), `status` (optional: `PRESENT`, `ABSENT`, `HALF_DAY`, `LATE`, `ON_LEAVE`), `page`, `limit`
+- **Success Response (HTTP 200)**:
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "uuid",
+      "employee_id": "uuid",
+      "employee_name": "Alex Morgan",
+      "employee_code": "EMP-1001",
+      "department": "Engineering",
+      "date": "2026-09-05",
+      "clock_in": "2026-09-05T09:00:00.000Z",
+      "clock_out": "2026-09-05T17:30:00.000Z",
+      "total_hours": 8.5,
+      "status": "PRESENT",
+      "notes": "Standard shift"
+    }
+  ],
+  "meta": {
+    "page": 1,
+    "limit": 20,
+    "total": 1,
+    "totalPages": 1
+  }
+}
+```
+
+### POST `/api/attendance`
+- **Owner**: P2 (HR Operations)
+- **Request Body**:
+```json
+{
+  "employee_id": "uuid",
+  "date": "2026-09-05",
+  "clock_in": "2026-09-05T09:00:00.000Z",
+  "clock_out": null,
+  "status": "PRESENT"
+}
+```
+- **Success Response (HTTP 201)**:
+```json
+{
+  "success": true,
+  "data": {
+    "id": "uuid",
+    "employee_id": "uuid",
+    "date": "2026-09-05",
+    "clock_in": "2026-09-05T09:00:00.000Z",
+    "status": "PRESENT"
+  }
+}
+```
+
+### GET `/api/timeoff/types`
+- **Owner**: P2 (HR Operations)
+- **Success Response (HTTP 200)**:
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "uuid",
+      "name": "Annual Paid Leave",
+      "code": "ANNUAL",
+      "is_paid": true,
+      "max_days_allowed": 20
+    }
+  ]
+}
+```
+
+### GET `/api/timeoff/requests`
+- **Owner**: P2 (HR Operations)
+- **Query Parameters**: `employee_id` (optional), `status` (optional: `PENDING`, `APPROVED`, `REJECTED`, `CANCELLED`), `page`, `limit`
+- **Success Response (HTTP 200)**:
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "uuid",
+      "employee_id": "uuid",
+      "employee_name": "Sarah Chen",
+      "employee_code": "EMP-1002",
+      "department": "Engineering",
+      "leave_type_name": "Annual Paid Leave",
+      "start_date": "2026-09-15",
+      "end_date": "2026-09-18",
+      "total_days": 4,
+      "reason": "Personal vacation",
+      "status": "PENDING"
+    }
+  ],
+  "meta": {
+    "page": 1,
+    "limit": 20,
+    "total": 1,
+    "totalPages": 1
+  }
+}
+```
+
+### POST `/api/timeoff/requests`
+- **Owner**: P2 (HR Operations)
+- **Request Body**:
+```json
+{
+  "employee_id": "uuid",
+  "time_off_type_id": "uuid",
+  "start_date": "2026-09-15",
+  "end_date": "2026-09-18",
+  "total_days": 4,
+  "reason": "Personal vacation"
+}
+```
+- **Success Response (HTTP 201)**:
+```json
+{
+  "success": true,
+  "data": {
+    "id": "uuid",
+    "employee_id": "uuid",
+    "start_date": "2026-09-15",
+    "end_date": "2026-09-18",
+    "total_days": 4,
+    "status": "PENDING"
+  }
+}
+```
+
+
