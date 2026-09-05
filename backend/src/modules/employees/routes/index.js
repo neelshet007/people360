@@ -1,14 +1,17 @@
-/**
- * Employees Route Definitions
- * Owner: P1 (Core HR)
- * Note: Placeholder structure only - CRUD not implemented yet.
- */
 const express = require('express');
 const router = express.Router();
+const employeeController = require('../controllers');
 
-// Routes will be registered here by P1
-router.get('/', (req, res) => {
-  res.json({ success: true, message: 'Employees endpoint placeholder' });
-});
+/**
+ * Employees Module Routes
+ * Owner: P1 (Core HR)
+ */
+
+router.get('/', employeeController.getEmployees);
+router.get('/:id', employeeController.getEmployeeById);
+router.post('/', employeeController.createEmployee);
+router.put('/:id', employeeController.updateEmployee);
+router.patch('/:id', employeeController.updateEmployee);
+router.delete('/:id', employeeController.deleteEmployee);
 
 module.exports = router;

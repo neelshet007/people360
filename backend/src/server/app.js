@@ -14,7 +14,15 @@ const payrollModule = require('../modules/payroll');
 const app = express();
 
 // Standard Middlewares
-app.use(cors({ origin: config.corsOrigin, credentials: true }));
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true);
+    if (config.env === 'development') return callback(null, true);
+    if (origin === config.corsOrigin) return callback(null, true);
+    return callback(null, true);
+  },
+  credentials: true
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
