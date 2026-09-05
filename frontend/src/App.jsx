@@ -6,7 +6,7 @@ import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import Input from '../components/ui/Input';
 import EmptyState from '../components/feedback/EmptyState';
-import { setStoredToken } from '../lib/auth';
+import { login as authLogin, setStoredToken, setStoredUser } from '../lib/auth';
 
 // P1 — Core HR Module Pages
 import EmployeeListPage from '../modules/employees/pages/EmployeeListPage';
@@ -23,7 +23,7 @@ import ScheduleDetailPage from '../modules/schedules/pages/ScheduleDetailPage';
 import ScheduleFormPage from '../modules/schedules/pages/ScheduleFormPage';
 
 // P2 — HR Operations Module Pages
-import { AttendanceListPage } from '../modules/attendance';
+import { AttendanceListPage, MyAttendancePage } from '../modules/attendance';
 import { TimeOffPage } from '../modules/timeoff';
 
 // P3 — Payroll Module Pages
@@ -191,14 +191,29 @@ function LoginView() {
   const [password, setPassword] = useState('password');
   const [loading, setLoading] = useState(false);
 
-  const handleSignIn = (e) => {
+  const [loginError, setLoginError] = useState(null);
+
+  const handleSignIn = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setTimeout(() => {
-      setStoredToken('mock-jwt-auth-session-token');
-      setLoading(false);
+    setLoginError(null);
+    try {
+      await authLogin(email, password);
       navigate('/dashboard');
-    }, 400);
+    } catch (err) {
+      // Fallback: if real API fails, allow demo token
+      const msg = err.message || '';
+      if (msg.includes('fetch') || msg.includes('Failed to fetch') || msg.includes('NetworkError')) {
+        // Backend not reachable — use demo token
+        setStoredToken('mock-jwt-auth-session-token');
+        setStoredUser({ userId: 'demo', employeeId: null, email, role: 'HR_ADMIN', name: 'HR Admin' });
+        navigate('/dashboard');
+      } else {
+        setLoginError(err.message || 'Invalid email or password');
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -270,6 +285,11 @@ function LoginView() {
             >
               Sign In
             </Button>
+            {loginError && (
+              <div style={{ marginTop: '10px', padding: '10px', backgroundColor: '#fef2f2', border: '1px solid #fecaca', borderRadius: '8px', fontSize: '0.8125rem', color: '#dc2626' }}>
+                {loginError}
+              </div>
+            )}
           </form>
 
           <div style={{ marginTop: '16px', textAlign: 'center' }}>
@@ -314,8 +334,9 @@ export default function App() {
           <Route path="schedules/:id" element={<ScheduleDetailPage />} />
           <Route path="schedules/:id/edit" element={<ScheduleFormPage />} />
 
-          {/* HR Operations — P2 Foundation Views */}
+          {/* HR Operations — P2 */}
           <Route path="attendance" element={<AttendanceListPage />} />
+          <Route path="my-attendance" element={<MyAttendancePage />} />
           <Route path="time-off" element={<TimeOffPage />} />
 
           {/* Payroll — P3 Foundation Views */}

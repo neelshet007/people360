@@ -31,6 +31,7 @@ export default function SidebarNavigation({ collapsed = false, onNavigate }) {
       ownerTag: 'P2',
       items: [
         { label: 'Attendance', href: '/attendance', icon: '📅' },
+        { label: 'My Attendance', href: '/my-attendance', icon: '🕐' },
         { label: 'Time Off', href: '/time-off', icon: '🏖️' },
       ],
     },

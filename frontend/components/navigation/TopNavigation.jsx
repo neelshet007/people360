@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import Avatar from '../ui/Avatar';
 import Dropdown from '../ui/Dropdown';
 import { getStoredToken, clearStoredToken } from '../../lib/auth';
+import AttendanceWidget from '../../modules/attendance/components/AttendanceWidget';
 
 /**
  * Shared TopNavigation / Navbar Component
@@ -162,8 +163,9 @@ export default function TopNavigation({ onToggleMobileSidebar }) {
         </span>
       </div>
 
-      {/* Right side: Global Search + Notifications + Profile */}
+      {/* Right side: Attendance Widget + Global Search + Notifications + Profile */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+        <AttendanceWidget />
         {/* Quick Search Placeholder UI */}
         <div
           style={{
