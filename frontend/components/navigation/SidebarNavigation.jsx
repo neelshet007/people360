@@ -44,6 +44,7 @@ export default function SidebarNavigation({ collapsed = false, onNavigate }) {
           ...(user?.employeeId ? [{ label: 'My Profile', href: `/employees/${user.employeeId}`, Icon: UserIcon }] : []),
           { label: 'My Attendance', href: '/my-attendance', Icon: ClockIcon },
           { label: 'My Time Off', href: '/time-off', Icon: TimeOffIcon },
+          { label: 'Comp Off', href: '/comp-off', Icon: ClockIcon },
           { label: 'My Payslips', href: '/payroll/payslips', Icon: BanknoteIcon },
           { label: 'My Concerns', href: '/my-concerns', Icon: MessageSquareIcon },
         ],
@@ -70,6 +71,7 @@ export default function SidebarNavigation({ collapsed = false, onNavigate }) {
         items: [
           { label: 'Attendance', href: '/attendance', Icon: CalendarIcon },
           { label: 'Time Off Requests', href: '/time-off', Icon: TimeOffIcon },
+          { label: 'Comp Off Credits', href: '/comp-off', Icon: ClockIcon },
         ],
       },
       {
@@ -95,6 +97,7 @@ export default function SidebarNavigation({ collapsed = false, onNavigate }) {
           { label: 'Working Schedules', href: '/schedules', Icon: ClockIcon },
           { label: 'Attendance', href: '/attendance', Icon: CalendarIcon },
           { label: 'Time Off', href: '/time-off', Icon: TimeOffIcon },
+          { label: 'Comp Off Credits', href: '/comp-off', Icon: ClockIcon },
         ],
       },
       {
@@ -136,6 +139,7 @@ export default function SidebarNavigation({ collapsed = false, onNavigate }) {
         items: [
           { label: 'Attendance Tracking', href: '/attendance', Icon: CalendarIcon },
           { label: 'Time Off Approvals', href: '/time-off', Icon: TimeOffIcon },
+          { label: 'Comp Off Credits', href: '/comp-off', Icon: ClockIcon },
         ],
       },
       {

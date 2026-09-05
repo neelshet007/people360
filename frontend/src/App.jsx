@@ -22,7 +22,7 @@ import ScheduleFormPage from '../modules/schedules/pages/ScheduleFormPage';
 
 // P2 — HR Operations Module Pages
 import { AttendanceListPage, MyAttendancePage } from '../modules/attendance';
-import { TimeOffPage } from '../modules/timeoff';
+import { TimeOffPage, CompOffPage } from '../modules/timeoff';
 
 // P3 — Payroll Module Pages
 import {
@@ -193,6 +193,14 @@ export default function App() {
               element={
                 <ProtectedRoute>
                   <TimeOffPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/comp-off"
+              element={
+                <ProtectedRoute>
+                  <CompOffPage />
                 </ProtectedRoute>
               }
             />

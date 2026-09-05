@@ -1,5 +1,6 @@
 const db = require('../../../database/db');
 const timeoffRepository = require('../repositories/timeoffRepository');
+const compOffRepository = require('../repositories/compOffRepository');
 const ApiError = require('../../../utils/ApiError');
 
 /**
@@ -183,7 +184,15 @@ const timeoffService = {
     if (!existing) {
       throw ApiError.notFound(`Time-off request with ID '${id}' not found`);
     }
-    return timeoffRepository.updateRequestStatus(id, { status, approver_id });
+    const updated = await timeoffRepository.updateRequestStatus(id, { status, approver_id });
+    if (status === 'APPROVED' && (existing.leave_type_code === 'COMP_OFF' || existing.leave_type_name === 'Compensatory Off')) {
+      try {
+        await compOffRepository.consumeCredits(existing.employee_id, existing.total_days);
+      } catch (err) {
+        console.warn('[TimeoffService] Error consuming comp off credits:', err.message);
+      }
+    }
+    return updated;
   },
 };
 

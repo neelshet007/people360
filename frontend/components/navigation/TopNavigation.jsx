@@ -37,6 +37,7 @@ export default function TopNavigation({ onToggleMobileSidebar }) {
     if (path.startsWith('/attendance')) return ['Time & Leave', 'Attendance Tracking'];
     if (path.startsWith('/my-attendance')) return ['Self Service', 'My Attendance'];
     if (path.startsWith('/time-off')) return ['Time & Leave', 'Time Off Requests'];
+    if (path.startsWith('/comp-off')) return ['Time & Leave', 'Compensatory Off'];
     if (path.startsWith('/payroll/payruns/')) return ['Compensation', 'Payrun Batch'];
     if (path.startsWith('/payroll/payruns')) return ['Compensation', 'Payruns'];
     if (path.startsWith('/payroll/bonus')) return ['Compensation', 'Bonus Allocation'];
