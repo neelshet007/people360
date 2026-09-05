@@ -22,6 +22,15 @@ import ScheduleListPage from '../modules/schedules/pages/ScheduleListPage';
 import ScheduleDetailPage from '../modules/schedules/pages/ScheduleDetailPage';
 import ScheduleFormPage from '../modules/schedules/pages/ScheduleFormPage';
 
+// P3 — Payroll Module Pages
+import {
+  PayrunListPage,
+  PayrunDetailPage,
+  SalaryStructuresPage,
+  SalaryRulesPage,
+  PayslipsPage,
+} from '../modules/payroll';
+
 /**
  * Dashboard View — PeoplePay360 Overview
  */
@@ -192,58 +201,7 @@ function TimeOffView() {
   );
 }
 
-// Preserving strict P3 Payroll Views
-function SalaryStructuresView() {
-  return (
-    <PageContainer title="Salary Structures" subtitle="Owner: P3 — Payroll">
-      <Card title="Salary Structures" subtitle="Compensation blueprints and rule groupings">
-        <EmptyState
-          title="No salary structures found"
-          description="P3 Payroll salary structures will be configured here once implemented."
-        />
-      </Card>
-    </PageContainer>
-  );
-}
 
-function SalaryRulesView() {
-  return (
-    <PageContainer title="Salary Rules" subtitle="Owner: P3 — Payroll">
-      <Card title="Salary Calculation Rules" subtitle="Rules for basic salary, allowances, and deductions">
-        <EmptyState
-          title="No salary rules configured"
-          description="P3 Payroll calculation rules will be managed here once implemented."
-        />
-      </Card>
-    </PageContainer>
-  );
-}
-
-function PayrunsView() {
-  return (
-    <PageContainer title="Payruns" subtitle="Owner: P3 — Payroll">
-      <Card title="Payroll Batches" subtitle="Periodic payrun executions and batch processing">
-        <EmptyState
-          title="No payruns recorded"
-          description="P3 Payroll batch calculations will be initiated and managed here once implemented."
-        />
-      </Card>
-    </PageContainer>
-  );
-}
-
-function PayslipsView() {
-  return (
-    <PageContainer title="Payslips" subtitle="Owner: P3 — Payroll">
-      <Card title="Generated Payslips" subtitle="Itemized individual employee pay statements">
-        <EmptyState
-          title="No payslips generated"
-          description="P3 Payroll payslips will be published here once implemented."
-        />
-      </Card>
-    </PageContainer>
-  );
-}
 
 /**
  * Authentication Boundary / Login View
@@ -381,13 +339,14 @@ export default function App() {
           <Route path="attendance" element={<AttendanceView />} />
           <Route path="time-off" element={<TimeOffView />} />
 
-          {/* Payroll — Extensible Placeholders (P3) */}
+          {/* Payroll — P3 Foundation Views */}
           <Route path="payroll">
-            <Route index element={<Navigate to="salary-structures" replace />} />
-            <Route path="salary-structures" element={<SalaryStructuresView />} />
-            <Route path="salary-rules" element={<SalaryRulesView />} />
-            <Route path="payruns" element={<PayrunsView />} />
-            <Route path="payslips" element={<PayslipsView />} />
+            <Route index element={<Navigate to="payruns" replace />} />
+            <Route path="salary-structures" element={<SalaryStructuresPage />} />
+            <Route path="salary-rules" element={<SalaryRulesPage />} />
+            <Route path="payruns" element={<PayrunListPage />} />
+            <Route path="payruns/:id" element={<PayrunDetailPage />} />
+            <Route path="payslips" element={<PayslipsPage />} />
           </Route>
         </Route>
         <Route path="*" element={<Navigate to="/dashboard" replace />} />

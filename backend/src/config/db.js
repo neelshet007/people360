@@ -1,20 +1,8 @@
-const { Pool } = require('pg');
-const config = require('./index');
-
 /**
- * PostgreSQL Database Pool Configuration
- * Central database client shared across application modules
+ * Central Database Client Export
+ * Points to authoritative connection manager in database/db.js
  */
-const pool = new Pool({
-  connectionString: config.databaseUrl,
-});
+const db = require('../database/db');
 
-pool.on('error', (err) => {
-  console.error('[Database Pool Error]', err);
-});
+module.exports = db;
 
-module.exports = {
-  query: (text, params) => pool.query(text, params),
-  getClient: () => pool.connect(),
-  pool,
-};

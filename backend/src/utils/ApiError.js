@@ -19,8 +19,16 @@ class ApiError extends Error {
     return new ApiError(401, message, 'UNAUTHORIZED');
   }
 
+  static forbidden(message = 'Forbidden access', details = []) {
+    return new ApiError(403, message, 'FORBIDDEN', details);
+  }
+
   static notFound(message = 'Requested resource not found') {
     return new ApiError(404, message, 'RESOURCE_NOT_FOUND');
+  }
+
+  static conflict(message = 'Resource conflict', details = []) {
+    return new ApiError(409, message, 'DUPLICATE_ENTITY', details);
   }
 
   static internal(message = 'Internal server error') {
