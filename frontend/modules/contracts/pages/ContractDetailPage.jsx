@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import PageContainer from '../../../components/layout/PageContainer';
 import Card from '../../../components/ui/Card';
@@ -8,6 +8,7 @@ import ErrorState from '../../../components/feedback/ErrorState';
 import ContractStatusBadge from '../components/ContractStatusBadge';
 import { useContract } from '../hooks/useContract';
 import { formatDate, formatCurrency } from '../../../lib/utils';
+import RaiseConcernModal from '../../concerns/components/RaiseConcernModal';
 
 /**
  * Contract Detail Page
@@ -16,6 +17,7 @@ import { formatDate, formatCurrency } from '../../../lib/utils';
 export default function ContractDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const [showConcernModal, setShowConcernModal] = useState(false);
 
   const { contract, loading, error, refetch } = useContract(id);
 
@@ -63,6 +65,13 @@ export default function ContractDetailPage() {
         <div style={{ display: 'flex', gap: '10px' }}>
           <Button variant="secondary" onClick={() => navigate('/contracts')}>
             Back
+          </Button>
+          <Button
+            variant="secondary"
+            onClick={() => setShowConcernModal(true)}
+            style={{ color: 'var(--primary-700, #4338ca)', borderColor: 'var(--primary-200, #c7d2fe)' }}
+          >
+            💬 Raise Concern
           </Button>
           <Button
             variant="primary"
@@ -177,6 +186,22 @@ export default function ContractDetailPage() {
           </div>
         </Card>
       </div>
+
+      {/* ── Contextual Raise Concern Modal ── */}
+      {showConcernModal && (
+        <RaiseConcernModal
+          isOpen={showConcernModal}
+          onClose={() => setShowConcernModal(false)}
+          initialCategory="CONTRACT"
+          initialRelatedType="CONTRACT"
+          initialRelatedId={contract.id}
+          initialRelatedLabel={`Contract: ${contract.contract_type} (${formatDate(contract.start_date)} to ${contract.end_date ? formatDate(contract.end_date) : 'Permanent'})`}
+          initialSubject={`Employment Contract Inquiry: ${contract.contract_type} (${refTitle})`}
+          initialDescription={`Inquiry regarding contract terms for ${contract.employee_name || 'employee'}.\nContract Type: ${contract.contract_type}\nWage Rate: ${contract.wage_rate ? formatCurrency(Number(contract.wage_rate)) : '0'} / ${contract.wage_type || 'month'}\nSchedule: ${contract.schedule_name || 'Standard Full-Time'}`}
+          initialEmployeeId={contract.employee_id}
+          onSuccess={() => alert('Concern submitted successfully to HR Operations.')}
+        />
+      )}
     </PageContainer>
   );
 }

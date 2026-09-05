@@ -34,6 +34,9 @@ import {
 } from '../modules/payroll';
 import DashboardPage from '../modules/dashboard/pages/DashboardPage';
 
+// Concern Communication Module
+import { ConcernsPage, MyConcernsPage, ConcernDetailPage } from '../modules/concerns';
+
 /**
  * Main Application Routing Component with Authentication & RBAC Guard
  */
@@ -231,6 +234,32 @@ export default function App() {
               element={
                 <ProtectedRoute allowedRoles={['ADMIN', 'HR_PAYROLL_USER', 'HR_PAYROLL_MANAGER']}>
                   <SalaryRulesPage />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Concern Communication Module */}
+            <Route
+              path="/concerns"
+              element={
+                <ProtectedRoute allowedRoles={['ADMIN', 'HR_MANAGER', 'HR_PAYROLL_USER', 'HR_PAYROLL_MANAGER']}>
+                  <ConcernsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/my-concerns"
+              element={
+                <ProtectedRoute>
+                  <MyConcernsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/concerns/:id"
+              element={
+                <ProtectedRoute>
+                  <ConcernDetailPage />
                 </ProtectedRoute>
               }
             />

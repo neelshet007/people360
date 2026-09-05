@@ -11,7 +11,8 @@ import AttendanceStatusBadge from '../components/AttendanceStatusBadge';
 import { attendanceApi } from '../api/attendanceApi';
 import { getStoredUser } from '../../../lib/auth';
 import Toast from '../../../components/feedback/Toast';
-import { LogInIcon, LogOutIcon, ClockIcon } from '../../../components/ui/Icons';
+import { LogInIcon, LogOutIcon, ClockIcon, MessageSquareIcon } from '../../../components/ui/Icons';
+import RaiseConcernModal from '../../concerns/components/RaiseConcernModal';
 
 /**
  * My Attendance Page — Phase 5
@@ -33,6 +34,7 @@ export default function MyAttendancePage() {
   const [checkingIn, setCheckingIn] = useState(false);
   const [checkingOut, setCheckingOut] = useState(false);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
+  const [concernModalConfig, setConcernModalConfig] = useState({ isOpen: false, row: null });
 
   const showToast = (msg, type = 'info') => {
     setToast({ msg, type });
@@ -189,6 +191,40 @@ export default function MyAttendancePage() {
       accessor: 'status',
       render: (row) => <AttendanceStatusBadge status={row.status} />,
     },
+    {
+      header: 'Action',
+      accessor: 'id',
+      render: (row) => (
+        <button
+          type="button"
+          onClick={() =>
+            setConcernModalConfig({
+              isOpen: true,
+              row,
+            })
+          }
+          style={{
+            background: 'none',
+            border: '1px solid var(--neutral-200, #e2e8f0)',
+            borderRadius: '6px',
+            padding: '3px 8px',
+            fontSize: '0.75rem',
+            color: 'var(--primary-700, #4338ca)',
+            fontWeight: 600,
+            cursor: 'pointer',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '4px',
+            backgroundColor: '#ffffff',
+            transition: 'all 0.15s ease',
+          }}
+          onMouseEnter={(e) => (e.currentTarget.style.borderColor = 'var(--primary-400, #818cf8)')}
+          onMouseLeave={(e) => (e.currentTarget.style.borderColor = 'var(--neutral-200, #e2e8f0)')}
+        >
+          <MessageSquareIcon size={12} color="var(--primary-600, #4f46e5)" /> Raise Concern
+        </button>
+      ),
+    },
   ];
 
   const isCheckedIn = activeState?.isCheckedIn;
@@ -308,6 +344,21 @@ export default function MyAttendancePage() {
           message={toast.msg}
           type={toast.type}
           onClose={() => setToast(null)}
+        />
+      )}
+
+      {/* ── Contextual Raise Concern Modal ── */}
+      {concernModalConfig.isOpen && (
+        <RaiseConcernModal
+          isOpen={concernModalConfig.isOpen}
+          onClose={() => setConcernModalConfig({ isOpen: false, row: null })}
+          initialCategory="ATTENDANCE"
+          initialRelatedType="ATTENDANCE"
+          initialRelatedId={concernModalConfig.row?.id}
+          initialRelatedLabel={`Attendance Record: ${formatDate(concernModalConfig.row?.date)}`}
+          initialSubject={`Attendance Discrepancy for ${formatDate(concernModalConfig.row?.date)}`}
+          initialDescription={`Inquiry regarding attendance timing and hours for ${formatDate(concernModalConfig.row?.date)}.\nLogged Clock-in: ${formatTime(concernModalConfig.row?.clock_in)}\nLogged Clock-out: ${formatTime(concernModalConfig.row?.clock_out)}\nTotal Recorded: ${formatHoursNum(concernModalConfig.row?.total_hours)}`}
+          onSuccess={() => showToast('✅ Concern raised successfully and dispatched to HR.', 'success')}
         />
       )}
     </PageContainer>

@@ -89,23 +89,45 @@ export default function DashboardPage() {
   const headerInfo = getRoleHeader();
 
   // Calculation helpers from real backend stats
-  const totalEmployees = stats?.total_employees || 0;
-  const activeContracts = stats?.active_contracts || 0;
-  const presentCount = stats?.today_attendance?.present || 0;
-  const lateCount = stats?.today_attendance?.late || 0;
-  const halfDayCount = stats?.today_attendance?.half_day || 0;
-  const absentCount = stats?.today_attendance?.absent || 0;
+  const totalEmployees = stats?.employees?.total ?? stats?.total_employees ?? 0;
+  const activeContracts = stats?.contracts?.active ?? stats?.active_contracts ?? 0;
+  const pendingOnboarding = stats?.pending_onboarding ?? stats?.employees?.inactive ?? 0;
+
+  const presentCount = stats?.attendance?.present ?? stats?.today_attendance?.present ?? 0;
+  const lateCount = stats?.attendance?.late ?? stats?.today_attendance?.late ?? 0;
+  const halfDayCount = stats?.attendance?.half_day ?? stats?.today_attendance?.half_day ?? 0;
+  const absentCount = stats?.attendance?.absent ?? stats?.today_attendance?.absent ?? 0;
   const totalAttendanceToday = presentCount + lateCount + halfDayCount + absentCount;
 
   const attendanceRate = totalAttendanceToday > 0
     ? Math.round(((presentCount + lateCount) / totalAttendanceToday) * 100)
     : 100;
 
-  const departmentList = stats?.by_department || [];
-  const maxDeptSpend = Math.max(...departmentList.map((d) => d.net_payout || 0), 1);
+  const departmentList = stats?.payroll?.by_department ?? stats?.by_department ?? [];
+  const maxDeptSpend = Math.max(...departmentList.map((d) => parseFloat(d.net_payout || d.total_net || 0)), 1);
 
-  const payrunsList = stats?.trends || [];
-  const latestPayrun = stats?.latest_payrun || null;
+  const payrunsList = stats?.payroll?.trends ?? stats?.trends ?? [];
+  const latestPayrun = stats?.latest_payrun || (payrunsList.length > 0 ? payrunsList[payrunsList.length - 1] : null);
+
+  const totalNetDisbursed = stats?.payroll?.total_disbursed ?? stats?.payroll_overview?.total_net_disbursed ?? 0;
+  const totalGrossProcessed = stats?.payroll?.total_gross ?? stats?.payroll_overview?.total_gross_processed ?? 0;
+  const totalPayrunsCount = stats?.payroll?.total_payruns ?? stats?.payroll_overview?.total_payruns_count ?? 0;
+  const pendingLeavesCount = stats?.timeoff?.pending ?? stats?.pending_leaves_count ?? 0;
+
+  const isEmployee = role === 'EMPLOYEE' || stats?.role === 'EMPLOYEE';
+
+  // Employee-specific calculated values
+  const empAllocations = stats?.timeoff?.allocations || [];
+  const totalAllocatedLeaves = empAllocations.reduce((sum, a) => sum + parseFloat(a.allocated_days || 0), 0);
+  const totalRemainingLeaves = empAllocations.reduce((sum, a) => sum + parseFloat(a.remaining_days || 0), 0);
+  const totalUsedLeaves = empAllocations.reduce((sum, a) => sum + parseFloat(a.used_days || 0), 0);
+
+  const empAttendanceSummary = stats?.attendance?.summary || { present: 0, late: 0, half_day: 0, total_hours: 0 };
+  const empRecentAttendance = stats?.attendance?.recent || [];
+  const empLatestPayslip = stats?.payroll?.latest_payslip || null;
+  const empRecentPayslips = stats?.payroll?.recent_payslips || [];
+  const empContract = stats?.contract || null;
+  const empInfo = stats?.employee || user || {};
 
   return (
     <PageContainer
@@ -122,7 +144,7 @@ export default function DashboardPage() {
             Refresh
           </Button>
 
-          {role === 'EMPLOYEE' && (
+          {isEmployee && (
             <Button variant="primary" size="sm" onClick={() => navigate('/time-off')} icon={<PlusIcon size={14} />}>
               Request Leave
             </Button>
@@ -157,7 +179,370 @@ export default function DashboardPage() {
         />
       )}
 
-      {!loading && stats && (
+      {!loading && stats && isEmployee && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          {/* EMPLOYEE HERO PROFILE BANNER */}
+          <div
+            style={{
+              padding: '18px 24px',
+              backgroundColor: '#ffffff',
+              border: '1px solid var(--border-subtle, #e2e8f0)',
+              borderRadius: '8px',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              flexWrap: 'wrap',
+              gap: '16px',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+              <div
+                style={{
+                  width: '48px',
+                  height: '48px',
+                  borderRadius: '50%',
+                  backgroundColor: 'var(--brand-900, #0f172a)',
+                  color: '#ffffff',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontWeight: 700,
+                  fontSize: '1.125rem',
+                }}
+              >
+                {empInfo?.first_name?.[0] || 'E'}{empInfo?.last_name?.[0] || 'M'}
+              </div>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <h3 style={{ margin: 0, fontSize: '1.125rem', fontWeight: 700, color: 'var(--text-main, #0f172a)' }}>
+                    {empInfo?.display_name || `${empInfo?.first_name || ''} ${empInfo?.last_name || ''}`.trim() || 'Employee'}
+                  </h3>
+                  <Badge variant="success">Active Status</Badge>
+                </div>
+                <div style={{ fontSize: '0.8125rem', color: 'var(--text-muted, #64748b)', marginTop: '2px' }}>
+                  {empInfo?.designation || 'Specialist'} • {empInfo?.department || 'Operations'} • ID: {empInfo?.employee_code || 'EMP-360'}
+                </div>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap' }}>
+              <div>
+                <div style={{ fontSize: '0.6875rem', fontWeight: 600, color: 'var(--text-muted, #64748b)', textTransform: 'uppercase' }}>
+                  Assigned Shift
+                </div>
+                <div style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--text-main, #0f172a)', marginTop: '2px' }}>
+                  {empContract?.schedule_name || 'Standard 40h Workweek'}
+                </div>
+              </div>
+
+              <div>
+                <div style={{ fontSize: '0.6875rem', fontWeight: 600, color: 'var(--text-muted, #64748b)', textTransform: 'uppercase' }}>
+                  Agreement Binding
+                </div>
+                <div style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--text-main, #0f172a)', marginTop: '2px' }}>
+                  {empContract?.contract_type || 'Permanent Contract'}
+                </div>
+              </div>
+
+              <div>
+                <div style={{ fontSize: '0.6875rem', fontWeight: 600, color: 'var(--text-muted, #64748b)', textTransform: 'uppercase' }}>
+                  Statutory Structure
+                </div>
+                <div style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--text-main, #0f172a)', marginTop: '2px' }}>
+                  {empContract?.structure_name || 'Standard Executive CTC'}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* EMPLOYEE KPI STRIP */}
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+              gap: '14px',
+            }}
+          >
+            {/* KPI 1: Logged Attendance Hours */}
+            <div className="pp-stat-card">
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span className="pp-stat-label">Hours Worked This Period</span>
+                <ClockIcon size={16} color="var(--primary-600, #2563eb)" />
+              </div>
+              <div className="pp-stat-value">{empAttendanceSummary.total_hours} <span style={{ fontSize: '0.875rem', fontWeight: 500, color: 'var(--text-muted)' }}>hrs</span></div>
+              <div className="pp-stat-sub">
+                <span style={{ color: 'var(--success, #059669)', fontWeight: 600 }}>{empAttendanceSummary.present} Present</span>
+                <span> • {empAttendanceSummary.late} Late • {empAttendanceSummary.half_day} Half Day</span>
+              </div>
+            </div>
+
+            {/* KPI 2: Available Leave Quota */}
+            <div className="pp-stat-card">
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span className="pp-stat-label">Available Leave Quota</span>
+                <CalendarIcon size={16} color="var(--success, #059669)" />
+              </div>
+              <div className="pp-stat-value">{totalRemainingLeaves} <span style={{ fontSize: '0.875rem', fontWeight: 500, color: 'var(--text-muted)' }}>Days</span></div>
+              <div className="pp-stat-sub">
+                <span>{totalUsedLeaves} used of {totalAllocatedLeaves} allocated days</span>
+              </div>
+            </div>
+
+            {/* KPI 3: Contract Wage Rate */}
+            <div className="pp-stat-card">
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span className="pp-stat-label">Contracted Wage Rate</span>
+                <BanknoteIcon size={16} color="var(--brand-900, #0f172a)" />
+              </div>
+              <div className="pp-stat-value" style={{ fontSize: '1.45rem' }}>
+                {formatCurrency(empContract?.wage_rate || 0)}
+              </div>
+              <div className="pp-stat-sub">
+                <span>Binding monthly gross compensation</span>
+              </div>
+            </div>
+
+            {/* KPI 4: Latest Net Disbursed Payout */}
+            <div className="pp-stat-card">
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span className="pp-stat-label">Latest Net Pay</span>
+                <CreditCardIcon size={16} color="var(--warning, #d97706)" />
+              </div>
+              <div className="pp-stat-value" style={{ fontSize: '1.45rem' }}>
+                {empLatestPayslip ? formatCurrency(empLatestPayslip.net_amount) : '₹0'}
+              </div>
+              <div className="pp-stat-sub">
+                <span>Cycle: {empLatestPayslip?.payrun_name || 'Current'} (</span>
+                <Badge variant={empLatestPayslip?.status === 'PAID' ? 'success' : 'neutral'}>
+                  {empLatestPayslip?.status || 'PENDING'}
+                </Badge>
+                <span>)</span>
+              </div>
+            </div>
+          </div>
+
+          {/* SECTION 2: ATTENDANCE AUDIT & LEAVE BALANCES */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(420px, 1fr))', gap: '20px' }}>
+            {/* Recent Attendance Log */}
+            <Card
+              title="Recent Shift Attendance"
+              subtitle="Personal clock-in / clock-out entries from live PostgreSQL registry"
+              actions={
+                <Link to="/my-attendance" style={{ fontSize: '0.75rem', color: 'var(--primary-600, #2563eb)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '2px' }}>
+                  <span>Full Registry</span>
+                  <ChevronRightIcon size={12} />
+                </Link>
+              }
+            >
+              {empRecentAttendance.length === 0 ? (
+                <div style={{ padding: '24px 0', textAlign: 'center', color: 'var(--text-muted, #64748b)', fontSize: '0.8125rem' }}>
+                  No attendance entries logged yet.
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  {empRecentAttendance.map((rec) => {
+                    const statusVariant = rec.status === 'PRESENT' ? 'success' : rec.status === 'LATE' ? 'warning' : 'neutral';
+                    const formattedDate = rec.date ? new Date(rec.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', weekday: 'short' }) : 'N/A';
+                    return (
+                      <div
+                        key={rec.id}
+                        style={{
+                          padding: '10px 14px',
+                          border: '1px solid var(--border-subtle, #e2e8f0)',
+                          borderRadius: '6px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                        }}
+                      >
+                        <div>
+                          <div style={{ fontWeight: 600, fontSize: '0.8125rem', color: 'var(--text-main, #0f172a)' }}>
+                            {formattedDate}
+                          </div>
+                          <div style={{ fontSize: '0.75rem', color: 'var(--text-muted, #64748b)', marginTop: '2px' }}>
+                            {rec.clock_in ? new Date(rec.clock_in).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--'}
+                            {' → '}
+                            {rec.clock_out ? new Date(rec.clock_out).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--'}
+                            {rec.notes ? ` • ${rec.notes}` : ''}
+                          </div>
+                        </div>
+
+                        <div style={{ textAlign: 'right' }}>
+                          <div style={{ fontWeight: 700, fontSize: '0.875rem', fontVariantNumeric: 'tabular-nums', color: 'var(--text-main, #0f172a)' }}>
+                            {rec.total_hours || 0} hrs
+                          </div>
+                          <div style={{ marginTop: '2px' }}>
+                            <Badge variant={statusVariant}>{rec.status}</Badge>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </Card>
+
+            {/* Leave Balance Quotas */}
+            <Card
+              title="Statutory Leave Allocations"
+              subtitle="2026 accrued entitlements and remaining balances"
+              actions={
+                <Link to="/time-off" style={{ fontSize: '0.75rem', color: 'var(--primary-600, #2563eb)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '2px' }}>
+                  <span>Manage Time Off</span>
+                  <ChevronRightIcon size={12} />
+                </Link>
+              }
+            >
+              {empAllocations.length === 0 ? (
+                <div style={{ padding: '24px 0', textAlign: 'center', color: 'var(--text-muted, #64748b)', fontSize: '0.8125rem' }}>
+                  No leave quotas assigned for the current calendar year.
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                  {empAllocations.map((alloc) => {
+                    const allocated = parseFloat(alloc.allocated_days || 0);
+                    const remaining = parseFloat(alloc.remaining_days || 0);
+                    const used = parseFloat(alloc.used_days || 0);
+                    const pct = allocated > 0 ? Math.round((remaining / allocated) * 100) : 0;
+
+                    return (
+                      <div key={alloc.id}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8125rem', marginBottom: '4px' }}>
+                          <span style={{ fontWeight: 600, color: 'var(--text-main, #0f172a)' }}>
+                            {alloc.type_name}
+                            <span style={{ color: 'var(--text-muted, #64748b)', fontWeight: 400, marginLeft: '6px', fontSize: '0.75rem' }}>
+                              ({alloc.type_code})
+                            </span>
+                          </span>
+                          <span style={{ fontWeight: 600, fontVariantNumeric: 'tabular-nums', color: 'var(--text-main, #0f172a)' }}>
+                            {remaining} / {allocated} Days Left
+                          </span>
+                        </div>
+                        <div style={{ height: '6px', width: '100%', backgroundColor: 'var(--neutral-100, #f1f5f9)', borderRadius: '3px', overflow: 'hidden' }}>
+                          <div
+                            style={{
+                              height: '100%',
+                              width: `${pct}%`,
+                              backgroundColor: pct > 40 ? 'var(--success, #059669)' : pct > 15 ? 'var(--warning, #d97706)' : 'var(--danger, #dc2626)',
+                              borderRadius: '3px',
+                              transition: 'width 0.4s ease',
+                            }}
+                          />
+                        </div>
+                        <div style={{ fontSize: '0.6875rem', color: 'var(--text-muted, #64748b)', marginTop: '3px' }}>
+                          {used} days utilized • {alloc.is_paid ? 'Statutory Paid' : 'Unpaid'}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </Card>
+          </div>
+
+          {/* SECTION 3: COMPENSATION AUDIT & TWO-WAY CONCERN DESK */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(420px, 1fr))', gap: '20px' }}>
+            {/* Payslips History */}
+            <Card
+              title="Disbursed Compensation Statements"
+              subtitle="Audited gross-to-net breakdown and salary slips"
+              actions={
+                <Link to="/payroll/payslips" style={{ fontSize: '0.75rem', color: 'var(--primary-600, #2563eb)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '2px' }}>
+                  <span>All Payslips</span>
+                  <ChevronRightIcon size={12} />
+                </Link>
+              }
+            >
+              {empRecentPayslips.length === 0 ? (
+                <div style={{ padding: '24px 0', textAlign: 'center', color: 'var(--text-muted, #64748b)', fontSize: '0.8125rem' }}>
+                  No historical payslips generated yet.
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  {empRecentPayslips.map((ps) => (
+                    <div
+                      key={ps.id}
+                      style={{
+                        padding: '12px 14px',
+                        border: '1px solid var(--border-subtle, #e2e8f0)',
+                        borderRadius: '6px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                      }}
+                    >
+                      <div>
+                        <div style={{ fontWeight: 600, fontSize: '0.8125rem', color: 'var(--text-main, #0f172a)' }}>
+                          {ps.payrun_name}
+                        </div>
+                        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted, #64748b)', marginTop: '2px' }}>
+                          Gross: {formatCurrency(ps.gross_amount)} • Deductions: {formatCurrency(ps.total_deductions)}
+                        </div>
+                      </div>
+
+                      <div style={{ textAlign: 'right' }}>
+                        <div style={{ fontWeight: 700, fontSize: '0.875rem', fontVariantNumeric: 'tabular-nums', color: 'var(--text-main, #0f172a)' }}>
+                          {formatCurrency(ps.net_amount)}
+                        </div>
+                        <div style={{ marginTop: '2px' }}>
+                          <Badge variant={ps.status === 'PAID' ? 'success' : 'neutral'}>{ps.status}</Badge>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </Card>
+
+            {/* Concerns & Inquiries Desk */}
+            <Card
+              title="Employee HR Desk & Inquiries"
+              subtitle="Two-way structured communication channel with People Operations"
+              actions={
+                <Link to="/my-concerns" style={{ fontSize: '0.75rem', color: 'var(--primary-600, #2563eb)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '2px' }}>
+                  <span>My Concerns</span>
+                  <ChevronRightIcon size={12} />
+                </Link>
+              }
+            >
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <div
+                  style={{
+                    padding: '12px 14px',
+                    backgroundColor: 'var(--neutral-50, #f8fafc)',
+                    border: '1px solid var(--border-subtle, #e2e8f0)',
+                    borderRadius: '6px',
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    gap: '10px',
+                  }}
+                >
+                  <CheckCircleIcon size={16} color="var(--primary-600, #2563eb)" style={{ marginTop: '2px', flexShrink: 0 }} />
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--text-main, #0f172a)' }}>
+                      Direct Channel to HR & Management
+                    </div>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted, #64748b)', marginTop: '2px' }}>
+                      Submit inquiries regarding payroll calculations, shift rectifications, or statutory policy queries.
+                    </div>
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', gap: '10px', marginTop: '6px' }}>
+                  <Button variant="secondary" size="sm" onClick={() => navigate('/my-concerns')} style={{ flex: 1 }}>
+                    View My Inquiries
+                  </Button>
+                  <Button variant="primary" size="sm" onClick={() => navigate('/my-attendance')} style={{ flex: 1 }}>
+                    Clock-in / Clock-out
+                  </Button>
+                </div>
+              </div>
+            </Card>
+          </div>
+        </div>
+      )}
+
+      {!loading && stats && !isEmployee && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           {/* SECTION 1: WORKFLOW KPI STRIP */}
           <div
@@ -176,7 +561,7 @@ export default function DashboardPage() {
               <div className="pp-stat-value">{totalEmployees}</div>
               <div className="pp-stat-sub">
                 <span style={{ color: 'var(--success, #059669)', fontWeight: 600 }}>{activeContracts} Active Contracts</span>
-                <span>• {stats?.pending_onboarding || 0} Pending</span>
+                <span>• {pendingOnboarding} Pending</span>
               </div>
             </div>
 
@@ -199,10 +584,10 @@ export default function DashboardPage() {
                 <BanknoteIcon size={16} color="var(--brand-900, #0f172a)" />
               </div>
               <div className="pp-stat-value" style={{ fontSize: '1.45rem' }}>
-                {formatCurrency(stats?.payroll_overview?.total_net_disbursed || 0)}
+                {formatCurrency(totalNetDisbursed)}
               </div>
               <div className="pp-stat-sub">
-                <span>Gross: {formatCurrency(stats?.payroll_overview?.total_gross_processed || 0)}</span>
+                <span>Gross: {formatCurrency(totalGrossProcessed)}</span>
               </div>
             </div>
 
@@ -212,7 +597,7 @@ export default function DashboardPage() {
                 <span className="pp-stat-label">Payrun Batches</span>
                 <CreditCardIcon size={16} color="var(--warning, #d97706)" />
               </div>
-              <div className="pp-stat-value">{stats?.payroll_overview?.total_payruns_count || 0}</div>
+              <div className="pp-stat-value">{totalPayrunsCount}</div>
               <div className="pp-stat-sub">
                 <span>Latest: </span>
                 <Badge variant={latestPayrun?.status === 'PAID' ? 'success' : latestPayrun?.status === 'VALIDATED' ? 'warning' : 'neutral'}>
@@ -242,18 +627,20 @@ export default function DashboardPage() {
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                   {departmentList.slice(0, 5).map((dept) => {
-                    const pct = Math.round(((dept.net_payout || 0) / maxDeptSpend) * 100);
+                    const deptSpend = parseFloat(dept.net_payout || dept.total_net || 0);
+                    const staffCount = dept.employee_count || dept.payslip_count || 0;
+                    const pct = Math.round((deptSpend / maxDeptSpend) * 100);
                     return (
                       <div key={dept.department}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8125rem', marginBottom: '4px' }}>
                           <span style={{ fontWeight: 600, color: 'var(--text-main, #0f172a)' }}>
                             {dept.department}
                             <span style={{ color: 'var(--text-muted, #64748b)', fontWeight: 400, marginLeft: '6px', fontSize: '0.75rem' }}>
-                              ({dept.employee_count} staff)
+                              ({staffCount} staff)
                             </span>
                           </span>
                           <span style={{ fontWeight: 600, fontVariantNumeric: 'tabular-nums', color: 'var(--text-main, #0f172a)' }}>
-                            {formatCurrency(dept.net_payout || 0)}
+                            {formatCurrency(deptSpend)}
                           </span>
                         </div>
                         <div style={{ height: '6px', width: '100%', backgroundColor: 'var(--neutral-100, #f1f5f9)', borderRadius: '3px', overflow: 'hidden' }}>
@@ -403,13 +790,13 @@ export default function DashboardPage() {
                   <AlertTriangleIcon size={16} color="var(--warning, #d97706)" style={{ marginTop: '2px', flexShrink: 0 }} />
                   <div style={{ flex: 1 }}>
                     <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--text-main, #0f172a)' }}>
-                      Pending Leave Requests ({stats?.pending_leaves_count || 0})
+                      Pending Leave Requests ({pendingLeavesCount})
                     </div>
                     <div style={{ fontSize: '0.75rem', color: 'var(--text-muted, #64748b)', marginTop: '2px' }}>
-                      {stats?.pending_leaves_count > 0 ? 'Leave applications submitted by team members awaiting approval.' : 'All statutory leave applications currently reviewed.'}
+                      {pendingLeavesCount > 0 ? 'Leave applications submitted by team members awaiting approval.' : 'All statutory leave applications currently reviewed.'}
                     </div>
                   </div>
-                  {stats?.pending_leaves_count > 0 && (
+                  {pendingLeavesCount > 0 && (
                     <Link to="/time-off" style={{ fontSize: '0.75rem', color: 'var(--primary-600, #2563eb)', fontWeight: 600 }}>
                       Review →
                     </Link>

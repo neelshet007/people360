@@ -78,6 +78,14 @@ async function runMigration() {
       console.log('[Migration] ✅ Payruns Phase 7 schema and lifecycle constraints updated successfully.');
     }
 
+    const concernsMigration = path.resolve(__dirname, '../../../database/migrations/010_create_concerns.sql');
+    if (fs.existsSync(concernsMigration)) {
+      const concernsSql = fs.readFileSync(concernsMigration, 'utf8');
+      console.log('[Migration] Executing 010_create_concerns.sql...');
+      await db.query(concernsSql);
+      console.log('[Migration] ✅ Concerns Communication schema updated successfully.');
+    }
+
     // Check if employee seed data is needed
     const countRes = await db.query('SELECT COUNT(*) FROM employees');
     if (parseInt(countRes.rows[0].count, 10) === 0) {

@@ -7,7 +7,8 @@ import Alert from '../../../components/feedback/Alert';
 import PayrunStatusBadge from './PayrunStatusBadge';
 import { formatCurrency } from '../../../lib/utils';
 import payrollApi from '../api/payrollApi';
-import { DownloadIcon, PrinterIcon } from '../../../components/ui/Icons';
+import { DownloadIcon, PrinterIcon, MessageSquareIcon } from '../../../components/ui/Icons';
+import RaiseConcernModal from '../../concerns/components/RaiseConcernModal';
 
 /**
  * Payslip View Modal Component
@@ -20,6 +21,7 @@ export default function PayslipViewModal({ payslipId, isOpen, onClose }) {
   const [payslip, setPayslip] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [showConcernModal, setShowConcernModal] = useState(false);
 
   useEffect(() => {
     if (!payslipId || !isOpen) {
@@ -54,6 +56,7 @@ export default function PayslipViewModal({ payslipId, isOpen, onClose }) {
   );
 
   return (
+    <>
     <Modal
       title={
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -97,6 +100,14 @@ export default function PayslipViewModal({ payslipId, isOpen, onClose }) {
             icon={<DownloadIcon size={14} />}
           >
             Download PDF
+          </Button>
+          <Button
+            variant="secondary"
+            onClick={() => setShowConcernModal(true)}
+            icon={<MessageSquareIcon size={14} />}
+            style={{ color: 'var(--primary-700, #4338ca)', borderColor: 'var(--primary-200, #c7d2fe)' }}
+          >
+            Raise Concern
           </Button>
           <Button
             variant="primary"
@@ -356,5 +367,22 @@ export default function PayslipViewModal({ payslipId, isOpen, onClose }) {
         </div>
       )}
     </Modal>
+
+    {/* Contextual Raise Concern Modal for Payslip */}
+    {showConcernModal && (
+      <RaiseConcernModal
+        isOpen={showConcernModal}
+        onClose={() => setShowConcernModal(false)}
+        initialCategory="PAYROLL"
+        initialRelatedType="PAYSLIP"
+        initialRelatedId={payslipId}
+        initialRelatedLabel={`Payslip #${payslipId.slice(0, 8)} (${payslip?.payrun_name || 'Salary Statement'})`}
+        initialSubject={`Payslip Inquiry: ${payslip?.payrun_name || 'Itemized Deductions'}`}
+        initialDescription={`Inquiry regarding itemized payslip breakdown for ${payslip?.payrun_name || 'recent pay period'}.\nGross Amount: ${formatCurrency(payslip?.gross_amount || 0)}\nTotal Deductions: ${formatCurrency(payslip?.total_deductions || 0)}\nNet Take-Home: ${formatCurrency(payslip?.net_amount || 0)}`}
+        initialEmployeeId={payslip?.employee_id}
+        onSuccess={() => alert('Concern submitted successfully to Payroll team.')}
+      />
+    )}
+    </>
   );
 }

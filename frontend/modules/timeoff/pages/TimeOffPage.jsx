@@ -17,7 +17,8 @@ import TimeOffStatusBadge from '../components/TimeOffStatusBadge';
 import timeoffApi from '../api/timeoffApi';
 import employeesApi from '../../employees/api/employeesApi';
 import { useAuth } from '../../../context/AuthContext';
-import { CheckCircleIcon, XIcon, PlusIcon, SearchIcon, RefreshIcon, FilterIcon } from '../../../components/ui/Icons';
+import { CheckCircleIcon, XIcon, PlusIcon, SearchIcon, RefreshIcon, FilterIcon, MessageSquareIcon } from '../../../components/ui/Icons';
+import RaiseConcernModal from '../../concerns/components/RaiseConcernModal';
 
 /**
  * Time Off Master Page
@@ -25,13 +26,29 @@ import { CheckCircleIcon, XIcon, PlusIcon, SearchIcon, RefreshIcon, FilterIcon }
  * Foundation view for Leave Requests, Allocations, and Policy Categories
  */
 export default function TimeOffPage() {
-  const { user, hasPermission } = useAuth();
-  const isEmployee = user?.role === 'EMPLOYEE';
+  const { user, role, hasPermission } = useAuth();
+  const currentRole = (role || user?.role || '').toUpperCase();
+  const isEmployee = currentRole === 'EMPLOYEE';
   const canApprove =
-    user?.role === 'ADMIN' ||
-    user?.role === 'HR_MANAGER' ||
-    user?.role === 'HR_PAYROLL_MANAGER' ||
+    currentRole === 'ADMIN' ||
+    currentRole === 'HR_MANAGER' ||
+    currentRole === 'HR_PAYROLL_MANAGER' ||
+    currentRole === 'HR_PAYROLL_USER' ||
     hasPermission('timeoff.approve');
+
+  const formatCleanDate = (dStr) => {
+    if (!dStr) return '—';
+    const clean = dStr.split('T')[0];
+    const parts = clean.split('-');
+    if (parts.length === 3) {
+      const year = parts[0];
+      const month = parseInt(parts[1], 10);
+      const day = parseInt(parts[2], 10);
+      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      return `${months[month - 1]} ${day}, ${year}`;
+    }
+    return clean;
+  };
 
   const [activeTab, setActiveTab] = useState('requests');
 
@@ -58,6 +75,8 @@ export default function TimeOffPage() {
     balance_status: '',
     employment_status: '',
   });
+
+  const [concernModalConfig, setConcernModalConfig] = useState({ isOpen: false, row: null });
 
   // Employees for Dropdowns
   const [employees, setEmployees] = useState([]);
@@ -284,8 +303,9 @@ export default function TimeOffPage() {
       header: 'Duration',
       accessor: 'dates',
       render: (row) => (
-        <span style={{ fontSize: '0.8125rem' }}>
-          {row.start_date} → {row.end_date} (<strong>{row.total_days}d</strong>)
+        <span style={{ fontSize: '0.8125rem', whiteSpace: 'nowrap' }}>
+          {formatCleanDate(row.start_date)} → {formatCleanDate(row.end_date)}{' '}
+          <strong style={{ color: 'var(--text-main, #0f172a)' }}>({row.total_days}d</strong>)
         </span>
       ),
     },
@@ -303,72 +323,125 @@ export default function TimeOffPage() {
       accessor: 'status',
       render: (row) => <TimeOffStatusBadge status={row.status} />,
     },
-    ...(canApprove
-      ? [
-          {
-            header: 'HR Actions',
-            accessor: 'actions',
-            render: (row) => {
-              if (row.status === 'PENDING') {
-                const isLoading = actionLoadingId === row.id;
-                return (
-                  <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-                    <button
-                      type="button"
-                      disabled={isLoading}
-                      onClick={() => handleUpdateStatus(row.id, 'APPROVED')}
-                      style={{
-                        padding: '5px 10px',
-                        fontSize: '0.75rem',
-                        fontWeight: 600,
-                        borderRadius: 'var(--radius-sm, 6px)',
-                        border: 'none',
-                        backgroundColor: 'var(--success-600, #16a34a)',
-                        color: '#ffffff',
-                        cursor: isLoading ? 'not-allowed' : 'pointer',
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '4px',
-                        transition: 'opacity 0.15s ease',
-                      }}
-                      title="Approve leave request"
-                    >
-                      <CheckCircleIcon size={13} /> Approve
-                    </button>
-                    <button
-                      type="button"
-                      disabled={isLoading}
-                      onClick={() => handleUpdateStatus(row.id, 'REJECTED')}
-                      style={{
-                        padding: '5px 10px',
-                        fontSize: '0.75rem',
-                        fontWeight: 600,
-                        borderRadius: 'var(--radius-sm, 6px)',
-                        border: '1px solid var(--danger-300, #fca5a5)',
-                        backgroundColor: 'var(--danger-50, #fef2f2)',
-                        color: 'var(--danger-700, #b91c1c)',
-                        cursor: isLoading ? 'not-allowed' : 'pointer',
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '4px',
-                        transition: 'background-color 0.15s ease',
-                      }}
-                      title="Refuse leave request"
-                    >
-                      <XIcon size={13} /> Refuse
-                    </button>
-                  </div>
-                );
+    {
+      header: 'Actions',
+      accessor: 'actions',
+      render: (row) => {
+        const isLoading = actionLoadingId === row.id;
+        const isOwner = user?.employeeId && row.employee_id === user.employeeId;
+
+        return (
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+            {/* 1. APPROVAL / REJECTION BUTTONS FOR MANAGERS */}
+            {canApprove && row.status === 'PENDING' && (
+              <>
+                <button
+                  type="button"
+                  disabled={isLoading}
+                  onClick={() => handleUpdateStatus(row.id, 'APPROVED')}
+                  style={{
+                    padding: '5px 11px',
+                    fontSize: '0.75rem',
+                    fontWeight: 600,
+                    borderRadius: '6px',
+                    border: 'none',
+                    backgroundColor: 'var(--success-600, #16a34a)',
+                    color: '#ffffff',
+                    cursor: isLoading ? 'not-allowed' : 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+                    transition: 'opacity 0.15s ease',
+                  }}
+                  title="Approve leave request"
+                >
+                  <CheckCircleIcon size={13} /> Approve
+                </button>
+
+                <button
+                  type="button"
+                  disabled={isLoading}
+                  onClick={() => handleUpdateStatus(row.id, 'REJECTED')}
+                  style={{
+                    padding: '5px 11px',
+                    fontSize: '0.75rem',
+                    fontWeight: 600,
+                    borderRadius: '6px',
+                    border: '1px solid var(--danger-300, #fca5a5)',
+                    backgroundColor: 'var(--danger-50, #fef2f2)',
+                    color: 'var(--danger-700, #b91c1c)',
+                    cursor: isLoading ? 'not-allowed' : 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    transition: 'background-color 0.15s ease',
+                  }}
+                  title="Reject leave request"
+                >
+                  <XIcon size={13} /> Reject
+                </button>
+              </>
+            )}
+
+            {/* 2. CANCEL BUTTON FOR EMPLOYEES ON THEIR OWN PENDING LEAVE */}
+            {!canApprove && isOwner && row.status === 'PENDING' && (
+              <button
+                type="button"
+                disabled={isLoading}
+                onClick={() => handleUpdateStatus(row.id, 'CANCELLED')}
+                style={{
+                  padding: '5px 10px',
+                  fontSize: '0.75rem',
+                  fontWeight: 600,
+                  borderRadius: '6px',
+                  border: '1px solid var(--neutral-300, #cbd5e1)',
+                  backgroundColor: '#ffffff',
+                  color: 'var(--neutral-700, #334155)',
+                  cursor: isLoading ? 'not-allowed' : 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                }}
+                title="Cancel my pending leave request"
+              >
+                <XIcon size={13} /> Cancel
+              </button>
+            )}
+
+            {/* 3. RAISE CONCERN BUTTON */}
+            <button
+              type="button"
+              onClick={() =>
+                setConcernModalConfig({
+                  isOpen: true,
+                  row,
+                })
               }
-              return (
-                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted, #64748b)', fontWeight: 500, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                  {row.status === 'APPROVED' ? <><CheckCircleIcon size={13} color="var(--success-600, #16a34a)" /> Approved</> : row.status === 'REJECTED' ? <><XIcon size={13} color="var(--danger-600, #dc2626)" /> Refused</> : '—'}
-                </span>
-              );
-            },
-          },
-        ]
-      : []),
+              style={{
+                background: '#ffffff',
+                border: '1px solid var(--neutral-200, #e2e8f0)',
+                borderRadius: '6px',
+                padding: '4px 9px',
+                fontSize: '0.75rem',
+                color: 'var(--primary-700, #4338ca)',
+                fontWeight: 600,
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px',
+                transition: 'all 0.15s ease',
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.borderColor = 'var(--primary-400, #818cf8)')}
+              onMouseLeave={(e) => (e.currentTarget.style.borderColor = 'var(--neutral-200, #e2e8f0)')}
+              title="Raise HR concern or clarification regarding this leave"
+            >
+              <MessageSquareIcon size={12} color="var(--primary-600, #4f46e5)" /> Raise Concern
+            </button>
+          </div>
+        );
+      },
+    },
   ];
 
 
@@ -938,6 +1011,22 @@ export default function TimeOffPage() {
             />
           </div>
         </Modal>
+      )}
+
+      {/* ── Contextual Raise Concern Modal ── */}
+      {concernModalConfig.isOpen && (
+        <RaiseConcernModal
+          isOpen={concernModalConfig.isOpen}
+          onClose={() => setConcernModalConfig({ isOpen: false, row: null })}
+          initialCategory="TIME_OFF"
+          initialRelatedType="TIME_OFF_REQUEST"
+          initialRelatedId={concernModalConfig.row?.id}
+          initialRelatedLabel={`Time Off Request: ${concernModalConfig.row?.leave_type_name || 'Leave'} (${concernModalConfig.row?.start_date} to ${concernModalConfig.row?.end_date})`}
+          initialSubject={`Leave Request Inquiry: ${concernModalConfig.row?.leave_type_name || 'Leave'} (${concernModalConfig.row?.start_date} to ${concernModalConfig.row?.end_date})`}
+          initialDescription={`Inquiry regarding time off request for ${concernModalConfig.row?.leave_type_name || 'Leave'}.\nRequested Period: ${concernModalConfig.row?.start_date} to ${concernModalConfig.row?.end_date} (${concernModalConfig.row?.total_days} days)\nCurrent Status: ${concernModalConfig.row?.status}\nReason Stated: ${concernModalConfig.row?.reason || 'None'}`}
+          initialEmployeeId={concernModalConfig.row?.employee_id}
+          onSuccess={() => fetchRequests()}
+        />
       )}
     </PageContainer>
   );

@@ -15,6 +15,7 @@ import {
   BanknoteIcon,
   SlidersIcon,
   RulesIcon,
+  MessageSquareIcon,
 } from '../ui/Icons';
 
 /**
@@ -43,6 +44,7 @@ export default function SidebarNavigation({ collapsed = false, onNavigate }) {
           { label: 'My Attendance', href: '/my-attendance', Icon: ClockIcon },
           { label: 'My Time Off', href: '/time-off', Icon: TimeOffIcon },
           { label: 'My Payslips', href: '/payroll/payslips', Icon: BanknoteIcon },
+          { label: 'My Concerns', href: '/my-concerns', Icon: MessageSquareIcon },
         ],
       },
     ];
@@ -67,6 +69,12 @@ export default function SidebarNavigation({ collapsed = false, onNavigate }) {
         items: [
           { label: 'Attendance', href: '/attendance', Icon: CalendarIcon },
           { label: 'Time Off Requests', href: '/time-off', Icon: TimeOffIcon },
+        ],
+      },
+      {
+        heading: 'HR Communication',
+        items: [
+          { label: 'Concerns', href: '/concerns', Icon: MessageSquareIcon },
         ],
       },
     ];
@@ -95,6 +103,12 @@ export default function SidebarNavigation({ collapsed = false, onNavigate }) {
           { label: 'Itemized Payslips', href: '/payroll/payslips', Icon: BanknoteIcon },
           { label: 'Salary Structures', href: '/payroll/salary-structures', Icon: SlidersIcon },
           { label: 'Calculation Rules', href: '/payroll/salary-rules', Icon: RulesIcon },
+        ],
+      },
+      {
+        heading: 'HR Communication',
+        items: [
+          { label: 'Concerns', href: '/concerns', Icon: MessageSquareIcon },
         ],
       },
     ];
@@ -129,6 +143,12 @@ export default function SidebarNavigation({ collapsed = false, onNavigate }) {
           { label: 'Itemized Payslips', href: '/payroll/payslips', Icon: BanknoteIcon },
           { label: 'Salary Structures', href: '/payroll/salary-structures', Icon: SlidersIcon },
           { label: 'Ordered Rules', href: '/payroll/salary-rules', Icon: RulesIcon },
+        ],
+      },
+      {
+        heading: 'Communication & Cases',
+        items: [
+          { label: 'Concerns', href: '/concerns', Icon: MessageSquareIcon },
         ],
       },
     ];
