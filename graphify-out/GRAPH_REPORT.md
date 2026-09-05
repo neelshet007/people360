@@ -1,12 +1,12 @@
 # Graph Report - C:\Users\Harsh Shet\hackathon\pepole360  (2026-09-05)
 
 ## Corpus Check
-- 138 files · ~76,531 words
+- 143 files · ~82,693 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 293 nodes · 211 edges · 114 communities detected
-- Extraction: 77% EXTRACTED · 23% INFERRED · 0% AMBIGUOUS · INFERRED: 49 edges (avg confidence: 0.8)
+- 310 nodes · 233 edges · 114 communities detected
+- Extraction: 75% EXTRACTED · 25% INFERRED · 0% AMBIGUOUS · INFERRED: 58 edges (avg confidence: 0.8)
 - Token cost: 0 input · 0 output
 
 ## Community Hubs (Navigation)
@@ -128,14 +128,14 @@
 ## God Nodes (most connected - your core abstractions)
 1. `successResponse()` - 28 edges
 2. `ApiError` - 8 edges
-3. `formatDate()` - 4 edges
-4. `formatCurrency()` - 4 edges
-5. `ContractDetailPage()` - 4 edges
-6. `parseTimeToMinutes()` - 3 edges
-7. `errorResponse()` - 3 edges
-8. `getStoredUser()` - 3 edges
-9. `login()` - 3 edges
-10. `AttendanceWidget()` - 3 edges
+3. `useAuth()` - 7 edges
+4. `ProtectedRoute()` - 4 edges
+5. `formatDate()` - 4 edges
+6. `formatCurrency()` - 4 edges
+7. `ContractDetailPage()` - 4 edges
+8. `authenticate()` - 3 edges
+9. `parseTimeToMinutes()` - 3 edges
+10. `errorResponse()` - 3 edges
 
 ## Surprising Connections (you probably didn't know these)
 - `checkIn()` --calls--> `successResponse()`  [INFERRED]
@@ -156,20 +156,20 @@ Cohesion: 0.12
 Nodes (28): checkIn(), checkOut(), correctAttendance(), createAllocation(), createPayrun(), createRequest(), createSalaryStructure(), createType() (+20 more)
 
 ### Community 1 - "Community 1"
+Cohesion: 0.1
+Nodes (14): useAuth(), clearStoredToken(), getStoredToken(), hasAnyRole(), hasPermission(), login(), logout(), setStoredToken() (+6 more)
+
+### Community 2 - "Community 2"
 Cohesion: 0.09
 Nodes (11): DashboardView(), AttendanceListPage(), ContractDetailPage(), ContractFormPage(), EmployeeDetailPage(), EmployeeFormPage(), formatCurrency(), formatDate() (+3 more)
 
-### Community 2 - "Community 2"
-Cohesion: 0.16
-Nodes (9): actionBtnStyle(), AttendanceWidget(), getStoredToken(), getStoredUser(), login(), setStoredToken(), setStoredUser(), MyAttendancePage() (+1 more)
-
 ### Community 3 - "Community 3"
-Cohesion: 0.22
-Nodes (1): ApiError
+Cohesion: 0.17
+Nodes (4): authenticate(), errorHandler(), getRolePermissions(), errorResponse()
 
 ### Community 4 - "Community 4"
-Cohesion: 0.29
-Nodes (3): authenticate(), errorHandler(), errorResponse()
+Cohesion: 0.22
+Nodes (1): ApiError
 
 ### Community 5 - "Community 5"
 Cohesion: 0.33
@@ -196,32 +196,32 @@ Cohesion: 0.33
 Nodes (0): 
 
 ### Community 11 - "Community 11"
+Cohesion: 0.4
+Nodes (4): actionBtnStyle(), AttendanceWidget(), getStoredUser(), MyAttendancePage()
+
+### Community 12 - "Community 12"
 Cohesion: 0.33
 Nodes (3): EmployeeKanbanPage(), EmployeeListPage(), useEmployees()
 
-### Community 12 - "Community 12"
+### Community 13 - "Community 13"
 Cohesion: 0.5
 Nodes (2): getStats(), getDashboardStats()
 
-### Community 13 - "Community 13"
+### Community 14 - "Community 14"
 Cohesion: 0.5
 Nodes (2): ContractListPage(), useContracts()
 
-### Community 14 - "Community 14"
+### Community 15 - "Community 15"
 Cohesion: 0.5
 Nodes (2): ScheduleListPage(), useSchedules()
 
-### Community 15 - "Community 15"
+### Community 16 - "Community 16"
 Cohesion: 0.67
 Nodes (0): 
 
-### Community 16 - "Community 16"
-Cohesion: 1.0
-Nodes (2): request(), runPhase3Tests()
-
 ### Community 17 - "Community 17"
 Cohesion: 1.0
-Nodes (0): 
+Nodes (2): request(), runPhase3Tests()
 
 ### Community 18 - "Community 18"
 Cohesion: 1.0
@@ -608,41 +608,39 @@ Cohesion: 1.0
 Nodes (0): 
 
 ## Knowledge Gaps
-- **Thin community `Community 17`** (2 nodes): `db.js`, `getPool()`
+- **Thin community `Community 18`** (2 nodes): `db.js`, `getPool()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 18`** (2 nodes): `migrate.js`, `runMigration()`
+- **Thin community `Community 19`** (2 nodes): `migrate.js`, `runMigration()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 19`** (2 nodes): `seed.js`, `runSeed()`
+- **Thin community `Community 20`** (2 nodes): `seed.js`, `runSeed()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 20`** (2 nodes): `index.js`, `calculateScheduleHours()`
+- **Thin community `Community 21`** (2 nodes): `index.js`, `calculateScheduleHours()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 21`** (2 nodes): `Alert()`, `Alert.jsx`
+- **Thin community `Community 22`** (2 nodes): `Alert()`, `Alert.jsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 22`** (2 nodes): `ConfirmationDialog.jsx`, `ConfirmationDialog()`
+- **Thin community `Community 23`** (2 nodes): `ConfirmationDialog.jsx`, `ConfirmationDialog()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 23`** (2 nodes): `EmptyState.jsx`, `EmptyState()`
+- **Thin community `Community 24`** (2 nodes): `EmptyState.jsx`, `EmptyState()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 24`** (2 nodes): `ErrorState.jsx`, `ErrorState()`
+- **Thin community `Community 25`** (2 nodes): `ErrorState.jsx`, `ErrorState()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 25`** (2 nodes): `Loading.jsx`, `Loading()`
+- **Thin community `Community 26`** (2 nodes): `Loading.jsx`, `Loading()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 26`** (2 nodes): `Toast.jsx`, `Toast()`
+- **Thin community `Community 27`** (2 nodes): `Toast.jsx`, `Toast()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 27`** (2 nodes): `FormActions.jsx`, `FormActions()`
+- **Thin community `Community 28`** (2 nodes): `FormActions.jsx`, `FormActions()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 28`** (2 nodes): `FormField.jsx`, `FormField()`
+- **Thin community `Community 29`** (2 nodes): `FormField.jsx`, `FormField()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 29`** (2 nodes): `FormSection.jsx`, `FormSection()`
+- **Thin community `Community 30`** (2 nodes): `FormSection.jsx`, `FormSection()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 30`** (2 nodes): `AppLayout()`, `AppLayout.jsx`
+- **Thin community `Community 31`** (2 nodes): `AppLayout()`, `AppLayout.jsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 31`** (2 nodes): `Header.jsx`, `Header()`
+- **Thin community `Community 32`** (2 nodes): `Header.jsx`, `Header()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 32`** (2 nodes): `PageContainer.jsx`, `PageContainer()`
+- **Thin community `Community 33`** (2 nodes): `PageContainer.jsx`, `PageContainer()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 33`** (2 nodes): `Sidebar.jsx`, `Sidebar()`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 34`** (2 nodes): `SidebarNavigation.jsx`, `SidebarNavigation()`
+- **Thin community `Community 34`** (2 nodes): `Sidebar.jsx`, `Sidebar()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
 - **Thin community `Community 35`** (2 nodes): `index.js`, `TablePlaceholder()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
@@ -806,17 +804,17 @@ Nodes (0):
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `successResponse()` connect `Community 0` to `Community 4`?**
-  _High betweenness centrality (0.013) - this node is a cross-community bridge._
+- **Why does `useAuth()` connect `Community 1` to `Community 2`?**
+  _High betweenness centrality (0.018) - this node is a cross-community bridge._
+- **Why does `successResponse()` connect `Community 0` to `Community 3`?**
+  _High betweenness centrality (0.015) - this node is a cross-community bridge._
+- **Why does `DashboardView()` connect `Community 2` to `Community 1`?**
+  _High betweenness centrality (0.015) - this node is a cross-community bridge._
 - **Are the 27 inferred relationships involving `successResponse()` (e.g. with `checkIn()` and `checkOut()`) actually correct?**
   _`successResponse()` has 27 INFERRED edges - model-reasoned connections that need verification._
+- **Are the 6 inferred relationships involving `useAuth()` (e.g. with `ProtectedRoute()` and `SidebarNavigation()`) actually correct?**
+  _`useAuth()` has 6 INFERRED edges - model-reasoned connections that need verification._
+- **Are the 3 inferred relationships involving `ProtectedRoute()` (e.g. with `useAuth()` and `hasAnyRole()`) actually correct?**
+  _`ProtectedRoute()` has 3 INFERRED edges - model-reasoned connections that need verification._
 - **Are the 3 inferred relationships involving `formatDate()` (e.g. with `AttendanceListPage()` and `ContractDetailPage()`) actually correct?**
   _`formatDate()` has 3 INFERRED edges - model-reasoned connections that need verification._
-- **Are the 3 inferred relationships involving `formatCurrency()` (e.g. with `ContractDetailPage()` and `PayrunDetailPage()`) actually correct?**
-  _`formatCurrency()` has 3 INFERRED edges - model-reasoned connections that need verification._
-- **Are the 3 inferred relationships involving `ContractDetailPage()` (e.g. with `useContract()` and `formatCurrency()`) actually correct?**
-  _`ContractDetailPage()` has 3 INFERRED edges - model-reasoned connections that need verification._
-- **Should `Community 0` be split into smaller, more focused modules?**
-  _Cohesion score 0.12 - nodes in this community are weakly interconnected._
-- **Should `Community 1` be split into smaller, more focused modules?**
-  _Cohesion score 0.09 - nodes in this community are weakly interconnected._

@@ -27,7 +27,7 @@
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\backend\\src\\database\\db.js",
       "source_location": "L1",
       "id": "c_users_harsh_shet_hackathon_pepole360_backend_src_database_db_js",
-      "community": 17,
+      "community": 18,
       "norm_label": "db.js"
     },
     {
@@ -36,7 +36,7 @@
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\backend\\src\\database\\db.js",
       "source_location": "L12",
       "id": "db_getpool",
-      "community": 17,
+      "community": 18,
       "norm_label": "getpool()"
     },
     {
@@ -45,7 +45,7 @@
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\backend\\src\\database\\migrate.js",
       "source_location": "L1",
       "id": "c_users_harsh_shet_hackathon_pepole360_backend_src_database_migrate_js",
-      "community": 18,
+      "community": 19,
       "norm_label": "migrate.js"
     },
     {
@@ -54,7 +54,7 @@
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\backend\\src\\database\\migrate.js",
       "source_location": "L9",
       "id": "migrate_runmigration",
-      "community": 18,
+      "community": 19,
       "norm_label": "runmigration()"
     },
     {
@@ -63,16 +63,16 @@
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\backend\\src\\database\\seed.js",
       "source_location": "L1",
       "id": "c_users_harsh_shet_hackathon_pepole360_backend_src_database_seed_js",
-      "community": 19,
+      "community": 20,
       "norm_label": "seed.js"
     },
     {
       "label": "runSeed()",
       "file_type": "code",
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\backend\\src\\database\\seed.js",
-      "source_location": "L10",
+      "source_location": "L11",
       "id": "seed_runseed",
-      "community": 19,
+      "community": 20,
       "norm_label": "runseed()"
     },
     {
@@ -81,26 +81,44 @@
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\backend\\src\\middleware\\authMiddleware.js",
       "source_location": "L1",
       "id": "c_users_harsh_shet_hackathon_pepole360_backend_src_middleware_authmiddleware_js",
-      "community": 4,
+      "community": 3,
       "norm_label": "authmiddleware.js"
     },
     {
       "label": "authenticate()",
       "file_type": "code",
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\backend\\src\\middleware\\authMiddleware.js",
-      "source_location": "L10",
+      "source_location": "L12",
       "id": "authmiddleware_authenticate",
-      "community": 4,
+      "community": 3,
       "norm_label": "authenticate()"
+    },
+    {
+      "label": "authorize()",
+      "file_type": "code",
+      "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\backend\\src\\middleware\\authMiddleware.js",
+      "source_location": "L59",
+      "id": "authmiddleware_authorize",
+      "community": 3,
+      "norm_label": "authorize()"
     },
     {
       "label": "requireRole()",
       "file_type": "code",
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\backend\\src\\middleware\\authMiddleware.js",
-      "source_location": "L50",
+      "source_location": "L83",
       "id": "authmiddleware_requirerole",
-      "community": 4,
+      "community": 3,
       "norm_label": "requirerole()"
+    },
+    {
+      "label": "checkEmployeeOwnership()",
+      "file_type": "code",
+      "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\backend\\src\\middleware\\authMiddleware.js",
+      "source_location": "L107",
+      "id": "authmiddleware_checkemployeeownership",
+      "community": 3,
+      "norm_label": "checkemployeeownership()"
     },
     {
       "label": "errorHandler.js",
@@ -108,7 +126,7 @@
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\backend\\src\\middleware\\errorHandler.js",
       "source_location": "L1",
       "id": "c_users_harsh_shet_hackathon_pepole360_backend_src_middleware_errorhandler_js",
-      "community": 4,
+      "community": 3,
       "norm_label": "errorhandler.js"
     },
     {
@@ -117,7 +135,7 @@
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\backend\\src\\middleware\\errorHandler.js",
       "source_location": "L7",
       "id": "errorhandler_errorhandler",
-      "community": 4,
+      "community": 3,
       "norm_label": "errorhandler()"
     },
     {
@@ -459,7 +477,7 @@
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\backend\\src\\modules\\dashboard\\controllers\\dashboardController.js",
       "source_location": "L1",
       "id": "c_users_harsh_shet_hackathon_pepole360_backend_src_modules_dashboard_controllers_dashboardcontroller_js",
-      "community": 12,
+      "community": 13,
       "norm_label": "dashboardcontroller.js"
     },
     {
@@ -468,7 +486,7 @@
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\backend\\src\\modules\\dashboard\\controllers\\dashboardController.js",
       "source_location": "L7",
       "id": "dashboardcontroller_getstats",
-      "community": 12,
+      "community": 13,
       "norm_label": "getstats()"
     },
     {
@@ -486,7 +504,7 @@
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\backend\\src\\modules\\dashboard\\services\\dashboardService.js",
       "source_location": "L1",
       "id": "c_users_harsh_shet_hackathon_pepole360_backend_src_modules_dashboard_services_dashboardservice_js",
-      "community": 12,
+      "community": 13,
       "norm_label": "dashboardservice.js"
     },
     {
@@ -495,7 +513,7 @@
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\backend\\src\\modules\\dashboard\\services\\dashboardService.js",
       "source_location": "L7",
       "id": "dashboardservice_getdashboardstats",
-      "community": 12,
+      "community": 13,
       "norm_label": "getdashboardstats()"
     },
     {
@@ -603,7 +621,7 @@
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\backend\\src\\modules\\employees\\validators\\employeeValidator.js",
       "source_location": "L1",
       "id": "c_users_harsh_shet_hackathon_pepole360_backend_src_modules_employees_validators_employeevalidator_js",
-      "community": 15,
+      "community": 16,
       "norm_label": "employeevalidator.js"
     },
     {
@@ -612,7 +630,7 @@
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\backend\\src\\modules\\employees\\validators\\employeeValidator.js",
       "source_location": "L11",
       "id": "employeevalidator_validateemployeeinput",
-      "community": 15,
+      "community": 16,
       "norm_label": "validateemployeeinput()"
     },
     {
@@ -621,7 +639,7 @@
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\backend\\src\\modules\\employees\\validators\\employeeValidator.js",
       "source_location": "L78",
       "id": "employeevalidator_isvaliduuid",
-      "community": 15,
+      "community": 16,
       "norm_label": "isvaliduuid()"
     },
     {
@@ -745,7 +763,7 @@
       "label": "getPayslipById()",
       "file_type": "code",
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\backend\\src\\modules\\payroll\\controllers\\index.js",
-      "source_location": "L112",
+      "source_location": "L116",
       "id": "index_getpayslipbyid",
       "community": 0,
       "norm_label": "getpayslipbyid()"
@@ -873,7 +891,7 @@
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\backend\\src\\modules\\schedules\\services\\index.js",
       "source_location": "L1",
       "id": "c_users_harsh_shet_hackathon_pepole360_backend_src_modules_schedules_services_index_js",
-      "community": 20,
+      "community": 21,
       "norm_label": "index.js"
     },
     {
@@ -882,7 +900,7 @@
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\backend\\src\\modules\\schedules\\services\\index.js",
       "source_location": "L10",
       "id": "index_calculateschedulehours",
-      "community": 20,
+      "community": 21,
       "norm_label": "calculateschedulehours()"
     },
     {
@@ -952,7 +970,7 @@
       "label": "createAllocation()",
       "file_type": "code",
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\backend\\src\\modules\\timeoff\\controllers\\index.js",
-      "source_location": "L37",
+      "source_location": "L41",
       "id": "index_createallocation",
       "community": 0,
       "norm_label": "createallocation()"
@@ -961,7 +979,7 @@
       "label": "getRequests()",
       "file_type": "code",
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\backend\\src\\modules\\timeoff\\controllers\\index.js",
-      "source_location": "L46",
+      "source_location": "L50",
       "id": "index_getrequests",
       "community": 0,
       "norm_label": "getrequests()"
@@ -970,7 +988,7 @@
       "label": "getRequestById()",
       "file_type": "code",
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\backend\\src\\modules\\timeoff\\controllers\\index.js",
-      "source_location": "L55",
+      "source_location": "L63",
       "id": "index_getrequestbyid",
       "community": 0,
       "norm_label": "getrequestbyid()"
@@ -979,7 +997,7 @@
       "label": "createRequest()",
       "file_type": "code",
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\backend\\src\\modules\\timeoff\\controllers\\index.js",
-      "source_location": "L64",
+      "source_location": "L78",
       "id": "index_createrequest",
       "community": 0,
       "norm_label": "createrequest()"
@@ -988,7 +1006,7 @@
       "label": "updateRequestStatus()",
       "file_type": "code",
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\backend\\src\\modules\\timeoff\\controllers\\index.js",
-      "source_location": "L73",
+      "source_location": "L91",
       "id": "index_updaterequeststatus",
       "community": 0,
       "norm_label": "updaterequeststatus()"
@@ -1053,7 +1071,7 @@
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\backend\\src\\utils\\ApiError.js",
       "source_location": "L1",
       "id": "c_users_harsh_shet_hackathon_pepole360_backend_src_utils_apierror_js",
-      "community": 3,
+      "community": 4,
       "norm_label": "apierror.js"
     },
     {
@@ -1062,7 +1080,7 @@
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\backend\\src\\utils\\ApiError.js",
       "source_location": "L5",
       "id": "apierror_apierror",
-      "community": 3,
+      "community": 4,
       "norm_label": "apierror"
     },
     {
@@ -1071,7 +1089,7 @@
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\backend\\src\\utils\\ApiError.js",
       "source_location": "L6",
       "id": "apierror_apierror_constructor",
-      "community": 3,
+      "community": 4,
       "norm_label": ".constructor()"
     },
     {
@@ -1080,7 +1098,7 @@
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\backend\\src\\utils\\ApiError.js",
       "source_location": "L14",
       "id": "apierror_apierror_badrequest",
-      "community": 3,
+      "community": 4,
       "norm_label": ".badrequest()"
     },
     {
@@ -1089,7 +1107,7 @@
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\backend\\src\\utils\\ApiError.js",
       "source_location": "L18",
       "id": "apierror_apierror_unauthorized",
-      "community": 3,
+      "community": 4,
       "norm_label": ".unauthorized()"
     },
     {
@@ -1098,7 +1116,7 @@
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\backend\\src\\utils\\ApiError.js",
       "source_location": "L22",
       "id": "apierror_apierror_forbidden",
-      "community": 3,
+      "community": 4,
       "norm_label": ".forbidden()"
     },
     {
@@ -1107,7 +1125,7 @@
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\backend\\src\\utils\\ApiError.js",
       "source_location": "L26",
       "id": "apierror_apierror_notfound",
-      "community": 3,
+      "community": 4,
       "norm_label": ".notfound()"
     },
     {
@@ -1116,7 +1134,7 @@
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\backend\\src\\utils\\ApiError.js",
       "source_location": "L30",
       "id": "apierror_apierror_conflict",
-      "community": 3,
+      "community": 4,
       "norm_label": ".conflict()"
     },
     {
@@ -1125,8 +1143,35 @@
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\backend\\src\\utils\\ApiError.js",
       "source_location": "L34",
       "id": "apierror_apierror_internal",
-      "community": 3,
+      "community": 4,
       "norm_label": ".internal()"
+    },
+    {
+      "label": "rbac.js",
+      "file_type": "code",
+      "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\backend\\src\\utils\\rbac.js",
+      "source_location": "L1",
+      "id": "c_users_harsh_shet_hackathon_pepole360_backend_src_utils_rbac_js",
+      "community": 3,
+      "norm_label": "rbac.js"
+    },
+    {
+      "label": "getRolePermissions()",
+      "file_type": "code",
+      "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\backend\\src\\utils\\rbac.js",
+      "source_location": "L77",
+      "id": "rbac_getrolepermissions",
+      "community": 3,
+      "norm_label": "getrolepermissions()"
+    },
+    {
+      "label": "hasPermission()",
+      "file_type": "code",
+      "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\backend\\src\\utils\\rbac.js",
+      "source_location": "L81",
+      "id": "rbac_haspermission",
+      "community": 3,
+      "norm_label": "haspermission()"
     },
     {
       "label": "responseHelper.js",
@@ -1134,7 +1179,7 @@
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\backend\\src\\utils\\responseHelper.js",
       "source_location": "L1",
       "id": "c_users_harsh_shet_hackathon_pepole360_backend_src_utils_responsehelper_js",
-      "community": 4,
+      "community": 3,
       "norm_label": "responsehelper.js"
     },
     {
@@ -1152,7 +1197,7 @@
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\backend\\src\\utils\\responseHelper.js",
       "source_location": "L19",
       "id": "responsehelper_errorresponse",
-      "community": 4,
+      "community": 3,
       "norm_label": "errorresponse()"
     },
     {
@@ -1161,7 +1206,7 @@
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\backend\\tests\\phase3_integration.test.js",
       "source_location": "L1",
       "id": "c_users_harsh_shet_hackathon_pepole360_backend_tests_phase3_integration_test_js",
-      "community": 16,
+      "community": 17,
       "norm_label": "phase3_integration.test.js"
     },
     {
@@ -1170,7 +1215,7 @@
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\backend\\tests\\phase3_integration.test.js",
       "source_location": "L3",
       "id": "phase3_integration_test_request",
-      "community": 16,
+      "community": 17,
       "norm_label": "request()"
     },
     {
@@ -1179,7 +1224,7 @@
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\backend\\tests\\phase3_integration.test.js",
       "source_location": "L37",
       "id": "phase3_integration_test_runphase3tests",
-      "community": 16,
+      "community": 17,
       "norm_label": "runphase3tests()"
     },
     {
@@ -1192,12 +1237,30 @@
       "norm_label": "vite.config.js"
     },
     {
+      "label": "ProtectedRoute.jsx",
+      "file_type": "code",
+      "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\components\\auth\\ProtectedRoute.jsx",
+      "source_location": "L1",
+      "id": "c_users_harsh_shet_hackathon_pepole360_frontend_components_auth_protectedroute_jsx",
+      "community": 1,
+      "norm_label": "protectedroute.jsx"
+    },
+    {
+      "label": "ProtectedRoute()",
+      "file_type": "code",
+      "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\components\\auth\\ProtectedRoute.jsx",
+      "source_location": "L7",
+      "id": "protectedroute_protectedroute",
+      "community": 1,
+      "norm_label": "protectedroute()"
+    },
+    {
       "label": "Alert.jsx",
       "file_type": "code",
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\components\\feedback\\Alert.jsx",
       "source_location": "L1",
       "id": "c_users_harsh_shet_hackathon_pepole360_frontend_components_feedback_alert_jsx",
-      "community": 21,
+      "community": 22,
       "norm_label": "alert.jsx"
     },
     {
@@ -1206,7 +1269,7 @@
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\components\\feedback\\Alert.jsx",
       "source_location": "L7",
       "id": "alert_alert",
-      "community": 21,
+      "community": 22,
       "norm_label": "alert()"
     },
     {
@@ -1215,7 +1278,7 @@
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\components\\feedback\\ConfirmationDialog.jsx",
       "source_location": "L1",
       "id": "c_users_harsh_shet_hackathon_pepole360_frontend_components_feedback_confirmationdialog_jsx",
-      "community": 22,
+      "community": 23,
       "norm_label": "confirmationdialog.jsx"
     },
     {
@@ -1224,7 +1287,7 @@
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\components\\feedback\\ConfirmationDialog.jsx",
       "source_location": "L9",
       "id": "confirmationdialog_confirmationdialog",
-      "community": 22,
+      "community": 23,
       "norm_label": "confirmationdialog()"
     },
     {
@@ -1233,7 +1296,7 @@
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\components\\feedback\\EmptyState.jsx",
       "source_location": "L1",
       "id": "c_users_harsh_shet_hackathon_pepole360_frontend_components_feedback_emptystate_jsx",
-      "community": 23,
+      "community": 24,
       "norm_label": "emptystate.jsx"
     },
     {
@@ -1242,7 +1305,7 @@
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\components\\feedback\\EmptyState.jsx",
       "source_location": "L7",
       "id": "emptystate_emptystate",
-      "community": 23,
+      "community": 24,
       "norm_label": "emptystate()"
     },
     {
@@ -1251,7 +1314,7 @@
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\components\\feedback\\ErrorState.jsx",
       "source_location": "L1",
       "id": "c_users_harsh_shet_hackathon_pepole360_frontend_components_feedback_errorstate_jsx",
-      "community": 24,
+      "community": 25,
       "norm_label": "errorstate.jsx"
     },
     {
@@ -1260,7 +1323,7 @@
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\components\\feedback\\ErrorState.jsx",
       "source_location": "L8",
       "id": "errorstate_errorstate",
-      "community": 24,
+      "community": 25,
       "norm_label": "errorstate()"
     },
     {
@@ -1278,7 +1341,7 @@
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\components\\feedback\\Loading.jsx",
       "source_location": "L1",
       "id": "c_users_harsh_shet_hackathon_pepole360_frontend_components_feedback_loading_jsx",
-      "community": 25,
+      "community": 26,
       "norm_label": "loading.jsx"
     },
     {
@@ -1287,7 +1350,7 @@
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\components\\feedback\\Loading.jsx",
       "source_location": "L7",
       "id": "loading_loading",
-      "community": 25,
+      "community": 26,
       "norm_label": "loading()"
     },
     {
@@ -1296,7 +1359,7 @@
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\components\\feedback\\Toast.jsx",
       "source_location": "L1",
       "id": "c_users_harsh_shet_hackathon_pepole360_frontend_components_feedback_toast_jsx",
-      "community": 26,
+      "community": 27,
       "norm_label": "toast.jsx"
     },
     {
@@ -1305,7 +1368,7 @@
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\components\\feedback\\Toast.jsx",
       "source_location": "L7",
       "id": "toast_toast",
-      "community": 26,
+      "community": 27,
       "norm_label": "toast()"
     },
     {
@@ -1314,7 +1377,7 @@
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\components\\forms\\FormActions.jsx",
       "source_location": "L1",
       "id": "c_users_harsh_shet_hackathon_pepole360_frontend_components_forms_formactions_jsx",
-      "community": 27,
+      "community": 28,
       "norm_label": "formactions.jsx"
     },
     {
@@ -1323,7 +1386,7 @@
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\components\\forms\\FormActions.jsx",
       "source_location": "L8",
       "id": "formactions_formactions",
-      "community": 27,
+      "community": 28,
       "norm_label": "formactions()"
     },
     {
@@ -1332,7 +1395,7 @@
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\components\\forms\\FormField.jsx",
       "source_location": "L1",
       "id": "c_users_harsh_shet_hackathon_pepole360_frontend_components_forms_formfield_jsx",
-      "community": 28,
+      "community": 29,
       "norm_label": "formfield.jsx"
     },
     {
@@ -1341,7 +1404,7 @@
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\components\\forms\\FormField.jsx",
       "source_location": "L7",
       "id": "formfield_formfield",
-      "community": 28,
+      "community": 29,
       "norm_label": "formfield()"
     },
     {
@@ -1350,7 +1413,7 @@
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\components\\forms\\FormSection.jsx",
       "source_location": "L1",
       "id": "c_users_harsh_shet_hackathon_pepole360_frontend_components_forms_formsection_jsx",
-      "community": 29,
+      "community": 30,
       "norm_label": "formsection.jsx"
     },
     {
@@ -1359,7 +1422,7 @@
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\components\\forms\\FormSection.jsx",
       "source_location": "L7",
       "id": "formsection_formsection",
-      "community": 29,
+      "community": 30,
       "norm_label": "formsection()"
     },
     {
@@ -1377,7 +1440,7 @@
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\components\\layout\\AppLayout.jsx",
       "source_location": "L1",
       "id": "c_users_harsh_shet_hackathon_pepole360_frontend_components_layout_applayout_jsx",
-      "community": 30,
+      "community": 31,
       "norm_label": "applayout.jsx"
     },
     {
@@ -1386,7 +1449,7 @@
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\components\\layout\\AppLayout.jsx",
       "source_location": "L10",
       "id": "applayout_applayout",
-      "community": 30,
+      "community": 31,
       "norm_label": "applayout()"
     },
     {
@@ -1395,7 +1458,7 @@
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\components\\layout\\Header.jsx",
       "source_location": "L1",
       "id": "c_users_harsh_shet_hackathon_pepole360_frontend_components_layout_header_jsx",
-      "community": 31,
+      "community": 32,
       "norm_label": "header.jsx"
     },
     {
@@ -1404,7 +1467,7 @@
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\components\\layout\\Header.jsx",
       "source_location": "L8",
       "id": "header_header",
-      "community": 31,
+      "community": 32,
       "norm_label": "header()"
     },
     {
@@ -1422,7 +1485,7 @@
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\components\\layout\\PageContainer.jsx",
       "source_location": "L1",
       "id": "c_users_harsh_shet_hackathon_pepole360_frontend_components_layout_pagecontainer_jsx",
-      "community": 32,
+      "community": 33,
       "norm_label": "pagecontainer.jsx"
     },
     {
@@ -1431,7 +1494,7 @@
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\components\\layout\\PageContainer.jsx",
       "source_location": "L7",
       "id": "pagecontainer_pagecontainer",
-      "community": 32,
+      "community": 33,
       "norm_label": "pagecontainer()"
     },
     {
@@ -1440,7 +1503,7 @@
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\components\\layout\\Sidebar.jsx",
       "source_location": "L1",
       "id": "c_users_harsh_shet_hackathon_pepole360_frontend_components_layout_sidebar_jsx",
-      "community": 33,
+      "community": 34,
       "norm_label": "sidebar.jsx"
     },
     {
@@ -1449,7 +1512,7 @@
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\components\\layout\\Sidebar.jsx",
       "source_location": "L8",
       "id": "sidebar_sidebar",
-      "community": 33,
+      "community": 34,
       "norm_label": "sidebar()"
     },
     {
@@ -1467,16 +1530,16 @@
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\components\\navigation\\SidebarNavigation.jsx",
       "source_location": "L1",
       "id": "c_users_harsh_shet_hackathon_pepole360_frontend_components_navigation_sidebarnavigation_jsx",
-      "community": 34,
+      "community": 1,
       "norm_label": "sidebarnavigation.jsx"
     },
     {
       "label": "SidebarNavigation()",
       "file_type": "code",
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\components\\navigation\\SidebarNavigation.jsx",
-      "source_location": "L9",
+      "source_location": "L11",
       "id": "sidebarnavigation_sidebarnavigation",
-      "community": 34,
+      "community": 1,
       "norm_label": "sidebarnavigation()"
     },
     {
@@ -1485,7 +1548,7 @@
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\components\\navigation\\TopNavigation.jsx",
       "source_location": "L1",
       "id": "c_users_harsh_shet_hackathon_pepole360_frontend_components_navigation_topnavigation_jsx",
-      "community": 2,
+      "community": 1,
       "norm_label": "topnavigation.jsx"
     },
     {
@@ -1494,7 +1557,7 @@
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\components\\navigation\\TopNavigation.jsx",
       "source_location": "L12",
       "id": "topnavigation_topnavigation",
-      "community": 2,
+      "community": 1,
       "norm_label": "topnavigation()"
     },
     {
@@ -1813,6 +1876,33 @@
       "norm_label": "tooltip()"
     },
     {
+      "label": "AuthContext.jsx",
+      "file_type": "code",
+      "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\context\\AuthContext.jsx",
+      "source_location": "L1",
+      "id": "c_users_harsh_shet_hackathon_pepole360_frontend_context_authcontext_jsx",
+      "community": 1,
+      "norm_label": "authcontext.jsx"
+    },
+    {
+      "label": "AuthProvider()",
+      "file_type": "code",
+      "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\context\\AuthContext.jsx",
+      "source_location": "L14",
+      "id": "authcontext_authprovider",
+      "community": 1,
+      "norm_label": "authprovider()"
+    },
+    {
+      "label": "useAuth()",
+      "file_type": "code",
+      "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\context\\AuthContext.jsx",
+      "source_location": "L79",
+      "id": "authcontext_useauth",
+      "community": 1,
+      "norm_label": "useauth()"
+    },
+    {
       "label": "index.js",
       "file_type": "code",
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\hooks\\index.js",
@@ -1854,71 +1944,107 @@
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\lib\\auth\\index.js",
       "source_location": "L1",
       "id": "c_users_harsh_shet_hackathon_pepole360_frontend_lib_auth_index_js",
-      "community": 2,
+      "community": 1,
       "norm_label": "index.js"
     },
     {
       "label": "getStoredToken()",
       "file_type": "code",
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\lib\\auth\\index.js",
-      "source_location": "L9",
+      "source_location": "L17",
       "id": "index_getstoredtoken",
-      "community": 2,
+      "community": 1,
       "norm_label": "getstoredtoken()"
     },
     {
       "label": "setStoredToken()",
       "file_type": "code",
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\lib\\auth\\index.js",
-      "source_location": "L14",
+      "source_location": "L22",
       "id": "index_setstoredtoken",
-      "community": 2,
+      "community": 1,
       "norm_label": "setstoredtoken()"
     },
     {
       "label": "clearStoredToken()",
       "file_type": "code",
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\lib\\auth\\index.js",
-      "source_location": "L19",
+      "source_location": "L27",
       "id": "index_clearstoredtoken",
-      "community": 2,
+      "community": 1,
       "norm_label": "clearstoredtoken()"
     },
     {
       "label": "getStoredUser()",
       "file_type": "code",
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\lib\\auth\\index.js",
-      "source_location": "L25",
+      "source_location": "L33",
       "id": "index_getstoreduser",
-      "community": 2,
+      "community": 11,
       "norm_label": "getstoreduser()"
     },
     {
       "label": "setStoredUser()",
       "file_type": "code",
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\lib\\auth\\index.js",
-      "source_location": "L35",
+      "source_location": "L43",
       "id": "index_setstoreduser",
-      "community": 2,
+      "community": 1,
       "norm_label": "setstoreduser()"
     },
     {
       "label": "login()",
       "file_type": "code",
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\lib\\auth\\index.js",
-      "source_location": "L44",
+      "source_location": "L52",
       "id": "index_login",
-      "community": 2,
+      "community": 1,
       "norm_label": "login()"
+    },
+    {
+      "label": "logout()",
+      "file_type": "code",
+      "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\lib\\auth\\index.js",
+      "source_location": "L73",
+      "id": "index_logout",
+      "community": 1,
+      "norm_label": "logout()"
+    },
+    {
+      "label": "hasPermission()",
+      "file_type": "code",
+      "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\lib\\auth\\index.js",
+      "source_location": "L81",
+      "id": "index_haspermission",
+      "community": 1,
+      "norm_label": "haspermission()"
+    },
+    {
+      "label": "hasAnyRole()",
+      "file_type": "code",
+      "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\lib\\auth\\index.js",
+      "source_location": "L89",
+      "id": "index_hasanyrole",
+      "community": 1,
+      "norm_label": "hasanyrole()"
     },
     {
       "label": "isHRRole()",
       "file_type": "code",
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\lib\\auth\\index.js",
-      "source_location": "L66",
+      "source_location": "L95",
       "id": "index_ishrrole",
-      "community": 2,
+      "community": 1,
       "norm_label": "ishrrole()"
+    },
+    {
+      "label": "isPayrollRole()",
+      "file_type": "code",
+      "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\lib\\auth\\index.js",
+      "source_location": "L100",
+      "id": "index_ispayrollrole",
+      "community": 1,
+      "norm_label": "ispayrollrole()"
     },
     {
       "label": "index.js",
@@ -1926,7 +2052,7 @@
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\lib\\utils\\index.js",
       "source_location": "L1",
       "id": "c_users_harsh_shet_hackathon_pepole360_frontend_lib_utils_index_js",
-      "community": 1,
+      "community": 2,
       "norm_label": "index.js"
     },
     {
@@ -1935,7 +2061,7 @@
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\lib\\utils\\index.js",
       "source_location": "L5",
       "id": "index_cn",
-      "community": 1,
+      "community": 2,
       "norm_label": "cn()"
     },
     {
@@ -1944,7 +2070,7 @@
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\lib\\utils\\index.js",
       "source_location": "L9",
       "id": "index_formatdate",
-      "community": 1,
+      "community": 2,
       "norm_label": "formatdate()"
     },
     {
@@ -1953,7 +2079,7 @@
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\lib\\utils\\index.js",
       "source_location": "L20",
       "id": "index_formatcurrency",
-      "community": 1,
+      "community": 2,
       "norm_label": "formatcurrency()"
     },
     {
@@ -1998,7 +2124,7 @@
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\modules\\attendance\\components\\AttendanceWidget.jsx",
       "source_location": "L1",
       "id": "c_users_harsh_shet_hackathon_pepole360_frontend_modules_attendance_components_attendancewidget_jsx",
-      "community": 2,
+      "community": 11,
       "norm_label": "attendancewidget.jsx"
     },
     {
@@ -2007,7 +2133,7 @@
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\modules\\attendance\\components\\AttendanceWidget.jsx",
       "source_location": "L10",
       "id": "attendancewidget_attendancewidget",
-      "community": 2,
+      "community": 11,
       "norm_label": "attendancewidget()"
     },
     {
@@ -2016,7 +2142,7 @@
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\modules\\attendance\\components\\AttendanceWidget.jsx",
       "source_location": "L301",
       "id": "attendancewidget_actionbtnstyle",
-      "community": 2,
+      "community": 11,
       "norm_label": "actionbtnstyle()"
     },
     {
@@ -2025,7 +2151,7 @@
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\modules\\attendance\\pages\\AttendanceListPage.jsx",
       "source_location": "L1",
       "id": "c_users_harsh_shet_hackathon_pepole360_frontend_modules_attendance_pages_attendancelistpage_jsx",
-      "community": 1,
+      "community": 2,
       "norm_label": "attendancelistpage.jsx"
     },
     {
@@ -2034,7 +2160,7 @@
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\modules\\attendance\\pages\\AttendanceListPage.jsx",
       "source_location": "L22",
       "id": "attendancelistpage_attendancelistpage",
-      "community": 1,
+      "community": 2,
       "norm_label": "attendancelistpage()"
     },
     {
@@ -2043,7 +2169,7 @@
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\modules\\attendance\\pages\\MyAttendancePage.jsx",
       "source_location": "L1",
       "id": "c_users_harsh_shet_hackathon_pepole360_frontend_modules_attendance_pages_myattendancepage_jsx",
-      "community": 2,
+      "community": 11,
       "norm_label": "myattendancepage.jsx"
     },
     {
@@ -2052,8 +2178,26 @@
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\modules\\attendance\\pages\\MyAttendancePage.jsx",
       "source_location": "L19",
       "id": "myattendancepage_myattendancepage",
-      "community": 2,
+      "community": 11,
       "norm_label": "myattendancepage()"
+    },
+    {
+      "label": "LoginPage.jsx",
+      "file_type": "code",
+      "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\modules\\auth\\pages\\LoginPage.jsx",
+      "source_location": "L1",
+      "id": "c_users_harsh_shet_hackathon_pepole360_frontend_modules_auth_pages_loginpage_jsx",
+      "community": 1,
+      "norm_label": "loginpage.jsx"
+    },
+    {
+      "label": "LoginPage()",
+      "file_type": "code",
+      "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\modules\\auth\\pages\\LoginPage.jsx",
+      "source_location": "L13",
+      "id": "loginpage_loginpage",
+      "community": 1,
+      "norm_label": "loginpage()"
     },
     {
       "label": "contractsApi.js",
@@ -2088,7 +2232,7 @@
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\modules\\contracts\\hooks\\useContract.js",
       "source_location": "L1",
       "id": "c_users_harsh_shet_hackathon_pepole360_frontend_modules_contracts_hooks_usecontract_js",
-      "community": 1,
+      "community": 2,
       "norm_label": "usecontract.js"
     },
     {
@@ -2097,7 +2241,7 @@
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\modules\\contracts\\hooks\\useContract.js",
       "source_location": "L8",
       "id": "usecontract_usecontract",
-      "community": 1,
+      "community": 2,
       "norm_label": "usecontract()"
     },
     {
@@ -2106,7 +2250,7 @@
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\modules\\contracts\\hooks\\useContracts.js",
       "source_location": "L1",
       "id": "c_users_harsh_shet_hackathon_pepole360_frontend_modules_contracts_hooks_usecontracts_js",
-      "community": 13,
+      "community": 14,
       "norm_label": "usecontracts.js"
     },
     {
@@ -2115,7 +2259,7 @@
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\modules\\contracts\\hooks\\useContracts.js",
       "source_location": "L8",
       "id": "usecontracts_usecontracts",
-      "community": 13,
+      "community": 14,
       "norm_label": "usecontracts()"
     },
     {
@@ -2124,7 +2268,7 @@
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\modules\\contracts\\pages\\ContractDetailPage.jsx",
       "source_location": "L1",
       "id": "c_users_harsh_shet_hackathon_pepole360_frontend_modules_contracts_pages_contractdetailpage_jsx",
-      "community": 1,
+      "community": 2,
       "norm_label": "contractdetailpage.jsx"
     },
     {
@@ -2133,7 +2277,7 @@
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\modules\\contracts\\pages\\ContractDetailPage.jsx",
       "source_location": "L16",
       "id": "contractdetailpage_contractdetailpage",
-      "community": 1,
+      "community": 2,
       "norm_label": "contractdetailpage()"
     },
     {
@@ -2142,7 +2286,7 @@
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\modules\\contracts\\pages\\ContractFormPage.jsx",
       "source_location": "L1",
       "id": "c_users_harsh_shet_hackathon_pepole360_frontend_modules_contracts_pages_contractformpage_jsx",
-      "community": 1,
+      "community": 2,
       "norm_label": "contractformpage.jsx"
     },
     {
@@ -2151,7 +2295,7 @@
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\modules\\contracts\\pages\\ContractFormPage.jsx",
       "source_location": "L20",
       "id": "contractformpage_contractformpage",
-      "community": 1,
+      "community": 2,
       "norm_label": "contractformpage()"
     },
     {
@@ -2160,7 +2304,7 @@
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\modules\\contracts\\pages\\ContractListPage.jsx",
       "source_location": "L1",
       "id": "c_users_harsh_shet_hackathon_pepole360_frontend_modules_contracts_pages_contractlistpage_jsx",
-      "community": 13,
+      "community": 14,
       "norm_label": "contractlistpage.jsx"
     },
     {
@@ -2169,7 +2313,7 @@
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\modules\\contracts\\pages\\ContractListPage.jsx",
       "source_location": "L19",
       "id": "contractlistpage_contractlistpage",
-      "community": 13,
+      "community": 14,
       "norm_label": "contractlistpage()"
     },
     {
@@ -2205,7 +2349,7 @@
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\modules\\employees\\hooks\\useEmployee.js",
       "source_location": "L1",
       "id": "c_users_harsh_shet_hackathon_pepole360_frontend_modules_employees_hooks_useemployee_js",
-      "community": 1,
+      "community": 2,
       "norm_label": "useemployee.js"
     },
     {
@@ -2214,7 +2358,7 @@
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\modules\\employees\\hooks\\useEmployee.js",
       "source_location": "L8",
       "id": "useemployee_useemployee",
-      "community": 1,
+      "community": 2,
       "norm_label": "useemployee()"
     },
     {
@@ -2223,7 +2367,7 @@
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\modules\\employees\\hooks\\useEmployees.js",
       "source_location": "L1",
       "id": "c_users_harsh_shet_hackathon_pepole360_frontend_modules_employees_hooks_useemployees_js",
-      "community": 11,
+      "community": 12,
       "norm_label": "useemployees.js"
     },
     {
@@ -2232,7 +2376,7 @@
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\modules\\employees\\hooks\\useEmployees.js",
       "source_location": "L8",
       "id": "useemployees_useemployees",
-      "community": 11,
+      "community": 12,
       "norm_label": "useemployees()"
     },
     {
@@ -2241,7 +2385,7 @@
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\modules\\employees\\pages\\EmployeeDetailPage.jsx",
       "source_location": "L1",
       "id": "c_users_harsh_shet_hackathon_pepole360_frontend_modules_employees_pages_employeedetailpage_jsx",
-      "community": 1,
+      "community": 2,
       "norm_label": "employeedetailpage.jsx"
     },
     {
@@ -2250,7 +2394,7 @@
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\modules\\employees\\pages\\EmployeeDetailPage.jsx",
       "source_location": "L24",
       "id": "employeedetailpage_employeedetailpage",
-      "community": 1,
+      "community": 2,
       "norm_label": "employeedetailpage()"
     },
     {
@@ -2259,7 +2403,7 @@
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\modules\\employees\\pages\\EmployeeFormPage.jsx",
       "source_location": "L1",
       "id": "c_users_harsh_shet_hackathon_pepole360_frontend_modules_employees_pages_employeeformpage_jsx",
-      "community": 1,
+      "community": 2,
       "norm_label": "employeeformpage.jsx"
     },
     {
@@ -2268,7 +2412,7 @@
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\modules\\employees\\pages\\EmployeeFormPage.jsx",
       "source_location": "L19",
       "id": "employeeformpage_employeeformpage",
-      "community": 1,
+      "community": 2,
       "norm_label": "employeeformpage()"
     },
     {
@@ -2277,7 +2421,7 @@
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\modules\\employees\\pages\\EmployeeKanbanPage.jsx",
       "source_location": "L1",
       "id": "c_users_harsh_shet_hackathon_pepole360_frontend_modules_employees_pages_employeekanbanpage_jsx",
-      "community": 11,
+      "community": 12,
       "norm_label": "employeekanbanpage.jsx"
     },
     {
@@ -2286,7 +2430,7 @@
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\modules\\employees\\pages\\EmployeeKanbanPage.jsx",
       "source_location": "L20",
       "id": "employeekanbanpage_employeekanbanpage",
-      "community": 11,
+      "community": 12,
       "norm_label": "employeekanbanpage()"
     },
     {
@@ -2295,7 +2439,7 @@
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\modules\\employees\\pages\\EmployeeListPage.jsx",
       "source_location": "L1",
       "id": "c_users_harsh_shet_hackathon_pepole360_frontend_modules_employees_pages_employeelistpage_jsx",
-      "community": 11,
+      "community": 12,
       "norm_label": "employeelistpage.jsx"
     },
     {
@@ -2304,8 +2448,26 @@
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\modules\\employees\\pages\\EmployeeListPage.jsx",
       "source_location": "L24",
       "id": "employeelistpage_employeelistpage",
-      "community": 11,
+      "community": 12,
       "norm_label": "employeelistpage()"
+    },
+    {
+      "label": "LandingPage.jsx",
+      "file_type": "code",
+      "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\modules\\landing\\pages\\LandingPage.jsx",
+      "source_location": "L1",
+      "id": "c_users_harsh_shet_hackathon_pepole360_frontend_modules_landing_pages_landingpage_jsx",
+      "community": 1,
+      "norm_label": "landingpage.jsx"
+    },
+    {
+      "label": "LandingPage()",
+      "file_type": "code",
+      "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\modules\\landing\\pages\\LandingPage.jsx",
+      "source_location": "L12",
+      "id": "landingpage_landingpage",
+      "community": 1,
+      "norm_label": "landingpage()"
     },
     {
       "label": "index.js",
@@ -2349,7 +2511,7 @@
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\modules\\payroll\\pages\\PayrunDetailPage.jsx",
       "source_location": "L1",
       "id": "c_users_harsh_shet_hackathon_pepole360_frontend_modules_payroll_pages_payrundetailpage_jsx",
-      "community": 1,
+      "community": 2,
       "norm_label": "payrundetailpage.jsx"
     },
     {
@@ -2358,7 +2520,7 @@
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\modules\\payroll\\pages\\PayrunDetailPage.jsx",
       "source_location": "L19",
       "id": "payrundetailpage_payrundetailpage",
-      "community": 1,
+      "community": 2,
       "norm_label": "payrundetailpage()"
     },
     {
@@ -2466,7 +2628,7 @@
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\modules\\schedules\\hooks\\useSchedules.js",
       "source_location": "L1",
       "id": "c_users_harsh_shet_hackathon_pepole360_frontend_modules_schedules_hooks_useschedules_js",
-      "community": 14,
+      "community": 15,
       "norm_label": "useschedules.js"
     },
     {
@@ -2475,7 +2637,7 @@
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\modules\\schedules\\hooks\\useSchedules.js",
       "source_location": "L8",
       "id": "useschedules_useschedules",
-      "community": 14,
+      "community": 15,
       "norm_label": "useschedules()"
     },
     {
@@ -2529,7 +2691,7 @@
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\modules\\schedules\\pages\\ScheduleListPage.jsx",
       "source_location": "L1",
       "id": "c_users_harsh_shet_hackathon_pepole360_frontend_modules_schedules_pages_schedulelistpage_jsx",
-      "community": 14,
+      "community": 15,
       "norm_label": "schedulelistpage.jsx"
     },
     {
@@ -2538,7 +2700,7 @@
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\modules\\schedules\\pages\\ScheduleListPage.jsx",
       "source_location": "L16",
       "id": "schedulelistpage_schedulelistpage",
-      "community": 14,
+      "community": 15,
       "norm_label": "schedulelistpage()"
     },
     {
@@ -2601,34 +2763,25 @@
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\src\\App.jsx",
       "source_location": "L1",
       "id": "c_users_harsh_shet_hackathon_pepole360_frontend_src_app_jsx",
-      "community": 1,
+      "community": 2,
       "norm_label": "app.jsx"
     },
     {
       "label": "DashboardView()",
       "file_type": "code",
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\src\\App.jsx",
-      "source_location": "L46",
+      "source_location": "L54",
       "id": "app_dashboardview",
-      "community": 1,
+      "community": 2,
       "norm_label": "dashboardview()"
-    },
-    {
-      "label": "LoginView()",
-      "file_type": "code",
-      "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\src\\App.jsx",
-      "source_location": "L359",
-      "id": "app_loginview",
-      "community": 1,
-      "norm_label": "loginview()"
     },
     {
       "label": "App()",
       "file_type": "code",
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\src\\App.jsx",
-      "source_location": "L480",
+      "source_location": "L598",
       "id": "app_app",
-      "community": 1,
+      "community": 2,
       "norm_label": "app()"
     },
     {
@@ -2670,7 +2823,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\backend\\src\\database\\seed.js",
-      "source_location": "L10",
+      "source_location": "L11",
       "weight": 1.0,
       "_src": "c_users_harsh_shet_hackathon_pepole360_backend_src_database_seed_js",
       "_tgt": "seed_runseed",
@@ -2682,7 +2835,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\backend\\src\\middleware\\authMiddleware.js",
-      "source_location": "L10",
+      "source_location": "L12",
       "weight": 1.0,
       "_src": "c_users_harsh_shet_hackathon_pepole360_backend_src_middleware_authmiddleware_js",
       "_tgt": "authmiddleware_authenticate",
@@ -2694,12 +2847,36 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\backend\\src\\middleware\\authMiddleware.js",
-      "source_location": "L50",
+      "source_location": "L59",
+      "weight": 1.0,
+      "_src": "c_users_harsh_shet_hackathon_pepole360_backend_src_middleware_authmiddleware_js",
+      "_tgt": "authmiddleware_authorize",
+      "source": "c_users_harsh_shet_hackathon_pepole360_backend_src_middleware_authmiddleware_js",
+      "target": "authmiddleware_authorize",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\backend\\src\\middleware\\authMiddleware.js",
+      "source_location": "L83",
       "weight": 1.0,
       "_src": "c_users_harsh_shet_hackathon_pepole360_backend_src_middleware_authmiddleware_js",
       "_tgt": "authmiddleware_requirerole",
       "source": "c_users_harsh_shet_hackathon_pepole360_backend_src_middleware_authmiddleware_js",
       "target": "authmiddleware_requirerole",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\backend\\src\\middleware\\authMiddleware.js",
+      "source_location": "L107",
+      "weight": 1.0,
+      "_src": "c_users_harsh_shet_hackathon_pepole360_backend_src_middleware_authmiddleware_js",
+      "_tgt": "authmiddleware_checkemployeeownership",
+      "source": "c_users_harsh_shet_hackathon_pepole360_backend_src_middleware_authmiddleware_js",
+      "target": "authmiddleware_checkemployeeownership",
       "confidence_score": 1.0
     },
     {
@@ -2713,6 +2890,18 @@
       "_tgt": "responsehelper_errorresponse",
       "source": "authmiddleware_authenticate",
       "target": "responsehelper_errorresponse"
+    },
+    {
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\backend\\src\\middleware\\authMiddleware.js",
+      "source_location": "L46",
+      "weight": 1.0,
+      "_src": "authmiddleware_authenticate",
+      "_tgt": "rbac_getrolepermissions",
+      "source": "authmiddleware_authenticate",
+      "target": "rbac_getrolepermissions"
     },
     {
       "relation": "contains",
@@ -3390,7 +3579,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\backend\\src\\modules\\payroll\\controllers\\index.js",
-      "source_location": "L112",
+      "source_location": "L116",
       "weight": 1.0,
       "_src": "c_users_harsh_shet_hackathon_pepole360_backend_src_modules_payroll_controllers_index_js",
       "_tgt": "index_getpayslipbyid",
@@ -3654,7 +3843,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\backend\\src\\modules\\timeoff\\controllers\\index.js",
-      "source_location": "L37",
+      "source_location": "L41",
       "weight": 1.0,
       "_src": "c_users_harsh_shet_hackathon_pepole360_backend_src_modules_timeoff_controllers_index_js",
       "_tgt": "index_createallocation",
@@ -3666,7 +3855,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\backend\\src\\modules\\timeoff\\controllers\\index.js",
-      "source_location": "L46",
+      "source_location": "L50",
       "weight": 1.0,
       "_src": "c_users_harsh_shet_hackathon_pepole360_backend_src_modules_timeoff_controllers_index_js",
       "_tgt": "index_getrequests",
@@ -3678,7 +3867,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\backend\\src\\modules\\timeoff\\controllers\\index.js",
-      "source_location": "L55",
+      "source_location": "L63",
       "weight": 1.0,
       "_src": "c_users_harsh_shet_hackathon_pepole360_backend_src_modules_timeoff_controllers_index_js",
       "_tgt": "index_getrequestbyid",
@@ -3690,7 +3879,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\backend\\src\\modules\\timeoff\\controllers\\index.js",
-      "source_location": "L64",
+      "source_location": "L78",
       "weight": 1.0,
       "_src": "c_users_harsh_shet_hackathon_pepole360_backend_src_modules_timeoff_controllers_index_js",
       "_tgt": "index_createrequest",
@@ -3702,7 +3891,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\backend\\src\\modules\\timeoff\\controllers\\index.js",
-      "source_location": "L73",
+      "source_location": "L91",
       "weight": 1.0,
       "_src": "c_users_harsh_shet_hackathon_pepole360_backend_src_modules_timeoff_controllers_index_js",
       "_tgt": "index_updaterequeststatus",
@@ -3905,6 +4094,30 @@
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
+      "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\backend\\src\\utils\\rbac.js",
+      "source_location": "L77",
+      "weight": 1.0,
+      "_src": "c_users_harsh_shet_hackathon_pepole360_backend_src_utils_rbac_js",
+      "_tgt": "rbac_getrolepermissions",
+      "source": "c_users_harsh_shet_hackathon_pepole360_backend_src_utils_rbac_js",
+      "target": "rbac_getrolepermissions",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\backend\\src\\utils\\rbac.js",
+      "source_location": "L81",
+      "weight": 1.0,
+      "_src": "c_users_harsh_shet_hackathon_pepole360_backend_src_utils_rbac_js",
+      "_tgt": "rbac_haspermission",
+      "source": "c_users_harsh_shet_hackathon_pepole360_backend_src_utils_rbac_js",
+      "target": "rbac_haspermission",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\backend\\src\\utils\\responseHelper.js",
       "source_location": "L6",
       "weight": 1.0,
@@ -3961,6 +4174,54 @@
       "source": "phase3_integration_test_request",
       "target": "phase3_integration_test_runphase3tests",
       "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\components\\auth\\ProtectedRoute.jsx",
+      "source_location": "L7",
+      "weight": 1.0,
+      "_src": "c_users_harsh_shet_hackathon_pepole360_frontend_components_auth_protectedroute_jsx",
+      "_tgt": "protectedroute_protectedroute",
+      "source": "c_users_harsh_shet_hackathon_pepole360_frontend_components_auth_protectedroute_jsx",
+      "target": "protectedroute_protectedroute",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\components\\auth\\ProtectedRoute.jsx",
+      "source_location": "L8",
+      "weight": 1.0,
+      "_src": "protectedroute_protectedroute",
+      "_tgt": "authcontext_useauth",
+      "source": "protectedroute_protectedroute",
+      "target": "authcontext_useauth"
+    },
+    {
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\components\\auth\\ProtectedRoute.jsx",
+      "source_location": "L17",
+      "weight": 1.0,
+      "_src": "protectedroute_protectedroute",
+      "_tgt": "index_hasanyrole",
+      "source": "protectedroute_protectedroute",
+      "target": "index_hasanyrole"
+    },
+    {
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\components\\auth\\ProtectedRoute.jsx",
+      "source_location": "L46",
+      "weight": 1.0,
+      "_src": "protectedroute_protectedroute",
+      "_tgt": "index_haspermission",
+      "source": "protectedroute_protectedroute",
+      "target": "index_haspermission"
     },
     {
       "relation": "contains",
@@ -4122,13 +4383,25 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\components\\navigation\\SidebarNavigation.jsx",
-      "source_location": "L9",
+      "source_location": "L11",
       "weight": 1.0,
       "_src": "c_users_harsh_shet_hackathon_pepole360_frontend_components_navigation_sidebarnavigation_jsx",
       "_tgt": "sidebarnavigation_sidebarnavigation",
       "source": "c_users_harsh_shet_hackathon_pepole360_frontend_components_navigation_sidebarnavigation_jsx",
       "target": "sidebarnavigation_sidebarnavigation",
       "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\components\\navigation\\SidebarNavigation.jsx",
+      "source_location": "L14",
+      "weight": 1.0,
+      "_src": "sidebarnavigation_sidebarnavigation",
+      "_tgt": "authcontext_useauth",
+      "source": "sidebarnavigation_sidebarnavigation",
+      "target": "authcontext_useauth"
     },
     {
       "relation": "contains",
@@ -4141,6 +4414,18 @@
       "source": "c_users_harsh_shet_hackathon_pepole360_frontend_components_navigation_topnavigation_jsx",
       "target": "topnavigation_topnavigation",
       "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\components\\navigation\\TopNavigation.jsx",
+      "source_location": "L15",
+      "weight": 1.0,
+      "_src": "topnavigation_topnavigation",
+      "_tgt": "authcontext_useauth",
+      "source": "topnavigation_topnavigation",
+      "target": "authcontext_useauth"
     },
     {
       "relation": "calls",
@@ -4361,6 +4646,66 @@
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
+      "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\context\\AuthContext.jsx",
+      "source_location": "L14",
+      "weight": 1.0,
+      "_src": "c_users_harsh_shet_hackathon_pepole360_frontend_context_authcontext_jsx",
+      "_tgt": "authcontext_authprovider",
+      "source": "c_users_harsh_shet_hackathon_pepole360_frontend_context_authcontext_jsx",
+      "target": "authcontext_authprovider",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\context\\AuthContext.jsx",
+      "source_location": "L79",
+      "weight": 1.0,
+      "_src": "c_users_harsh_shet_hackathon_pepole360_frontend_context_authcontext_jsx",
+      "_tgt": "authcontext_useauth",
+      "source": "c_users_harsh_shet_hackathon_pepole360_frontend_context_authcontext_jsx",
+      "target": "authcontext_useauth",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\modules\\auth\\pages\\LoginPage.jsx",
+      "source_location": "L16",
+      "weight": 1.0,
+      "_src": "loginpage_loginpage",
+      "_tgt": "authcontext_useauth",
+      "source": "authcontext_useauth",
+      "target": "loginpage_loginpage"
+    },
+    {
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\modules\\landing\\pages\\LandingPage.jsx",
+      "source_location": "L14",
+      "weight": 1.0,
+      "_src": "landingpage_landingpage",
+      "_tgt": "authcontext_useauth",
+      "source": "authcontext_useauth",
+      "target": "landingpage_landingpage"
+    },
+    {
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\src\\App.jsx",
+      "source_location": "L56",
+      "weight": 1.0,
+      "_src": "app_dashboardview",
+      "_tgt": "authcontext_useauth",
+      "source": "authcontext_useauth",
+      "target": "app_dashboardview"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\hooks\\index.js",
       "source_location": "L6",
       "weight": 1.0,
@@ -4386,7 +4731,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\lib\\auth\\index.js",
-      "source_location": "L9",
+      "source_location": "L17",
       "weight": 1.0,
       "_src": "c_users_harsh_shet_hackathon_pepole360_frontend_lib_auth_index_js",
       "_tgt": "index_getstoredtoken",
@@ -4398,7 +4743,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\lib\\auth\\index.js",
-      "source_location": "L14",
+      "source_location": "L22",
       "weight": 1.0,
       "_src": "c_users_harsh_shet_hackathon_pepole360_frontend_lib_auth_index_js",
       "_tgt": "index_setstoredtoken",
@@ -4410,7 +4755,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\lib\\auth\\index.js",
-      "source_location": "L19",
+      "source_location": "L27",
       "weight": 1.0,
       "_src": "c_users_harsh_shet_hackathon_pepole360_frontend_lib_auth_index_js",
       "_tgt": "index_clearstoredtoken",
@@ -4422,7 +4767,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\lib\\auth\\index.js",
-      "source_location": "L25",
+      "source_location": "L33",
       "weight": 1.0,
       "_src": "c_users_harsh_shet_hackathon_pepole360_frontend_lib_auth_index_js",
       "_tgt": "index_getstoreduser",
@@ -4434,7 +4779,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\lib\\auth\\index.js",
-      "source_location": "L35",
+      "source_location": "L43",
       "weight": 1.0,
       "_src": "c_users_harsh_shet_hackathon_pepole360_frontend_lib_auth_index_js",
       "_tgt": "index_setstoreduser",
@@ -4446,7 +4791,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\lib\\auth\\index.js",
-      "source_location": "L44",
+      "source_location": "L52",
       "weight": 1.0,
       "_src": "c_users_harsh_shet_hackathon_pepole360_frontend_lib_auth_index_js",
       "_tgt": "index_login",
@@ -4458,7 +4803,43 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\lib\\auth\\index.js",
-      "source_location": "L66",
+      "source_location": "L73",
+      "weight": 1.0,
+      "_src": "c_users_harsh_shet_hackathon_pepole360_frontend_lib_auth_index_js",
+      "_tgt": "index_logout",
+      "source": "c_users_harsh_shet_hackathon_pepole360_frontend_lib_auth_index_js",
+      "target": "index_logout",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\lib\\auth\\index.js",
+      "source_location": "L81",
+      "weight": 1.0,
+      "_src": "c_users_harsh_shet_hackathon_pepole360_frontend_lib_auth_index_js",
+      "_tgt": "index_haspermission",
+      "source": "c_users_harsh_shet_hackathon_pepole360_frontend_lib_auth_index_js",
+      "target": "index_haspermission",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\lib\\auth\\index.js",
+      "source_location": "L89",
+      "weight": 1.0,
+      "_src": "c_users_harsh_shet_hackathon_pepole360_frontend_lib_auth_index_js",
+      "_tgt": "index_hasanyrole",
+      "source": "c_users_harsh_shet_hackathon_pepole360_frontend_lib_auth_index_js",
+      "target": "index_hasanyrole",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\lib\\auth\\index.js",
+      "source_location": "L95",
       "weight": 1.0,
       "_src": "c_users_harsh_shet_hackathon_pepole360_frontend_lib_auth_index_js",
       "_tgt": "index_ishrrole",
@@ -4467,15 +4848,39 @@
       "confidence_score": 1.0
     },
     {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\lib\\auth\\index.js",
+      "source_location": "L100",
+      "weight": 1.0,
+      "_src": "c_users_harsh_shet_hackathon_pepole360_frontend_lib_auth_index_js",
+      "_tgt": "index_ispayrollrole",
+      "source": "c_users_harsh_shet_hackathon_pepole360_frontend_lib_auth_index_js",
+      "target": "index_ispayrollrole",
+      "confidence_score": 1.0
+    },
+    {
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\lib\\auth\\index.js",
-      "source_location": "L60",
+      "source_location": "L68",
       "weight": 1.0,
       "_src": "index_login",
       "_tgt": "index_setstoredtoken",
       "source": "index_setstoredtoken",
       "target": "index_login",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\lib\\auth\\index.js",
+      "source_location": "L74",
+      "weight": 1.0,
+      "_src": "index_logout",
+      "_tgt": "index_clearstoredtoken",
+      "source": "index_clearstoredtoken",
+      "target": "index_logout",
       "confidence_score": 1.0
     },
     {
@@ -4506,7 +4911,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\lib\\auth\\index.js",
-      "source_location": "L61",
+      "source_location": "L69",
       "weight": 1.0,
       "_src": "index_login",
       "_tgt": "index_setstoreduser",
@@ -4605,8 +5010,8 @@
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\modules\\payroll\\pages\\PayrunDetailPage.jsx",
       "source_location": "L157",
       "weight": 1.0,
-      "_src": "payrundetailpage_payrundetailpage",
-      "_tgt": "index_formatcurrency",
+      "_src": "index_formatcurrency",
+      "_tgt": "payrundetailpage_payrundetailpage",
       "source": "index_formatcurrency",
       "target": "payrundetailpage_payrundetailpage"
     },
@@ -4617,8 +5022,8 @@
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\src\\App.jsx",
       "source_location": "L145",
       "weight": 1.0,
-      "_src": "app_dashboardview",
-      "_tgt": "index_formatcurrency",
+      "_src": "index_formatcurrency",
+      "_tgt": "app_dashboardview",
       "source": "index_formatcurrency",
       "target": "app_dashboardview"
     },
@@ -4692,6 +5097,18 @@
       "_tgt": "myattendancepage_myattendancepage",
       "source": "c_users_harsh_shet_hackathon_pepole360_frontend_modules_attendance_pages_myattendancepage_jsx",
       "target": "myattendancepage_myattendancepage",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\modules\\auth\\pages\\LoginPage.jsx",
+      "source_location": "L13",
+      "weight": 1.0,
+      "_src": "c_users_harsh_shet_hackathon_pepole360_frontend_modules_auth_pages_loginpage_jsx",
+      "_tgt": "loginpage_loginpage",
+      "source": "c_users_harsh_shet_hackathon_pepole360_frontend_modules_auth_pages_loginpage_jsx",
+      "target": "loginpage_loginpage",
       "confidence_score": 1.0
     },
     {
@@ -4937,6 +5354,18 @@
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
+      "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\modules\\landing\\pages\\LandingPage.jsx",
+      "source_location": "L12",
+      "weight": 1.0,
+      "_src": "c_users_harsh_shet_hackathon_pepole360_frontend_modules_landing_pages_landingpage_jsx",
+      "_tgt": "landingpage_landingpage",
+      "source": "c_users_harsh_shet_hackathon_pepole360_frontend_modules_landing_pages_landingpage_jsx",
+      "target": "landingpage_landingpage",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\modules\\payroll\\components\\PayrunStatusBadge.jsx",
       "source_location": "L8",
       "weight": 1.0,
@@ -5142,7 +5571,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\src\\App.jsx",
-      "source_location": "L46",
+      "source_location": "L54",
       "weight": 1.0,
       "_src": "c_users_harsh_shet_hackathon_pepole360_frontend_src_app_jsx",
       "_tgt": "app_dashboardview",
@@ -5154,19 +5583,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\src\\App.jsx",
-      "source_location": "L359",
-      "weight": 1.0,
-      "_src": "c_users_harsh_shet_hackathon_pepole360_frontend_src_app_jsx",
-      "_tgt": "app_loginview",
-      "source": "c_users_harsh_shet_hackathon_pepole360_frontend_src_app_jsx",
-      "target": "app_loginview",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "C:\\Users\\Harsh Shet\\hackathon\\pepole360\\frontend\\src\\App.jsx",
-      "source_location": "L480",
+      "source_location": "L598",
       "weight": 1.0,
       "_src": "c_users_harsh_shet_hackathon_pepole360_frontend_src_app_jsx",
       "_tgt": "app_app",
