@@ -15,14 +15,30 @@ async function runMigration() {
       return false;
     }
 
-    const migrationFile = path.resolve(__dirname, '../../../database/migrations/001_create_employees.sql');
-    const sql = fs.readFileSync(migrationFile, 'utf8');
+    const empMigration = path.resolve(__dirname, '../../../database/migrations/001_create_employees.sql');
+    const empSql = fs.readFileSync(empMigration, 'utf8');
 
     console.log('[Migration] Executing 001_create_employees.sql...');
-    await db.query(sql);
+    await db.query(empSql);
     console.log('[Migration] ✅ Employees table and indexes created successfully.');
 
-    // Check if seed data is needed
+    const payrollMigration = path.resolve(__dirname, '../../../database/migrations/002_create_payroll.sql');
+    if (fs.existsSync(payrollMigration)) {
+      const payrollSql = fs.readFileSync(payrollMigration, 'utf8');
+      console.log('[Migration] Executing 002_create_payroll.sql...');
+      await db.query(payrollSql);
+      console.log('[Migration] ✅ Payroll tables and indexes created successfully.');
+    }
+
+    const hrOpsMigration = path.resolve(__dirname, '../../../database/migrations/003_create_hr_operations.sql');
+    if (fs.existsSync(hrOpsMigration)) {
+      const hrOpsSql = fs.readFileSync(hrOpsMigration, 'utf8');
+      console.log('[Migration] Executing 003_create_hr_operations.sql...');
+      await db.query(hrOpsSql);
+      console.log('[Migration] ✅ HR Operations tables and indexes created successfully.');
+    }
+
+    // Check if employee seed data is needed
     const countRes = await db.query('SELECT COUNT(*) FROM employees');
     if (parseInt(countRes.rows[0].count, 10) === 0) {
       console.log('[Migration] Seeding initial employee records...');
@@ -40,6 +56,27 @@ async function runMigration() {
       `;
       await db.query(seedSql);
       console.log('[Migration] ✅ Sample employee seed records inserted.');
+    }
+
+    // Check if payroll seed data is needed
+    const structCount = await db.query('SELECT COUNT(*) FROM salary_structures');
+    if (parseInt(structCount.rows[0].count, 10) === 0) {
+      console.log('[Migration] Seeding initial salary structure & rules...');
+      const structRes = await db.query(`
+        INSERT INTO salary_structures (name, code, description, is_active)
+        VALUES ('Standard Full-Time Compensation', 'STRUC-FULLTIME', 'Default salary structure for regular salaried employees', true)
+        RETURNING id;
+      `);
+      const structId = structRes.rows[0].id;
+
+      await db.query(`
+        INSERT INTO salary_rules (salary_structure_id, name, code, category, calculation_type, amount_or_rate, sequence_order)
+        VALUES 
+        ('${structId}', 'Basic Salary', 'BASIC', 'ALLOWANCE', 'FIXED', 4500.00, 1),
+        ('${structId}', 'Housing Allowance', 'HRA', 'ALLOWANCE', 'PERCENTAGE', 0.20, 2),
+        ('${structId}', 'Health & Social Insurance', 'INS_DEDUCT', 'DEDUCTION', 'PERCENTAGE', 0.05, 3)
+      `);
+      console.log('[Migration] ✅ Sample salary structure and rules inserted.');
     }
 
     return true;
