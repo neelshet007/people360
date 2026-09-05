@@ -178,6 +178,37 @@ const getDashboardStats = async (user = {}) => {
     const payslipCountRes = await db.query(`SELECT COUNT(*) as total FROM payslips`);
     const totalPayslips = payslipCountRes.rows[0]?.total || 0;
 
+    // Monthly Payruns Trend for live charts
+    const payrunTrendRes = await db.query(`
+      SELECT id, name, total_gross, total_deductions, total_net, status, pay_period_end
+      FROM payruns
+      ORDER BY pay_period_end ASC
+      LIMIT 6
+    `);
+
+    // Department-wise Monthly Net Payroll Cost
+    const deptPayrollRes = await db.query(`
+      SELECT e.department, 
+             COUNT(p.id) as payslip_count,
+             COALESCE(SUM(p.gross_amount), 0) as total_gross,
+             COALESCE(SUM(p.total_deductions), 0) as total_deductions,
+             COALESCE(SUM(p.net_amount), 0) as total_net
+      FROM payslips p
+      JOIN employees e ON p.employee_id = e.id
+      GROUP BY e.department
+      ORDER BY total_net DESC
+    `);
+
+    // Leave Types Distribution
+    const leaveDistRes = await db.query(`
+      SELECT t.name as type_name, t.code as type_code, COUNT(r.id) as request_count,
+             COALESCE(SUM(r.total_days), 0) as total_days
+      FROM time_off_types t
+      LEFT JOIN time_off_requests r ON t.id = r.time_off_type_id
+      GROUP BY t.id, t.name, t.code
+      ORDER BY total_days DESC
+    `);
+
     // (f) System Users (for ADMIN role)
     const userCountRes = await db.query(`
       SELECT 
@@ -227,6 +258,7 @@ const getDashboardStats = async (user = {}) => {
         pending: parseInt(leaveStats.pending || 0, 10),
         approved: parseInt(leaveStats.approved || 0, 10),
         rejected: parseInt(leaveStats.rejected || 0, 10),
+        by_type: leaveDistRes.rows,
       },
       payroll: {
         total_payruns: parseInt(payrollStats.total_payruns || 0, 10),
@@ -234,6 +266,8 @@ const getDashboardStats = async (user = {}) => {
         total_payslips: parseInt(totalPayslips, 10),
         total_disbursed: parseFloat(payrollStats.total_disbursed || 0),
         total_gross: parseFloat(payrollStats.total_gross || 0),
+        trends: payrunTrendRes.rows,
+        by_department: deptPayrollRes.rows,
       },
     };
   } catch (err) {

@@ -39,7 +39,11 @@ export const payrollApi = {
     return apiClient.get(`/payroll/payruns${query ? `?${query}` : ''}`);
   },
   getPayrunById: (id) => apiClient.get(`/payroll/payruns/${id}`),
+  checkEligibility: (data) => apiClient.post('/payroll/payruns/eligibility', data),
   createPayrun: (data) => apiClient.post('/payroll/payruns', data),
+  computePayrun: (id) => apiClient.post(`/payroll/payruns/${id}/compute`),
+  validatePayrun: (id) => apiClient.post(`/payroll/payruns/${id}/validate`),
+  markPayrunPaid: (id) => apiClient.post(`/payroll/payruns/${id}/pay`),
 
   // Payslips
   getPayslips: (params = {}) => {
@@ -47,6 +51,8 @@ export const payrollApi = {
     return apiClient.get(`/payroll/payslips${query ? `?${query}` : ''}`);
   },
   getPayslipById: (id) => apiClient.get(`/payroll/payslips/${id}`),
+  getPayslipPdfUrl: (id) => `${apiClient.baseURL || '/api'}/payroll/payslips/${id}/pdf`,
+  emailPayrunPayslips: (payrunId) => apiClient.post(`/payroll/payruns/${payrunId}/email-payslips`),
 };
 
 export default payrollApi;

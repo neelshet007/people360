@@ -171,18 +171,36 @@ const payrollService = {
     if (!payrun) {
       throw ApiError.notFound(`Payrun batch with ID '${id}' not found`);
     }
-    const payslips = await payrollRepository.findPayslips({ payrun_id: id, limit: 50 });
+    const payslips = await payrollRepository.findPayslips({ payrun_id: id, limit: 100 });
     return {
       ...payrun,
       payslips,
     };
   },
 
+  async checkEligibility(params) {
+    const payrunService = require('./payrunService');
+    return payrunService.checkEligibility(params);
+  },
+
   async createPayrun(data) {
-    if (!data.name || !data.pay_period_start || !data.pay_period_end) {
-      throw ApiError.badRequest('Payrun name, start date, and end date are required');
-    }
-    return payrollRepository.createPayrun(data);
+    const payrunService = require('./payrunService');
+    return payrunService.createPayrun(data);
+  },
+
+  async computePayrun(payrunId) {
+    const payrunService = require('./payrunService');
+    return payrunService.computePayrun(payrunId);
+  },
+
+  async validatePayrun(payrunId) {
+    const payrunService = require('./payrunService');
+    return payrunService.validatePayrun(payrunId);
+  },
+
+  async markPayrunPaid(payrunId, userId) {
+    const payrunService = require('./payrunService');
+    return payrunService.markPayrunPaid(payrunId, userId);
   },
 
   // ---------------------------------------------------------------------------
@@ -215,6 +233,20 @@ const payrollService = {
       throw ApiError.notFound(`Payslip with ID '${id}' not found`);
     }
     return payslip;
+  },
+
+  async emailPayslipsForPayrun(payrunId) {
+    const payrunService = require('./payrunService');
+    return payrunService.emailPayslipsForPayrun(payrunId);
+  },
+
+  async generatePayslipPdf(payslipId) {
+    const payslip = await this.getPayslipById(payslipId);
+    const { generatePayslipPdfBuffer } = require('./payslipPdfService');
+    return {
+      payslip,
+      buffer: await generatePayslipPdfBuffer(payslip),
+    };
   },
 };
 

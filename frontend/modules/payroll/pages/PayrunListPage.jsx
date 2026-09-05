@@ -4,14 +4,13 @@ import PageContainer from '../../../components/layout/PageContainer';
 import Card from '../../../components/ui/Card';
 import Button from '../../../components/ui/Button';
 import Table from '../../../components/ui/Table';
-import Modal from '../../../components/ui/Modal';
-import Input from '../../../components/ui/Input';
 import Select from '../../../components/ui/Select';
 import Pagination from '../../../components/ui/Pagination';
 import Loading from '../../../components/feedback/Loading';
 import EmptyState from '../../../components/feedback/EmptyState';
 import Alert from '../../../components/feedback/Alert';
 import PayrunStatusBadge from '../components/PayrunStatusBadge';
+import PayrunWizardModal from '../components/PayrunWizardModal';
 import { formatCurrency } from '../../../lib/utils';
 import payrollApi from '../api/payrollApi';
 
@@ -29,15 +28,8 @@ export default function PayrunListPage() {
   const [statusFilter, setStatusFilter] = useState('');
   const [pagination, setPagination] = useState({ page: 1, limit: 10, total: 0, totalPages: 1 });
 
-  // Create Payrun Modal State
-  const [showModal, setShowModal] = useState(false);
-  const [creating, setCreating] = useState(false);
-  const [modalError, setModalError] = useState(null);
-  const [newPayrun, setNewPayrun] = useState({
-    name: '',
-    pay_period_start: '',
-    pay_period_end: '',
-  });
+  // Create Payrun Wizard Modal State
+  const [showWizard, setShowWizard] = useState(false);
 
   const fetchPayruns = async () => {
     setLoading(true);
@@ -62,30 +54,11 @@ export default function PayrunListPage() {
     fetchPayruns();
   }, [pagination.page, statusFilter]);
 
-  const handleCreateSubmit = async (e) => {
-    e.preventDefault();
-    if (!newPayrun.name.trim() || !newPayrun.pay_period_start || !newPayrun.pay_period_end) {
-      setModalError('Please fill in all required fields');
-      return;
-    }
-    setCreating(true);
-    setModalError(null);
-    try {
-      await payrollApi.createPayrun(newPayrun);
-      setShowModal(false);
-      setNewPayrun({ name: '', pay_period_start: '', pay_period_end: '' });
-      fetchPayruns();
-    } catch (err) {
-      setModalError(err.message || 'Failed to initialize payrun batch');
-    } finally {
-      setCreating(false);
-    }
-  };
-
   const statusFilterOptions = [
     { value: '', label: 'All Statuses' },
     { value: 'DRAFT', label: 'Draft' },
-    { value: 'COMPUTING', label: 'Computing' },
+    { value: 'COMPUTED', label: 'Computed' },
+    { value: 'VALIDATED', label: 'Validated' },
     { value: 'CONFIRMED', label: 'Confirmed' },
     { value: 'PAID', label: 'Paid' },
   ];
@@ -111,7 +84,26 @@ export default function PayrunListPage() {
       accessor: 'period',
       render: (row) => (
         <span style={{ fontSize: '0.8125rem', color: 'var(--neutral-700, #334155)' }}>
-          {row.pay_period_start} → {row.pay_period_end}
+          {row.pay_period_start ? row.pay_period_start.split('T')[0] : '—'} →{' '}
+          {row.pay_period_end ? row.pay_period_end.split('T')[0] : '—'}
+        </span>
+      ),
+    },
+    {
+      header: 'Salary Structure',
+      accessor: 'structure',
+      render: (row) => (
+        <span style={{ fontSize: '0.8125rem', color: 'var(--neutral-800, #1e293b)', fontWeight: 500 }}>
+          {row.salary_structure_name ? `${row.salary_structure_name}` : 'Standard Corporate'}
+        </span>
+      ),
+    },
+    {
+      header: 'Staff Count',
+      accessor: 'employee_count',
+      render: (row) => (
+        <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--neutral-700, #334155)' }}>
+          {row.employee_count || (row.total_gross > 0 ? 'Active' : 0)} employees
         </span>
       ),
     },
@@ -130,7 +122,7 @@ export default function PayrunListPage() {
       ),
     },
     {
-      header: 'Net Payout',
+      header: 'Net Disbursed',
       accessor: 'total_net',
       render: (row) => (
         <span style={{ fontWeight: 600, color: 'var(--success-700, #15803d)' }}>
@@ -143,7 +135,7 @@ export default function PayrunListPage() {
       accessor: 'actions',
       render: (row) => (
         <Button variant="secondary" size="sm" onClick={() => navigate(`/payroll/payruns/${row.id}`)}>
-          View Batch
+          Open Payrun
         </Button>
       ),
     },
@@ -152,10 +144,10 @@ export default function PayrunListPage() {
   return (
     <PageContainer
       title="Payruns"
-      subtitle="Periodic compensation execution batches & gross-to-net processing"
+      subtitle="Periodic compensation execution batches & Indian gross-to-net processing"
       actions={
-        <Button variant="primary" onClick={() => setShowModal(true)}>
-          Initialize Payrun
+        <Button variant="primary" onClick={() => setShowWizard(true)}>
+          + Initialize Payrun
         </Button>
       }
     >
@@ -191,8 +183,8 @@ export default function PayrunListPage() {
             title="No payrun batches found"
             description="Initialize a new payrun batch to begin processing periodic payroll."
             action={
-              <Button variant="primary" size="sm" onClick={() => setShowModal(true)}>
-                Initialize Payrun
+              <Button variant="primary" size="sm" onClick={() => setShowWizard(true)}>
+                + Initialize Payrun
               </Button>
             }
           />
@@ -210,56 +202,13 @@ export default function PayrunListPage() {
         )}
       </Card>
 
-      {/* Initialize Payrun Modal */}
-      {showModal && (
-        <Modal
-          title="Initialize Payrun Batch"
-          isOpen={showModal}
-          onClose={() => setShowModal(false)}
-          actions={
-            <>
-              <Button variant="secondary" onClick={() => setShowModal(false)}>
-                Cancel
-              </Button>
-              <Button variant="primary" loading={creating} onClick={handleCreateSubmit}>
-                Create Draft Payrun
-              </Button>
-            </>
-          }
-        >
-          {modalError && (
-            <Alert type="danger" style={{ marginBottom: '16px' }}>
-              {modalError}
-            </Alert>
-          )}
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            <Input
-              label="Payrun Batch Name"
-              required
-              placeholder="e.g. November 2026 Monthly Payrun"
-              value={newPayrun.name}
-              onChange={(e) => setNewPayrun((prev) => ({ ...prev, name: e.target.value }))}
-            />
-
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-              <Input
-                label="Period Start Date"
-                type="date"
-                required
-                value={newPayrun.pay_period_start}
-                onChange={(e) => setNewPayrun((prev) => ({ ...prev, pay_period_start: e.target.value }))}
-              />
-              <Input
-                label="Period End Date"
-                type="date"
-                required
-                value={newPayrun.pay_period_end}
-                onChange={(e) => setNewPayrun((prev) => ({ ...prev, pay_period_end: e.target.value }))}
-              />
-            </div>
-          </div>
-        </Modal>
+      {/* Payrun Wizard Modal */}
+      {showWizard && (
+        <PayrunWizardModal
+          isOpen={showWizard}
+          onClose={() => setShowWizard(false)}
+          onCreated={() => fetchPayruns()}
+        />
       )}
     </PageContainer>
   );

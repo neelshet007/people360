@@ -70,6 +70,14 @@ async function runMigration() {
       console.log('[Migration] ✅ Salary Configuration schema updated successfully.');
     }
 
+    const payrunsPhase7Migration = path.resolve(__dirname, '../../../database/migrations/008_payruns_phase7.sql');
+    if (fs.existsSync(payrunsPhase7Migration)) {
+      const payrunsPhase7Sql = fs.readFileSync(payrunsPhase7Migration, 'utf8');
+      console.log('[Migration] Executing 008_payruns_phase7.sql...');
+      await db.query(payrunsPhase7Sql);
+      console.log('[Migration] ✅ Payruns Phase 7 schema and lifecycle constraints updated successfully.');
+    }
+
     // Check if employee seed data is needed
     const countRes = await db.query('SELECT COUNT(*) FROM employees');
     if (parseInt(countRes.rows[0].count, 10) === 0) {

@@ -33,11 +33,17 @@ router.post('/salary/calculate', authenticate, authorize('salary.read'), control
 
 // Payruns
 router.get('/payruns', authenticate, authorize('payruns.read'), validators.validatePagination, controllers.getPayruns);
+router.post('/payruns/eligibility', authenticate, authorize('payruns.read'), controllers.checkEligibility);
 router.get('/payruns/:id', authenticate, authorize('payruns.read'), controllers.getPayrunById);
 router.post('/payruns', authenticate, authorize('payruns.write'), controllers.createPayrun);
+router.post('/payruns/:id/compute', authenticate, authorize('payruns.write'), controllers.computePayrun);
+router.post('/payruns/:id/validate', authenticate, authorize('payruns.write'), controllers.validatePayrun);
+router.post('/payruns/:id/pay', authenticate, authorize('payruns.write'), controllers.markPayrunPaid);
+router.post('/payruns/:id/email-payslips', authenticate, authorize('payruns.write'), controllers.emailPayrunPayslips);
 
-// Payslips (Employees can read payslips filtered to their own record)
+// Payslips (Employees can read and download payslips filtered to their own record)
 router.get('/payslips', authenticate, validators.validatePagination, controllers.getPayslips);
 router.get('/payslips/:id', authenticate, controllers.getPayslipById);
+router.get('/payslips/:id/pdf', authenticate, controllers.downloadPayslipPdf);
 
 module.exports = router;

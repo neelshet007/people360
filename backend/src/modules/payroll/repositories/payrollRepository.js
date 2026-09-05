@@ -527,15 +527,20 @@ const payrollRepository = {
     try {
       const isLive = await db.testConnection();
       if (isLive) {
-        let sql = 'SELECT * FROM payruns WHERE 1=1';
+        let sql = `
+          SELECT p.*, ss.name as salary_structure_name, ss.code as salary_structure_code
+          FROM payruns p
+          LEFT JOIN salary_structures ss ON p.salary_structure_id = ss.id
+          WHERE 1=1
+        `;
         const params = [];
         let pIdx = 1;
         if (status) {
-          sql += ` AND status = $${pIdx}`;
+          sql += ` AND p.status = $${pIdx}`;
           params.push(status);
           pIdx++;
         }
-        sql += ` ORDER BY created_at DESC LIMIT $${pIdx} OFFSET $${pIdx + 1}`;
+        sql += ` ORDER BY p.created_at DESC LIMIT $${pIdx} OFFSET $${pIdx + 1}`;
         params.push(limit, offset);
         const res = await db.query(sql, params);
         return res.rows;
@@ -577,13 +582,37 @@ const payrollRepository = {
     try {
       const isLive = await db.testConnection();
       if (isLive) {
-        const res = await db.query('SELECT * FROM payruns WHERE id = $1', [id]);
+        const sql = `
+          SELECT p.*, ss.name as salary_structure_name, ss.code as salary_structure_code
+          FROM payruns p
+          LEFT JOIN salary_structures ss ON p.salary_structure_id = ss.id
+          WHERE p.id = $1
+        `;
+        const res = await db.query(sql, [id]);
         return res.rows[0] || null;
       }
     } catch (err) {
       console.warn('[Repository DB Fallback findPayrunById]:', err.message);
     }
     return fallbackPayruns.find((p) => p.id === id) || null;
+  },
+
+  async findPayrunByPeriod(startDate, endDate) {
+    try {
+      const isLive = await db.testConnection();
+      if (isLive) {
+        const sql = `
+          SELECT * FROM payruns 
+          WHERE pay_period_start = $1 AND pay_period_end = $2
+          LIMIT 1;
+        `;
+        const res = await db.query(sql, [startDate, endDate]);
+        return res.rows[0] || null;
+      }
+    } catch (err) {
+      console.warn('[Repository DB Fallback findPayrunByPeriod]:', err.message);
+    }
+    return null;
   },
 
   async createPayrun(data) {
@@ -594,11 +623,17 @@ const payrollRepository = {
       name: data.name,
       pay_period_start: data.pay_period_start,
       pay_period_end: data.pay_period_end,
+      salary_structure_id: data.salary_structure_id || null,
+      employee_count: parseInt(data.employee_count || 0, 10),
+      selected_employee_ids: JSON.stringify(data.selected_employee_ids || []),
+      created_by: data.created_by || null,
       execution_date: null,
       status: 'DRAFT',
       total_gross: 0.0,
       total_deductions: 0.0,
       total_net: 0.0,
+      validation_notes: JSON.stringify([]),
+      warnings: JSON.stringify([]),
       created_at: now,
       updated_at: now,
     };
@@ -606,8 +641,13 @@ const payrollRepository = {
       const isLive = await db.testConnection();
       if (isLive) {
         const sql = `
-          INSERT INTO payruns (id, name, pay_period_start, pay_period_end, status, total_gross, total_deductions, total_net, created_at, updated_at)
-          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+          INSERT INTO payruns (
+            id, name, pay_period_start, pay_period_end, salary_structure_id,
+            employee_count, selected_employee_ids, created_by, status,
+            total_gross, total_deductions, total_net, validation_notes, warnings,
+            created_at, updated_at
+          )
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
           RETURNING *;
         `;
         const res = await db.query(sql, [
@@ -615,10 +655,16 @@ const payrollRepository = {
           newPayrun.name,
           newPayrun.pay_period_start,
           newPayrun.pay_period_end,
+          newPayrun.salary_structure_id,
+          newPayrun.employee_count,
+          newPayrun.selected_employee_ids,
+          newPayrun.created_by,
           newPayrun.status,
           newPayrun.total_gross,
           newPayrun.total_deductions,
           newPayrun.total_net,
+          newPayrun.validation_notes,
+          newPayrun.warnings,
           newPayrun.created_at,
           newPayrun.updated_at,
         ]);
@@ -631,16 +677,180 @@ const payrollRepository = {
     return newPayrun;
   },
 
+  async updatePayrun(id, data) {
+    try {
+      const isLive = await db.testConnection();
+      if (isLive) {
+        const fields = [];
+        const params = [id];
+        let idx = 2;
+
+        if (data.status !== undefined) {
+          fields.push(`status = $${idx++}`);
+          params.push(data.status);
+        }
+        if (data.total_gross !== undefined) {
+          fields.push(`total_gross = $${idx++}`);
+          params.push(parseFloat(data.total_gross));
+        }
+        if (data.total_deductions !== undefined) {
+          fields.push(`total_deductions = $${idx++}`);
+          params.push(parseFloat(data.total_deductions));
+        }
+        if (data.total_net !== undefined) {
+          fields.push(`total_net = $${idx++}`);
+          params.push(parseFloat(data.total_net));
+        }
+        if (data.employee_count !== undefined) {
+          fields.push(`employee_count = $${idx++}`);
+          params.push(parseInt(data.employee_count, 10));
+        }
+        if (data.execution_date !== undefined) {
+          fields.push(`execution_date = $${idx++}`);
+          params.push(data.execution_date);
+        }
+        if (data.validation_notes !== undefined) {
+          fields.push(`validation_notes = $${idx++}`);
+          params.push(JSON.stringify(data.validation_notes));
+        }
+        if (data.warnings !== undefined) {
+          fields.push(`warnings = $${idx++}`);
+          params.push(JSON.stringify(data.warnings));
+        }
+        fields.push(`updated_at = NOW()`);
+
+        const sql = `UPDATE payruns SET ${fields.join(', ')} WHERE id = $1 RETURNING *;`;
+        const res = await db.query(sql, params);
+        return res.rows[0] || null;
+      }
+    } catch (err) {
+      console.warn('[Repository DB Fallback updatePayrun]:', err.message);
+    }
+    const idx = fallbackPayruns.findIndex((p) => p.id === id);
+    if (idx !== -1) {
+      fallbackPayruns[idx] = { ...fallbackPayruns[idx], ...data, updated_at: new Date().toISOString() };
+      return fallbackPayruns[idx];
+    }
+    return null;
+  },
+
   // ---------------------------------------------------------------------------
-  // PAYSLIPS
+  // PAYSLIPS & TRANSACTIONAL BATCH SAVING
   // ---------------------------------------------------------------------------
+  async saveComputedPayslipBatch(payrunId, computedList, totals, warnings = []) {
+    const client = await db.getClient();
+    try {
+      await client.query('BEGIN');
+
+      // 1. Clean previous payslips for this payrun if recomputing
+      await client.query('DELETE FROM payslips WHERE payrun_id = $1', [payrunId]);
+
+      // 2. Insert all payslips and itemized lines
+      for (const item of computedList) {
+        const payslipId = crypto.randomUUID ? crypto.randomUUID() : `ps-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+        
+        // Calculate basic and allowances amount
+        const basicAmt = (item.components || [])
+          .filter((c) => c.category === 'BASIC')
+          .reduce((sum, c) => sum + (parseFloat(c.amount) || 0), 0);
+        const allowancesAmt = (item.components || [])
+          .filter((c) => c.category === 'ALLOWANCE')
+          .reduce((sum, c) => sum + (parseFloat(c.amount) || 0), 0);
+
+        await client.query(`
+          INSERT INTO payslips (
+            id, payrun_id, employee_id, contract_id, salary_structure_id,
+            worked_days, absent_days, gross_amount, total_deductions, net_amount,
+            basic_amount, allowances_amount, status
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, 'COMPUTED');
+        `, [
+          payslipId,
+          payrunId,
+          item.employee.id,
+          item.contract?.id || null,
+          item.salaryStructure?.id || null,
+          item.period?.worked_days || 0,
+          item.period?.absent_days || 0,
+          item.gross || 0,
+          item.total_deductions || 0,
+          item.net || 0,
+          basicAmt,
+          allowancesAmt,
+        ]);
+
+        // Insert itemized payslip lines
+        for (const comp of (item.components || [])) {
+          const lineId = crypto.randomUUID ? crypto.randomUUID() : `psl-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+          await client.query(`
+            INSERT INTO payslip_lines (
+              id, payslip_id, salary_rule_id, rule_name, rule_code, category, rate, amount
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8);
+          `, [
+            lineId,
+            payslipId,
+            comp.id || null,
+            comp.rule_name,
+            comp.rule_code,
+            comp.category,
+            comp.rate || 0,
+            comp.amount || 0,
+          ]);
+        }
+      }
+
+      // 3. Update Payrun record with totals and set status to COMPUTED
+      await client.query(`
+        UPDATE payruns SET
+          status = 'COMPUTED',
+          total_gross = $1,
+          total_deductions = $2,
+          total_net = $3,
+          employee_count = $4,
+          warnings = $5,
+          updated_at = NOW()
+        WHERE id = $6;
+      `, [
+        totals.gross,
+        totals.deductions,
+        totals.net,
+        computedList.length,
+        JSON.stringify(warnings),
+        payrunId,
+      ]);
+
+      await client.query('COMMIT');
+      return true;
+    } catch (err) {
+      await client.query('ROLLBACK');
+      throw err;
+    } finally {
+      client.release();
+    }
+  },
+
+  async updatePayslipsStatusForPayrun(payrunId, newStatus) {
+    try {
+      const isLive = await db.testConnection();
+      if (isLive) {
+        await db.query('UPDATE payslips SET status = $1, updated_at = NOW() WHERE payrun_id = $2;', [
+          newStatus,
+          payrunId,
+        ]);
+        return true;
+      }
+    } catch (err) {
+      console.warn('[Repository DB Fallback updatePayslipsStatusForPayrun]:', err.message);
+    }
+    return true;
+  },
+
   async findPayslips({ payrun_id, employee_id, status, page = 1, limit = 20 } = {}) {
     const offset = (page - 1) * limit;
     try {
       const isLive = await db.testConnection();
       if (isLive) {
         let sql = `
-          SELECT p.*, e.display_name as employee_name, e.employee_code, e.department
+          SELECT p.*, e.display_name as employee_name, e.employee_code, e.department, e.designation
           FROM payslips p
           LEFT JOIN employees e ON p.employee_id = e.id
           WHERE 1=1
@@ -689,21 +899,17 @@ const payrollRepository = {
       if (isLive) {
         let sql = 'SELECT COUNT(*) as total FROM payslips WHERE 1=1';
         const params = [];
-        let pIdx = 1;
         if (payrun_id) {
-          sql += ` AND payrun_id = $${pIdx}`;
+          sql += ' AND payrun_id = $1';
           params.push(payrun_id);
-          pIdx++;
         }
         if (employee_id) {
-          sql += ` AND employee_id = $${pIdx}`;
+          sql += ' AND employee_id = $1';
           params.push(employee_id);
-          pIdx++;
         }
         if (status) {
-          sql += ` AND status = $${pIdx}`;
+          sql += ' AND status = $1';
           params.push(status);
-          pIdx++;
         }
         const res = await db.query(sql, params);
         return parseInt(res.rows[0].total, 10);
@@ -729,13 +935,25 @@ const payrollRepository = {
       const isLive = await db.testConnection();
       if (isLive) {
         const sql = `
-          SELECT p.*, e.display_name as employee_name, e.employee_code, e.department
+          SELECT p.*, e.display_name as employee_name, e.employee_code, e.department, e.designation, e.email as employee_email,
+                 pr.name as payrun_name, pr.pay_period_start, pr.pay_period_end
           FROM payslips p
           LEFT JOIN employees e ON p.employee_id = e.id
+          LEFT JOIN payruns pr ON p.payrun_id = pr.id
           WHERE p.id = $1
         `;
         const res = await db.query(sql, [id]);
-        return res.rows[0] || null;
+        const payslip = res.rows[0] || null;
+        if (payslip) {
+          // Fetch itemized lines
+          const linesRes = await db.query(`
+            SELECT * FROM payslip_lines 
+            WHERE payslip_id = $1 
+            ORDER BY created_at ASC;
+          `, [id]);
+          payslip.lines = linesRes.rows || [];
+        }
+        return payslip;
       }
     } catch (err) {
       console.warn('[Repository DB Fallback findPayslipById]:', err.message);
