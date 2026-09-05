@@ -1,22 +1,20 @@
 import React from 'react';
 
 /**
- * Shared Input Component
+ * Shared DatePicker Component
  * Owner: P1 (Core HR)
  */
-export default function Input({
+export default function DatePicker({
   label,
   id,
-  type = 'text',
-  placeholder = '',
   value,
   onChange,
+  min,
+  max,
   error,
   helperText,
   disabled = false,
   required = false,
-  leftIcon = null,
-  rightIcon = null,
   className = '',
   style = {},
   ...props
@@ -40,35 +38,19 @@ export default function Input({
         </label>
       )}
 
-      <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-        {leftIcon && (
-          <span
-            style={{
-              position: 'absolute',
-              left: '12px',
-              color: 'var(--neutral-400, #94a3b8)',
-              display: 'flex',
-              alignItems: 'center',
-              pointerEvents: 'none',
-            }}
-          >
-            {leftIcon}
-          </span>
-        )}
-
+      <div style={{ position: 'relative' }}>
         <input
           id={id}
-          type={type}
-          placeholder={placeholder}
-          value={value}
+          type="date"
+          value={value || ''}
           onChange={onChange}
+          min={min}
+          max={max}
           disabled={disabled}
           required={required}
           style={{
             width: '100%',
             padding: '8px 12px',
-            paddingLeft: leftIcon ? '36px' : '12px',
-            paddingRight: rightIcon ? '36px' : '12px',
             fontSize: '0.875rem',
             borderRadius: 'var(--radius-md, 8px)',
             border: error
@@ -77,27 +59,12 @@ export default function Input({
             outline: 'none',
             backgroundColor: disabled ? 'var(--neutral-100, #f1f5f9)' : '#ffffff',
             color: 'var(--neutral-900, #0f172a)',
-            transition: 'border-color var(--transition-fast)',
             boxShadow: 'var(--shadow-xs)',
             ...style,
           }}
-          className={`form-input ${className}`}
+          className={`form-date-input ${className}`}
           {...props}
         />
-
-        {rightIcon && (
-          <span
-            style={{
-              position: 'absolute',
-              right: '12px',
-              color: 'var(--neutral-400, #94a3b8)',
-              display: 'flex',
-              alignItems: 'center',
-            }}
-          >
-            {rightIcon}
-          </span>
-        )}
       </div>
 
       {helperText && !error && (
