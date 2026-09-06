@@ -41,11 +41,25 @@ class CompOffService {
       throw ApiError.notFound(`Employee with ID '${employee_id}' not found`);
     }
 
+    // Prevent duplicate active comp-off claim for same employee on same date
+    try {
+      const existingClaims = await compOffRepository.findCredits({ employee_id, limit: 100 });
+      const duplicate = existingClaims.find(c => {
+        const cDate = typeof c.work_date === 'string' ? c.work_date.split('T')[0] : c.work_date.toISOString().split('T')[0];
+        return cDate === work_date && ['PENDING', 'APPROVED'].includes(c.status);
+      });
+      if (duplicate) {
+        throw ApiError.badRequest(`A comp-off claim for work date ${work_date} is already ${duplicate.status.toLowerCase()}`);
+      }
+    } catch (dupErr) {
+      if (dupErr instanceof ApiError) throw dupErr;
+    }
+
     const credit = await compOffRepository.createCredit({
       employee_id,
       work_date,
       hours_worked: parseFloat(hours_worked || 8),
-      reason,
+      reason: reason || 'Qualifying extra work performed',
       days_credited: daysNum,
     });
 

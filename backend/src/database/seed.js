@@ -153,13 +153,14 @@ async function runSeed() {
 
     console.log('[Seed] 3. Creating Time Off Types (Earned, Casual, Sick, Maternity, Unpaid LWP)...');
     const totRes = await client.query(`
-      INSERT INTO time_off_types (name, code, is_paid, requires_approval, max_days_allowed)
+      INSERT INTO time_off_types (name, code, description, is_paid, requires_approval, allocation_method, annual_allocation, max_days_allowed, allow_employee_request, allow_half_day, is_active)
       VALUES 
-      ('Earned Leave (Privilege Leave)', 'EL', true, true, 18),
-      ('Casual Leave', 'CL', true, true, 12),
-      ('Sick Leave', 'SL', true, true, 10),
-      ('Maternity Leave', 'ML', true, true, 180),
-      ('Leave Without Pay (Unpaid Leave)', 'LWP', false, true, 30)
+      ('Earned Leave (Privilege Leave)', 'EL', 'Annual privilege / earned leave accumulated over active tenure', true, true, 'FIXED_ANNUAL', 18.00, 18, true, true, true),
+      ('Casual Leave', 'CL', 'Standard casual leave allowance for personal and family commitments', true, true, 'FIXED_ANNUAL', 12.00, 12, true, true, true),
+      ('Sick Leave', 'SL', 'Medical leave for illness, medical appointments, and health recuperation', true, true, 'FIXED_ANNUAL', 10.00, 10, true, true, true),
+      ('Compensatory Off', 'COMP_OFF', 'Time off earned for approved qualifying extra work on non-working days or holidays', true, true, 'EARNED', NULL, 0, true, true, true),
+      ('Maternity Leave', 'ML', 'Statutory maternity leave for eligible employees', true, true, 'MANUAL', 180.00, 180, true, false, true),
+      ('Leave Without Pay (Unpaid Leave)', 'LWP', 'Leave without pay (unpaid) approved when paid quotas are exhausted', false, true, 'UNLIMITED', NULL, 0, true, true, true)
       RETURNING id, code;
     `);
     const leaveTypeMap = {};

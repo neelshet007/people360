@@ -10,15 +10,62 @@ const ApiError = require('../../../utils/ApiError');
  */
 const timeoffService = {
   // Types
-  async getTypes() {
-    return timeoffRepository.findTypes();
+  async getTypes(query = {}) {
+    return timeoffRepository.findTypes(query);
+  },
+
+  async getTypeById(id) {
+    const type = await timeoffRepository.findTypeById(id);
+    if (!type) {
+      throw ApiError.notFound(`Time off type with ID '${id}' not found`);
+    }
+    return type;
   },
 
   async createType(data) {
-    if (!data.name || !data.code) {
-      throw ApiError.badRequest('Leave type name and code are required');
+    if (!data.name || !data.name.trim()) {
+      throw ApiError.badRequest('Time off type name is required');
     }
-    return timeoffRepository.createType(data);
+    if (!data.code || !data.code.trim()) {
+      throw ApiError.badRequest('Time off type code is required');
+    }
+    const cleanCode = data.code.trim().toUpperCase();
+    const existing = await timeoffRepository.findTypeByCode(cleanCode);
+    if (existing) {
+      throw ApiError.badRequest(`A time off type with code '${cleanCode}' already exists`);
+    }
+
+    const validMethods = ['FIXED_ANNUAL', 'ACCRUED_MONTHLY', 'MANUAL', 'UNLIMITED', 'EARNED'];
+    if (data.allocation_method && !validMethods.includes(data.allocation_method)) {
+      throw ApiError.badRequest(`Invalid allocation_method. Allowed: ${validMethods.join(', ')}`);
+    }
+
+    return timeoffRepository.createType({
+      ...data,
+      code: cleanCode,
+    });
+  },
+
+  async updateType(id, data) {
+    const existing = await timeoffRepository.findTypeById(id);
+    if (!existing) {
+      throw ApiError.notFound(`Time off type with ID '${id}' not found`);
+    }
+
+    if (data.code && data.code.trim().toUpperCase() !== existing.code) {
+      const cleanCode = data.code.trim().toUpperCase();
+      const duplicate = await timeoffRepository.findTypeByCode(cleanCode);
+      if (duplicate && duplicate.id !== id) {
+        throw ApiError.badRequest(`A time off type with code '${cleanCode}' already exists`);
+      }
+    }
+
+    const validMethods = ['FIXED_ANNUAL', 'ACCRUED_MONTHLY', 'MANUAL', 'UNLIMITED', 'EARNED'];
+    if (data.allocation_method && !validMethods.includes(data.allocation_method)) {
+      throw ApiError.badRequest(`Invalid allocation_method. Allowed: ${validMethods.join(', ')}`);
+    }
+
+    return timeoffRepository.updateType(id, data);
   },
 
   // Allocations
@@ -39,8 +86,15 @@ const timeoffService = {
       return { working_days: 0, total_calendar_days: 0, non_working_days: 0, schedule_name: 'Standard' };
     }
 
-    const start = new Date(startDate + 'T00:00:00');
-    const end = new Date(endDate + 'T00:00:00');
+    const startStr = typeof startDate === 'string'
+      ? startDate.split('T')[0]
+      : (startDate instanceof Date ? startDate.toISOString().split('T')[0] : String(startDate));
+    const endStr = typeof endDate === 'string'
+      ? endDate.split('T')[0]
+      : (endDate instanceof Date ? endDate.toISOString().split('T')[0] : String(endDate));
+
+    const start = new Date(startStr + 'T00:00:00');
+    const end = new Date(endStr + 'T00:00:00');
     if (isNaN(start.getTime()) || isNaN(end.getTime()) || start > end) {
       throw ApiError.badRequest('Start date cannot be after end date');
     }
@@ -150,7 +204,7 @@ const timeoffService = {
     return request;
   },
 
-  async createRequest(data) {
+  async createRequest(data, requesterUser = null) {
     if (!data.employee_id || !data.time_off_type_id || !data.start_date || !data.end_date) {
       throw ApiError.badRequest('Employee ID, Leave Type, start date, and end date are required');
     }
@@ -158,10 +212,30 @@ const timeoffService = {
       throw ApiError.badRequest('Start date cannot be after end date');
     }
 
+    // Retrieve the target time off type configuration
+    const leaveType = await timeoffRepository.findTypeById(data.time_off_type_id);
+    if (!leaveType) {
+      throw ApiError.notFound(`Leave type with ID '${data.time_off_type_id}' does not exist`);
+    }
+
+    if (leaveType.is_active === false) {
+      throw ApiError.badRequest(`Leave type '${leaveType.name}' is currently inactive and cannot be requested`);
+    }
+
+    // Role verification: check if employees can self-request
+    if (requesterUser && requesterUser.role === 'EMPLOYEE') {
+      if (leaveType.allow_employee_request === false) {
+        throw ApiError.badRequest(`Leave type '${leaveType.name}' cannot be requested directly by employees. Please contact HR.`);
+      }
+    }
+
     // Detect working days excluding weekends / non-working days from employee's schedule
     const detected = await this.calculateWorkingDays(data.employee_id, data.start_date, data.end_date);
 
     if (parseFloat(data.total_days) === 0.5 && detected.working_days >= 1) {
+      if (leaveType.allow_half_day === false) {
+        throw ApiError.badRequest(`Half day leave requests are not permitted for '${leaveType.name}'`);
+      }
       data.total_days = 0.5;
     } else {
       data.total_days = detected.working_days;
@@ -171,6 +245,42 @@ const timeoffService = {
       throw ApiError.badRequest(
         'Selected date range contains 0 working days according to employee working schedule (weekends/off-days excluded)'
       );
+    }
+
+    // Check for overlapping approved or pending requests
+    try {
+      const isLive = await db.testConnection();
+      if (isLive) {
+        const overlapRes = await db.query(
+          `SELECT id, start_date, end_date, status FROM time_off_requests
+           WHERE employee_id = $1
+             AND status IN ('APPROVED', 'PENDING')
+             AND start_date <= $3 AND end_date >= $2
+           LIMIT 1`,
+          [data.employee_id, data.start_date, data.end_date]
+        );
+        if (overlapRes.rows.length > 0) {
+          const ov = overlapRes.rows[0];
+          throw ApiError.badRequest(
+            `You already have an active leave request (${ov.status}) for period ${ov.start_date} to ${ov.end_date}`
+          );
+        }
+      }
+    } catch (ovErr) {
+      if (ovErr instanceof ApiError) throw ovErr;
+    }
+
+    // CRITICAL COMP OFF / EARNED ALLOCATION VALIDATION
+    if (leaveType.allocation_method === 'EARNED' || leaveType.code === 'COMP_OFF') {
+      const compOffBal = await compOffRepository.getAvailableBalance(data.employee_id);
+      const availableDays = parseFloat(compOffBal.available_days || 0);
+      const requestedDays = parseFloat(data.total_days);
+
+      if (requestedDays > availableDays) {
+        throw ApiError.badRequest(
+          `Insufficient Compensatory Off balance. Available: ${availableDays.toFixed(1)} day(s), requested: ${requestedDays.toFixed(1)} day(s). Comp Off must be earned and approved first.`
+        );
+      }
     }
 
     return timeoffRepository.createRequest(data);
@@ -185,13 +295,54 @@ const timeoffService = {
       throw ApiError.notFound(`Time-off request with ID '${id}' not found`);
     }
     const updated = await timeoffRepository.updateRequestStatus(id, { status, approver_id });
-    if (status === 'APPROVED' && (existing.leave_type_code === 'COMP_OFF' || existing.leave_type_name === 'Compensatory Off')) {
+
+    if (status === 'APPROVED') {
+      // 1. Consume comp off credits if this is an earned comp off leave
+      if (existing.leave_type_code === 'COMP_OFF' || existing.leave_type_name === 'Compensatory Off') {
+        try {
+          await compOffRepository.consumeCredits(existing.employee_id, existing.total_days);
+        } catch (err) {
+          console.warn('[TimeoffService] Error consuming comp off credits:', err.message);
+        }
+      }
+
+      // 2. Attendance Integration: Mark working days in the leave range as ON_LEAVE
       try {
-        await compOffRepository.consumeCredits(existing.employee_id, existing.total_days);
-      } catch (err) {
-        console.warn('[TimeoffService] Error consuming comp off credits:', err.message);
+        const isLive = await db.testConnection();
+        if (isLive) {
+          const sStr = typeof existing.start_date === 'string'
+            ? existing.start_date.split('T')[0]
+            : new Date(existing.start_date).toISOString().split('T')[0];
+          const eStr = typeof existing.end_date === 'string'
+            ? existing.end_date.split('T')[0]
+            : new Date(existing.end_date).toISOString().split('T')[0];
+
+          const detected = await this.calculateWorkingDays(existing.employee_id, sStr, eStr);
+          const start = new Date(sStr + 'T00:00:00');
+          const end = new Date(eStr + 'T00:00:00');
+          let cur = new Date(start);
+
+          while (cur <= end) {
+            const dateStr = cur.toISOString().split('T')[0];
+            const isNonWorking = (detected.non_working_dates || []).some(nw => nw.date === dateStr);
+            if (!isNonWorking) {
+              await db.query(`
+                INSERT INTO attendance (employee_id, date, status, notes, total_hours, expected_hours, difference_hours, created_at, updated_at)
+                VALUES ($1, $2, 'ON_LEAVE', $3, 0.00, 8.00, -8.00, NOW(), NOW())
+                ON CONFLICT (employee_id, date) DO UPDATE
+                SET status = 'ON_LEAVE',
+                    notes = COALESCE(attendance.notes || E'\\n', '') || $3,
+                    updated_at = NOW();
+              `, [existing.employee_id, dateStr, `Approved leave: ${existing.leave_type_name || 'Time Off'}`]);
+            }
+            cur.setDate(cur.getDate() + 1);
+          }
+        }
+      } catch (attErr) {
+        console.warn('[TimeoffService] Error syncing approved leave to attendance:', attErr.message);
       }
     }
+
     return updated;
   },
 };

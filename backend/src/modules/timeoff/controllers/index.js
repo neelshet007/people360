@@ -9,8 +9,21 @@ const { successResponse } = require('../../../utils/responseHelper');
 
 const getTypes = async (req, res, next) => {
   try {
-    const types = await timeoffService.getTypes();
+    const filters = { ...req.query };
+    if (req.user && req.user.role === 'EMPLOYEE' && filters.is_active === undefined) {
+      filters.is_active = true;
+    }
+    const types = await timeoffService.getTypes(filters);
     return successResponse(res, types);
+  } catch (error) {
+    next(error);
+  }
+};
+
+const getTypeById = async (req, res, next) => {
+  try {
+    const type = await timeoffService.getTypeById(req.params.id);
+    return successResponse(res, type);
   } catch (error) {
     next(error);
   }
@@ -19,7 +32,16 @@ const getTypes = async (req, res, next) => {
 const createType = async (req, res, next) => {
   try {
     const type = await timeoffService.createType(req.body);
-    return successResponse(res, type, null, 201);
+    return successResponse(res, type, 'Time off type created successfully', 201);
+  } catch (error) {
+    next(error);
+  }
+};
+
+const updateType = async (req, res, next) => {
+  try {
+    const type = await timeoffService.updateType(req.params.id, req.body);
+    return successResponse(res, type, 'Time off type updated successfully');
   } catch (error) {
     next(error);
   }
@@ -81,7 +103,7 @@ const createRequest = async (req, res, next) => {
     if (req.user && req.user.role === 'EMPLOYEE' && req.user.employeeId) {
       payload.employee_id = req.user.employeeId;
     }
-    const request = await timeoffService.createRequest(payload);
+    const request = await timeoffService.createRequest(payload, req.user);
     return successResponse(res, request, null, 201);
   } catch (error) {
     next(error);
@@ -203,7 +225,9 @@ const getCompOffTypeId = async (req, res, next) => {
 
 module.exports = {
   getTypes,
+  getTypeById,
   createType,
+  updateType,
   getAllocations,
   createAllocation,
   getRequests,

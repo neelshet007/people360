@@ -17,7 +17,7 @@ import TimeOffStatusBadge from '../components/TimeOffStatusBadge';
 import timeoffApi from '../api/timeoffApi';
 import employeesApi from '../../employees/api/employeesApi';
 import { useAuth } from '../../../context/AuthContext';
-import { CheckCircleIcon, XIcon, PlusIcon, SearchIcon, RefreshIcon, FilterIcon, MessageSquareIcon } from '../../../components/ui/Icons';
+import { CheckCircleIcon, XIcon, PlusIcon, SearchIcon, RefreshIcon, FilterIcon, MessageSquareIcon, EditIcon } from '../../../components/ui/Icons';
 import RaiseConcernModal from '../../concerns/components/RaiseConcernModal';
 
 /**
@@ -35,6 +35,11 @@ export default function TimeOffPage() {
     currentRole === 'HR_PAYROLL_MANAGER' ||
     currentRole === 'HR_PAYROLL_USER' ||
     hasPermission('timeoff.approve');
+  const canManageTypes =
+    currentRole === 'ADMIN' ||
+    currentRole === 'HR_MANAGER' ||
+    currentRole === 'HR_PAYROLL_MANAGER' ||
+    hasPermission('timeoff.write');
 
   const formatCleanDate = (dStr) => {
     if (!dStr) return '—';
@@ -60,9 +65,31 @@ export default function TimeOffPage() {
   const [actionLoadingId, setActionLoadingId] = useState(null);
 
 
-  // Types State
+  // Types State & Catalogue Management
   const [types, setTypes] = useState([]);
   const [loadingTypes, setLoadingTypes] = useState(false);
+  const [showTypeModal, setShowTypeModal] = useState(false);
+  const [editingType, setEditingType] = useState(null);
+  const [savingType, setSavingType] = useState(false);
+  const [typeModalError, setTypeModalError] = useState(null);
+  const [typeForm, setTypeForm] = useState({
+    name: '',
+    code: '',
+    description: '',
+    is_paid: true,
+    allocation_method: 'FIXED_ANNUAL',
+    annual_allocation: '12',
+    requires_approval: true,
+    allow_employee_request: true,
+    allow_half_day: true,
+    carry_forward_allowed: false,
+    carry_forward_limit: '0',
+    is_active: true,
+  });
+
+  // Comp Off Live Balance State for Request Modal
+  const [employeeCompOffBal, setEmployeeCompOffBal] = useState(null);
+  const [loadingCompOffBal, setLoadingCompOffBal] = useState(false);
 
   // Allocations State & Filters
   const [allocations, setAllocations] = useState([]);
@@ -156,11 +183,116 @@ export default function TimeOffPage() {
       const res = await timeoffApi.getTypes();
       setTypes(res.data || []);
     } catch (err) {
-      // ignore
+      console.error('Failed to fetch leave types:', err);
     } finally {
       setLoadingTypes(false);
     }
   };
+
+  const handleOpenCreateType = () => {
+    setEditingType(null);
+    setTypeForm({
+      name: '',
+      code: '',
+      description: '',
+      is_paid: true,
+      allocation_method: 'FIXED_ANNUAL',
+      annual_allocation: '12',
+      requires_approval: true,
+      allow_employee_request: true,
+      allow_half_day: true,
+      carry_forward_allowed: false,
+      carry_forward_limit: '0',
+      is_active: true,
+    });
+    setTypeModalError(null);
+    setShowTypeModal(true);
+  };
+
+  const handleOpenEditType = (t) => {
+    setEditingType(t);
+    setTypeForm({
+      name: t.name || '',
+      code: t.code || '',
+      description: t.description || '',
+      is_paid: t.is_paid !== false,
+      allocation_method: t.allocation_method || 'FIXED_ANNUAL',
+      annual_allocation: t.annual_allocation !== null && t.annual_allocation !== undefined ? String(t.annual_allocation) : '',
+      requires_approval: t.requires_approval !== false,
+      allow_employee_request: t.allow_employee_request !== false,
+      allow_half_day: t.allow_half_day !== false,
+      carry_forward_allowed: Boolean(t.carry_forward_allowed),
+      carry_forward_limit: String(t.carry_forward_limit || '0'),
+      is_active: t.is_active !== false,
+    });
+    setTypeModalError(null);
+    setShowTypeModal(true);
+  };
+
+  const handleToggleTypeStatus = async (t) => {
+    try {
+      await timeoffApi.updateType(t.id, { is_active: !t.is_active });
+      await fetchTypes();
+    } catch (err) {
+      alert('Failed to update leave type status: ' + (err.response?.data?.error?.message || err.message));
+    }
+  };
+
+  const handleSaveType = async (e) => {
+    e.preventDefault();
+    if (!typeForm.name.trim() || !typeForm.code.trim()) {
+      setTypeModalError('Leave type Name and unique Code are required.');
+      return;
+    }
+    setSavingType(true);
+    setTypeModalError(null);
+    try {
+      const isEarnedOrUnlimited = typeForm.allocation_method === 'EARNED' || typeForm.allocation_method === 'UNLIMITED';
+      const payload = {
+        name: typeForm.name.trim(),
+        code: typeForm.code.trim().toUpperCase(),
+        description: typeForm.description,
+        is_paid: Boolean(typeForm.is_paid),
+        allocation_method: typeForm.allocation_method,
+        annual_allocation: isEarnedOrUnlimited ? null : (typeForm.annual_allocation ? parseFloat(typeForm.annual_allocation) : null),
+        requires_approval: Boolean(typeForm.requires_approval),
+        allow_employee_request: Boolean(typeForm.allow_employee_request),
+        allow_half_day: Boolean(typeForm.allow_half_day),
+        carry_forward_allowed: Boolean(typeForm.carry_forward_allowed),
+        carry_forward_limit: typeForm.carry_forward_allowed ? parseFloat(typeForm.carry_forward_limit || 0) : 0,
+        is_active: Boolean(typeForm.is_active),
+      };
+
+      if (editingType) {
+        await timeoffApi.updateType(editingType.id, payload);
+      } else {
+        await timeoffApi.createType(payload);
+      }
+      setShowTypeModal(false);
+      await fetchTypes();
+    } catch (err) {
+      setTypeModalError(err.response?.data?.error?.message || err.message);
+    } finally {
+      setSavingType(false);
+    }
+  };
+
+  // Watch for Comp Off selection in Leave Request modal to fetch live available balance
+  useEffect(() => {
+    const selectedType = types.find((t) => t.id === newRequest.time_off_type_id);
+    const targetEmpId = isEmployee ? user?.employeeId : newRequest.employee_id;
+    if (selectedType && (selectedType.allocation_method === 'EARNED' || selectedType.code === 'COMP_OFF') && targetEmpId) {
+      setLoadingCompOffBal(true);
+      timeoffApi.getCompOffBalance(targetEmpId)
+        .then((res) => {
+          setEmployeeCompOffBal(res.data?.data || res.data || null);
+        })
+        .catch(() => setEmployeeCompOffBal(null))
+        .finally(() => setLoadingCompOffBal(false));
+    } else {
+      setEmployeeCompOffBal(null);
+    }
+  }, [newRequest.time_off_type_id, newRequest.employee_id, isEmployee, user, types]);
 
   const fetchAllocations = async (filtersToApply = balanceFilters) => {
     setLoadingAllocs(true);
@@ -255,6 +387,17 @@ export default function TimeOffPage() {
       setModalError('Please complete all required fields');
       return;
     }
+
+    const selectedType = types.find((t) => t.id === newRequest.time_off_type_id);
+    const reqDays = parseFloat(newRequest.total_days || 1);
+    if (selectedType && (selectedType.allocation_method === 'EARNED' || selectedType.code === 'COMP_OFF')) {
+      const available = employeeCompOffBal ? parseFloat(employeeCompOffBal.available_days || 0) : 0;
+      if (reqDays > available) {
+        setModalError(`Insufficient Compensatory Off balance. You requested ${reqDays} day(s) but have only ${available} day(s) available.`);
+        return;
+      }
+    }
+
     setSubmitting(true);
     setModalError(null);
     try {
@@ -450,32 +593,128 @@ export default function TimeOffPage() {
       header: 'Leave Type Name',
       accessor: 'name',
       render: (row) => (
-        <div style={{ fontWeight: 600, color: 'var(--neutral-900, #0f172a)' }}>{row.name}</div>
+        <div>
+          <div style={{ fontWeight: 600, color: 'var(--text-primary, #0f172a)' }}>{row.name}</div>
+          {row.description && (
+            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted, #64748b)', maxWidth: '280px', lineHeight: '1.3', marginTop: '2px' }}>
+              {row.description}
+            </div>
+          )}
+        </div>
       ),
     },
     {
       header: 'Code',
       accessor: 'code',
       render: (row) => (
-        <code style={{ fontSize: '0.8125rem', backgroundColor: 'var(--neutral-100, #f1f5f9)', padding: '2px 6px', borderRadius: '4px' }}>
+        <code style={{ fontSize: '0.75rem', fontWeight: 700, backgroundColor: 'var(--neutral-100, #f1f5f9)', padding: '2px 6px', borderRadius: '4px', letterSpacing: '0.04em' }}>
           {row.code}
         </code>
       ),
     },
     {
-      header: 'Paid Leave',
+      header: 'Pay Type',
       accessor: 'is_paid',
       render: (row) => (
-        <Badge variant={row.is_paid ? 'success' : 'neutral'}>
-          {row.is_paid ? 'Paid' : 'Unpaid'}
+        <Badge variant={row.is_paid ? 'success' : 'warning'}>
+          {row.is_paid ? 'Paid' : 'Unpaid (LWP)'}
         </Badge>
       ),
     },
     {
-      header: 'Annual Allocation Cap',
-      accessor: 'max_days_allowed',
-      render: (row) => <span>{row.max_days_allowed} days/year</span>,
+      header: 'Allocation Model',
+      accessor: 'allocation_method',
+      render: (row) => {
+        const method = row.allocation_method || 'FIXED_ANNUAL';
+        if (method === 'EARNED' || row.code === 'COMP_OFF') {
+          return <Badge variant="primary">Earned (Extra Work)</Badge>;
+        }
+        if (method === 'UNLIMITED') {
+          return <Badge variant="info">Unlimited / No Cap</Badge>;
+        }
+        if (method === 'MANUAL') {
+          return <Badge variant="neutral">Manual Grant</Badge>;
+        }
+        if (method === 'ACCRUED_MONTHLY') {
+          return <Badge variant="secondary">Accrued Monthly</Badge>;
+        }
+        return <Badge variant="neutral">Fixed Annual</Badge>;
+      },
     },
+    {
+      header: 'Allocation Quota',
+      accessor: 'annual_allocation',
+      render: (row) => {
+        if (row.allocation_method === 'EARNED' || row.code === 'COMP_OFF') {
+          return (
+            <span style={{ fontSize: '0.8125rem', color: 'var(--primary-700, #4338ca)', fontWeight: 600 }}>
+              Earned via Attendance
+            </span>
+          );
+        }
+        if (row.allocation_method === 'UNLIMITED') {
+          return <span style={{ fontSize: '0.8125rem', color: 'var(--text-muted, #64748b)' }}>No Annual Limit</span>;
+        }
+        if (row.annual_allocation !== null && row.annual_allocation !== undefined) {
+          return <span style={{ fontWeight: 600 }}>{row.annual_allocation} days/yr</span>;
+        }
+        return <span>{row.max_days_allowed || 0} days/yr</span>;
+      },
+    },
+    {
+      header: 'Policy Rules',
+      render: (row) => (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', fontSize: '0.75rem', color: 'var(--text-secondary, #475569)' }}>
+          <span>{row.allow_employee_request !== false ? '✓ Employee Request' : '✗ Admin Only'}</span>
+          <span>{row.allow_half_day !== false ? '✓ Half-Day Allowed' : '✗ Full Day Only'}</span>
+          {row.carry_forward_allowed && (
+            <span style={{ color: 'var(--primary-600, #4f46e5)', fontWeight: 500 }}>
+              Carry Forward (max {row.carry_forward_limit || 0}d)
+            </span>
+          )}
+        </div>
+      ),
+    },
+    {
+      header: 'Status',
+      accessor: 'is_active',
+      render: (row) => (
+        <Badge variant={row.is_active !== false ? 'success' : 'neutral'} dot>
+          {row.is_active !== false ? 'Active' : 'Inactive'}
+        </Badge>
+      ),
+    },
+    ...(canManageTypes
+      ? [
+          {
+            header: 'Actions',
+            render: (row) => (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  onClick={() => handleOpenEditType(row)}
+                  style={{ padding: '3px 8px', fontSize: '0.75rem', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                >
+                  <EditIcon size={12} /> Edit
+                </Button>
+                <Button
+                  size="sm"
+                  variant={row.is_active !== false ? 'ghost' : 'secondary'}
+                  onClick={() => handleToggleTypeStatus(row)}
+                  style={{
+                    padding: '3px 8px',
+                    fontSize: '0.75rem',
+                    color: row.is_active !== false ? 'var(--danger-600, #dc2626)' : 'var(--success-600, #16a34a)',
+                  }}
+                >
+                  {row.is_active !== false ? 'Deactivate' : 'Activate'}
+                </Button>
+              </div>
+            ),
+          },
+        ]
+      : []),
   ];
 
   const departmentOptions = React.useMemo(() => {
@@ -552,13 +791,35 @@ export default function TimeOffPage() {
       ),
     },
     {
-      header: 'Allocated',
+      header: 'Allocated / Earned',
       accessor: 'allocated_days',
-      render: (row) => (
-        <span style={{ fontVariantNumeric: 'tabular-nums', fontWeight: 500 }}>
-          {parseFloat(row.allocated_days || 0).toFixed(1)} d
-        </span>
-      ),
+      render: (row) => {
+        const isEarned = row.allocation_method === 'EARNED' || row.leave_type_code === 'COMP_OFF';
+        if (isEarned) {
+          return (
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              <span style={{ fontVariantNumeric: 'tabular-nums', fontWeight: 600, color: 'var(--primary-700, #4338ca)' }}>
+                {parseFloat(row.allocated_days || 0).toFixed(1)} d
+              </span>
+              <span style={{ fontSize: '0.6875rem', color: 'var(--primary-600, #4f46e5)', fontWeight: 500 }}>
+                Earned Entitlement
+              </span>
+            </div>
+          );
+        }
+        if (row.allocation_method === 'UNLIMITED') {
+          return (
+            <span style={{ fontSize: '0.8125rem', color: 'var(--text-muted, #64748b)', fontStyle: 'italic' }}>
+              Unlimited
+            </span>
+          );
+        }
+        return (
+          <span style={{ fontVariantNumeric: 'tabular-nums', fontWeight: 500 }}>
+            {parseFloat(row.allocated_days || 0).toFixed(1)} d
+          </span>
+        );
+      },
     },
     {
       header: 'Used',
@@ -582,15 +843,23 @@ export default function TimeOffPage() {
       },
     },
     {
-      header: 'Remaining',
+      header: 'Available',
       accessor: 'remaining_days',
       render: (row) => {
+        const isEarned = row.allocation_method === 'EARNED' || row.leave_type_code === 'COMP_OFF';
         const rem = parseFloat(row.remaining_days !== undefined ? row.remaining_days : (row.allocated_days - row.used_days) || 0);
         const color = rem > 3 ? 'var(--success-700, #15803d)' : rem > 0 ? 'var(--warning-700, #b45309)' : rem === 0 ? 'var(--text-muted, #64748b)' : 'var(--danger-700, #b91c1c)';
         return (
-          <strong style={{ fontVariantNumeric: 'tabular-nums', color, fontSize: '0.875rem' }}>
-            {rem.toFixed(1)} d
-          </strong>
+          <div>
+            <strong style={{ fontVariantNumeric: 'tabular-nums', color, fontSize: '0.875rem' }}>
+              {rem.toFixed(1)} d
+            </strong>
+            {isEarned && (
+              <div style={{ fontSize: '0.6875rem', color: 'var(--text-muted, #64748b)' }}>
+                Approved available
+              </div>
+            )}
+          </div>
         );
       },
     },
@@ -680,15 +949,48 @@ export default function TimeOffPage() {
       )}
 
       {activeTab === 'types' && (
-        <Card noPadding>
-          {loadingTypes ? (
-            <Loading message="Loading leave policy catalog..." />
-          ) : types.length === 0 ? (
-            <EmptyState title="No leave categories found" description="Leave policies will be configured here." />
-          ) : (
-            <Table columns={typeColumns} data={types} />
-          )}
-        </Card>
+        <>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
+            <div>
+              <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 600, color: 'var(--text-primary, #0f172a)' }}>
+                Time Off Type Catalogue
+              </h3>
+              <p style={{ margin: '4px 0 0', fontSize: '0.8125rem', color: 'var(--text-secondary, #475569)' }}>
+                Configure company leave categories, pay eligibility, allocation models (Fixed Annual, Earned Comp Off, Unlimited), and request policies.
+              </p>
+            </div>
+            {canManageTypes && (
+              <Button
+                id="btn-create-timeoff-type"
+                variant="primary"
+                icon={<PlusIcon size={16} />}
+                onClick={handleOpenCreateType}
+              >
+                Create Time Off Type
+              </Button>
+            )}
+          </div>
+
+          <Card noPadding>
+            {loadingTypes ? (
+              <Loading message="Loading leave policy catalog..." />
+            ) : types.length === 0 ? (
+              <EmptyState
+                title="No leave categories found"
+                description="Configure your organization's leave policies, compensatory off, and time off catalog here."
+                action={
+                  canManageTypes ? (
+                    <Button variant="primary" size="sm" icon={<PlusIcon size={16} />} onClick={handleOpenCreateType}>
+                      Create Time Off Type
+                    </Button>
+                  ) : null
+                }
+              />
+            ) : (
+              <Table columns={typeColumns} data={types} />
+            )}
+          </Card>
+        </>
       )}
 
       {activeTab === 'allocations' && (
@@ -930,14 +1232,78 @@ export default function TimeOffPage() {
               required
               options={[
                 { value: '', label: 'Select category...' },
-                ...types.map((t) => ({
-                  value: t.id,
-                  label: `${t.name} (${t.code})${t.is_paid === false ? ' — Unpaid (Deducts Pay)' : ''}`,
-                })),
+                ...types
+                  .filter((t) => t.is_active !== false && (!isEmployee || t.allow_employee_request !== false))
+                  .map((t) => ({
+                    value: t.id,
+                    label: `${t.name} (${t.code})${t.is_paid === false ? ' — Unpaid (Deducts Pay)' : ''}${t.allocation_method === 'EARNED' || t.code === 'COMP_OFF' ? ' — Earned Entitlement' : ''}`,
+                  })),
               ]}
               value={newRequest.time_off_type_id}
               onChange={(e) => setNewRequest((prev) => ({ ...prev, time_off_type_id: e.target.value }))}
             />
+
+            {/* Dynamic Leave Type Context Banner */}
+            {(() => {
+              const selectedType = types.find((t) => t.id === newRequest.time_off_type_id);
+              if (!selectedType) return null;
+
+              const isEarned = selectedType.allocation_method === 'EARNED' || selectedType.code === 'COMP_OFF';
+              if (isEarned) {
+                const avail = employeeCompOffBal ? parseFloat(employeeCompOffBal.available_days || 0) : 0;
+                const reqDays = parseFloat(newRequest.total_days || 1);
+                const hasEnough = avail >= reqDays;
+
+                return (
+                  <div
+                    style={{
+                      padding: '12px 14px',
+                      backgroundColor: hasEnough ? '#f0fdf4' : '#fef2f2',
+                      border: `1px solid ${hasEnough ? '#bbf7d0' : '#fecaca'}`,
+                      borderRadius: '8px',
+                      fontSize: '0.8125rem',
+                      color: hasEnough ? '#166534' : '#991b1b',
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontWeight: 600 }}>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span>⭐</span> Compensatory Off Earned Balance
+                      </span>
+                      <span style={{ fontSize: '0.875rem' }}>
+                        {loadingCompOffBal ? 'Fetching...' : `${avail} Day(s) Available`}
+                      </span>
+                    </div>
+                    <div style={{ marginTop: '4px', fontSize: '0.75rem', opacity: 0.9 }}>
+                      Earned from extra work: <strong>{employeeCompOffBal?.earned_days || 0}d</strong> • Used: <strong>{employeeCompOffBal?.used_days || 0}d</strong> • Pending: <strong>{employeeCompOffBal?.pending_days || 0}d</strong>
+                    </div>
+                    {!hasEnough && (
+                      <div style={{ marginTop: '6px', fontWeight: 600, color: '#dc2626' }}>
+                        ⚠️ You requested {reqDays} day(s), which exceeds your available {avail} day(s). Comp Off must be earned through approved extra work before use.
+                      </div>
+                    )}
+                  </div>
+                );
+              }
+
+              if (selectedType.is_paid === false) {
+                return (
+                  <div
+                    style={{
+                      padding: '10px 14px',
+                      backgroundColor: '#fffbeb',
+                      border: '1px solid #fde68a',
+                      borderRadius: '8px',
+                      fontSize: '0.8125rem',
+                      color: '#92400e',
+                    }}
+                  >
+                    ℹ️ <strong>Unpaid Leave (Leave Without Pay):</strong> This leave type does not provide paid time off. Approved absences will be deducted from your salary in payroll processing.
+                  </div>
+                );
+              }
+
+              return null;
+            })()}
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
               <Input
@@ -1009,6 +1375,201 @@ export default function TimeOffPage() {
               value={newRequest.reason}
               onChange={(e) => setNewRequest((prev) => ({ ...prev, reason: e.target.value }))}
             />
+          </div>
+        </Modal>
+      )}
+
+      {/* ── Create / Edit Time Off Type Modal ── */}
+      {showTypeModal && (
+        <Modal
+          title={editingType ? `Edit Leave Type: ${editingType.name}` : "Create Configurable Time Off Type"}
+          isOpen={showTypeModal}
+          onClose={() => setShowTypeModal(false)}
+          actions={
+            <>
+              <Button variant="secondary" onClick={() => setShowTypeModal(false)}>
+                Cancel
+              </Button>
+              <Button variant="primary" loading={savingType} onClick={handleSaveType}>
+                {editingType ? 'Save Changes' : 'Create Time Off Type'}
+              </Button>
+            </>
+          }
+        >
+          {typeModalError && (
+            <Alert type="danger" style={{ marginBottom: '16px' }}>
+              {typeModalError}
+            </Alert>
+          )}
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '16px' }}>
+              <Input
+                label="Time Off Type Name"
+                placeholder="e.g. Compensatory Off, Casual Leave, Sabbatical"
+                required
+                value={typeForm.name}
+                onChange={(e) => setTypeForm((prev) => ({ ...prev, name: e.target.value }))}
+              />
+              <Input
+                label="Code"
+                placeholder="e.g. COMP, CL, SAB"
+                required
+                disabled={Boolean(editingType)}
+                value={typeForm.code}
+                onChange={(e) => setTypeForm((prev) => ({ ...prev, code: e.target.value.toUpperCase() }))}
+              />
+            </div>
+
+            <Textarea
+              label="Description / Policy Note"
+              placeholder="Explain policy eligibility, qualification criteria, and usage rules..."
+              value={typeForm.description}
+              onChange={(e) => setTypeForm((prev) => ({ ...prev, description: e.target.value }))}
+            />
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+              <Select
+                label="Pay Configuration"
+                required
+                value={typeForm.is_paid ? 'true' : 'false'}
+                onChange={(e) => setTypeForm((prev) => ({ ...prev, is_paid: e.target.value === 'true' }))}
+                options={[
+                  { value: 'true', label: 'Paid Leave (No salary deduction)' },
+                  { value: 'false', label: 'Unpaid Leave (Leave Without Pay / LWP)' },
+                ]}
+              />
+
+              <Select
+                label="Allocation Model"
+                required
+                value={typeForm.allocation_method}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setTypeForm((prev) => ({
+                    ...prev,
+                    allocation_method: val,
+                    annual_allocation: val === 'EARNED' || val === 'UNLIMITED' ? '' : (prev.annual_allocation || '12'),
+                  }));
+                }}
+                options={[
+                  { value: 'FIXED_ANNUAL', label: 'Fixed Annual Quota (e.g. 12 or 15 days/year)' },
+                  { value: 'EARNED', label: 'Earned Entitlement (Comp Off from extra work / attendance)' },
+                  { value: 'ACCRUED_MONTHLY', label: 'Accrued Monthly (e.g. 1 day/month)' },
+                  { value: 'MANUAL', label: 'Manual Allocation (Granted ad-hoc by HR)' },
+                  { value: 'UNLIMITED', label: 'Unlimited / No Fixed Allocation Cap' },
+                ]}
+              />
+            </div>
+
+            {/* Conditional Allocation Field or Policy Banner */}
+            {typeForm.allocation_method === 'EARNED' ? (
+              <div
+                style={{
+                  padding: '12px 14px',
+                  backgroundColor: '#eef2ff',
+                  border: '1px solid #c7d2fe',
+                  borderRadius: '8px',
+                  fontSize: '0.8125rem',
+                  color: '#3730a3',
+                }}
+              >
+                <div style={{ fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span>⭐ Earned Entitlement Architecture</span>
+                </div>
+                <div style={{ marginTop: '4px', lineHeight: '1.4' }}>
+                  Fixed annual allocation is <strong>Not Applicable</strong>. Balance is earned dynamically when an employee works on non-working days (weekends/holidays) and the extra attendance claim is approved.
+                </div>
+              </div>
+            ) : typeForm.allocation_method === 'UNLIMITED' ? (
+              <div
+                style={{
+                  padding: '12px 14px',
+                  backgroundColor: '#f0fdf4',
+                  border: '1px solid #bbf7d0',
+                  borderRadius: '8px',
+                  fontSize: '0.8125rem',
+                  color: '#166534',
+                }}
+              >
+                <div style={{ fontWeight: 600 }}>Unlimited Policy</div>
+                <div style={{ marginTop: '4px' }}>
+                  No fixed annual limit will be applied. Requests will be subject to managerial approval without fixed quota deduction.
+                </div>
+              </div>
+            ) : (
+              <div>
+                <Input
+                  label="Annual Allocation Quota (Days / Year)"
+                  type="number"
+                  step="0.5"
+                  min="0"
+                  required={typeForm.allocation_method === 'FIXED_ANNUAL'}
+                  placeholder="e.g. 12"
+                  value={typeForm.annual_allocation}
+                  onChange={(e) => setTypeForm((prev) => ({ ...prev, annual_allocation: e.target.value }))}
+                />
+              </div>
+            )}
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+              <Select
+                label="Allow Employee Self-Request"
+                value={typeForm.allow_employee_request ? 'true' : 'false'}
+                onChange={(e) => setTypeForm((prev) => ({ ...prev, allow_employee_request: e.target.value === 'true' }))}
+                options={[
+                  { value: 'true', label: 'Yes (Employee can request via portal)' },
+                  { value: 'false', label: 'No (Restricted to HR / Admin assignment)' },
+                ]}
+              />
+
+              <Select
+                label="Allow Half-Day Request"
+                value={typeForm.allow_half_day ? 'true' : 'false'}
+                onChange={(e) => setTypeForm((prev) => ({ ...prev, allow_half_day: e.target.value === 'true' }))}
+                options={[
+                  { value: 'true', label: 'Yes (0.5 day increments allowed)' },
+                  { value: 'false', label: 'No (Full days only)' },
+                ]}
+              />
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+              <Select
+                label="Carry Forward to Next Year"
+                value={typeForm.carry_forward_allowed ? 'true' : 'false'}
+                onChange={(e) => setTypeForm((prev) => ({ ...prev, carry_forward_allowed: e.target.value === 'true' }))}
+                options={[
+                  { value: 'false', label: 'No (Expires at year-end or policy reset)' },
+                  { value: 'true', label: 'Yes (Unused balance carries forward)' },
+                ]}
+              />
+
+              {typeForm.carry_forward_allowed && (
+                <Input
+                  label="Carry Forward Max Limit (Days)"
+                  type="number"
+                  step="0.5"
+                  min="0"
+                  placeholder="e.g. 5"
+                  value={typeForm.carry_forward_limit}
+                  onChange={(e) => setTypeForm((prev) => ({ ...prev, carry_forward_limit: e.target.value }))}
+                />
+              )}
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', paddingTop: '4px' }}>
+              <input
+                type="checkbox"
+                id="type-status-active"
+                checked={typeForm.is_active}
+                onChange={(e) => setTypeForm((prev) => ({ ...prev, is_active: e.target.checked }))}
+                style={{ width: '16px', height: '16px', cursor: 'pointer' }}
+              />
+              <label htmlFor="type-status-active" style={{ fontSize: '0.875rem', fontWeight: 500, color: 'var(--text-primary, #0f172a)', cursor: 'pointer' }}>
+                Active in Catalogue (Employees and HR can select this leave type)
+              </label>
+            </div>
           </div>
         </Modal>
       )}

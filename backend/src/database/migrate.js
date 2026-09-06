@@ -102,6 +102,14 @@ async function runMigration() {
       console.log('[Migration] ✅ Compensatory Off schema and COMP_OFF leave type created.');
     }
 
+    const timeOffCatMigration = path.resolve(__dirname, '../../../database/migrations/013_time_off_type_catalogue.sql');
+    if (fs.existsSync(timeOffCatMigration)) {
+      const catSql = fs.readFileSync(timeOffCatMigration, 'utf8');
+      console.log('[Migration] Executing 013_time_off_type_catalogue.sql...');
+      await db.query(catSql);
+      console.log('[Migration] ✅ Time Off Type Catalogue schema and policy rules updated successfully.');
+    }
+
     // Check if employee seed data is needed
     const countRes = await db.query('SELECT COUNT(*) FROM employees');
     if (parseInt(countRes.rows[0].count, 10) === 0) {

@@ -6,8 +6,13 @@ import apiClient from '../../../lib/api/apiClient';
  */
 export const timeoffApi = {
   // Leave Types
-  getTypes: () => apiClient.get('/timeoff/types'),
+  getTypes: (params = {}) => {
+    const query = new URLSearchParams(params).toString();
+    return apiClient.get(`/timeoff/types${query ? `?${query}` : ''}`);
+  },
+  getTypeById: (id) => apiClient.get(`/timeoff/types/${id}`),
   createType: (data) => apiClient.post('/timeoff/types', data),
+  updateType: (id, data) => apiClient.patch(`/timeoff/types/${id}`, data),
 
   // Leave Allocations
   getAllocations: (params = {}) => {

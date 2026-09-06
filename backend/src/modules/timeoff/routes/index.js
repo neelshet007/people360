@@ -11,7 +11,9 @@ const { authenticate, authorize } = require('../../../middleware/authMiddleware'
 
 // Types
 router.get('/types', authenticate, controllers.getTypes);
+router.get('/types/:id', authenticate, controllers.getTypeById);
 router.post('/types', authenticate, authorize('timeoff.write'), controllers.createType);
+router.patch('/types/:id', authenticate, authorize('timeoff.write'), controllers.updateType);
 
 // Allocations
 router.get('/allocations', authenticate, controllers.getAllocations);
