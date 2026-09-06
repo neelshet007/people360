@@ -28,6 +28,18 @@ export const timeoffApi = {
     const query = new URLSearchParams(params).toString();
     return apiClient.get(`/timeoff/calculate-days${query ? `?${query}` : ''}`);
   },
+
+  // Compensatory Off (Comp Off)
+  getCompOffType: () => apiClient.get('/timeoff/comp-off/type'),
+  listCompOffCredits: (params = {}) => {
+    const query = new URLSearchParams(params).toString();
+    return apiClient.get(`/timeoff/comp-off/credits${query ? `?${query}` : ''}`);
+  },
+  raiseCompOffClaim: (data) => apiClient.post('/timeoff/comp-off/credits', data),
+  getCompOffCreditById: (id) => apiClient.get(`/timeoff/comp-off/credits/${id}`),
+  approveCompOffCredit: (id) => apiClient.post(`/timeoff/comp-off/credits/${id}/approve`),
+  rejectCompOffCredit: (id) => apiClient.post(`/timeoff/comp-off/credits/${id}/reject`),
+  getCompOffBalance: (employeeId) => apiClient.get(`/timeoff/comp-off/balance/${employeeId}`),
 };
 
 export default timeoffApi;

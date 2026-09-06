@@ -118,6 +118,89 @@ const calculateWorkingDays = async (req, res, next) => {
   }
 };
 
+// -----------------------------------------------------------------------------
+// COMPENSATORY OFF (COMP OFF)
+// -----------------------------------------------------------------------------
+const compOffService = require('../services/compOffService');
+
+const raiseCreditClaim = async (req, res, next) => {
+  try {
+    const requesterId = req.user?.employeeId || null;
+    const requesterRole = req.user?.role || 'EMPLOYEE';
+    // Allow HR to specify employee_id; employees default to themselves
+    const payload = {
+      ...req.body,
+      employee_id: req.body.employee_id || requesterId,
+    };
+    const credit = await compOffService.raiseCreditClaim(payload, requesterId, requesterRole);
+    return successResponse(res, credit, null, 201);
+  } catch (error) {
+    next(error);
+  }
+};
+
+const listCompOffCredits = async (req, res, next) => {
+  try {
+    const requesterRole = req.user?.role || 'EMPLOYEE';
+    const requesterEmployeeId = req.user?.employeeId || null;
+    const credits = await compOffService.listCredits(req.query, requesterRole, requesterEmployeeId);
+    return successResponse(res, credits);
+  } catch (error) {
+    next(error);
+  }
+};
+
+const getCompOffCreditById = async (req, res, next) => {
+  try {
+    const credit = await compOffService.getCreditById(req.params.id);
+    return successResponse(res, credit);
+  } catch (error) {
+    next(error);
+  }
+};
+
+const approveCompOffCredit = async (req, res, next) => {
+  try {
+    const approverId = req.user?.id || req.user?.userId || null;
+    const credit = await compOffService.approveCredit(req.params.id, approverId);
+    return successResponse(res, credit);
+  } catch (error) {
+    next(error);
+  }
+};
+
+const rejectCompOffCredit = async (req, res, next) => {
+  try {
+    const approverId = req.user?.id || req.user?.userId || null;
+    const credit = await compOffService.rejectCredit(req.params.id, approverId);
+    return successResponse(res, credit);
+  } catch (error) {
+    next(error);
+  }
+};
+
+const getCompOffBalance = async (req, res, next) => {
+  try {
+    let employeeId = req.params.employeeId;
+    if (req.user?.role === 'EMPLOYEE' && req.user?.employeeId) {
+      employeeId = req.user.employeeId;
+    }
+    const balance = await compOffService.getBalance(employeeId);
+    return successResponse(res, balance);
+  } catch (error) {
+    next(error);
+  }
+};
+
+const getCompOffTypeId = async (req, res, next) => {
+  try {
+    const typeId = await compOffService.getCompOffTypeId();
+    return successResponse(res, { comp_off_type_id: typeId });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   getTypes,
   createType,
@@ -128,4 +211,13 @@ module.exports = {
   createRequest,
   updateRequestStatus,
   calculateWorkingDays,
+  // Comp Off
+  raiseCreditClaim,
+  listCompOffCredits,
+  getCompOffCreditById,
+  approveCompOffCredit,
+  rejectCompOffCredit,
+  getCompOffBalance,
+  getCompOffTypeId,
 };
+

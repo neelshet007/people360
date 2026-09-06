@@ -61,3 +61,6 @@ prisma/*.db-journal
 
 # Local Learning / Personal notes
 LEARNING_GUIDE.md
+DATABASE_STRUCTURE.md
+DB_ARCHITECTURE.md
+local_docs/
