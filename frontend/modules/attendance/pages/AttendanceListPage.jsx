@@ -28,9 +28,19 @@ export default function AttendanceListPage() {
 
   // Filters
   const [statusFilter, setStatusFilter] = useState('');
+  const [locationFilter, setLocationFilter] = useState('');
   const [dateFilter, setDateFilter] = useState('');
   const [searchFilter, setSearchFilter] = useState('');
   const [searchInput, setSearchInput] = useState('');
+
+  // Location Verification Modal
+  const [showLocationModal, setShowLocationModal] = useState(false);
+  const [selectedLocationRecord, setSelectedLocationRecord] = useState(null);
+
+  const openLocationModal = (record) => {
+    setSelectedLocationRecord(record);
+    setShowLocationModal(true);
+  };
 
   // Pagination
   const [pagination, setPagination] = useState({ page: 1, limit: 15, total: 0, totalPages: 1 });
@@ -73,6 +83,7 @@ export default function AttendanceListPage() {
     try {
       const params = { page: pagination.page, limit: pagination.limit };
       if (statusFilter) params.status = statusFilter;
+      if (locationFilter) params.location_status = locationFilter;
       if (dateFilter) params.date = dateFilter;
       if (searchFilter) params.search = searchFilter;
 
@@ -84,7 +95,7 @@ export default function AttendanceListPage() {
     } finally {
       setLoading(false);
     }
-  }, [pagination.page, statusFilter, dateFilter, searchFilter]);
+  }, [pagination.page, statusFilter, locationFilter, dateFilter, searchFilter]);
 
   useEffect(() => {
     fetchAttendance();
@@ -108,6 +119,7 @@ export default function AttendanceListPage() {
 
   const clearFilters = () => {
     setStatusFilter('');
+    setLocationFilter('');
     setDateFilter('');
     setSearchFilter('');
     setSearchInput('');
@@ -226,6 +238,13 @@ export default function AttendanceListPage() {
     { value: 'MISSING_CHECKOUT', label: 'Missing Checkout' },
   ];
 
+  const locationStatusOptions = [
+    { value: '', label: 'All Locations' },
+    { value: 'VERIFIED', label: '✓ Verified (Within Radius)' },
+    { value: 'OUTSIDE_RADIUS', label: '⚠ Outside Radius (Warning)' },
+    { value: 'LOCATION_UNAVAILABLE', label: 'Location Unavailable' },
+  ];
+
   const columns = [
     {
       header: 'Employee',
@@ -294,6 +313,109 @@ export default function AttendanceListPage() {
       render: (row) => <AttendanceStatusBadge status={row.status} />,
     },
     {
+      header: 'Distance',
+      accessor: 'distance_from_office_meters',
+      render: (row) => {
+        const d = row.distance_from_office_meters;
+        if (d === null || d === undefined) {
+          return <span style={{ color: 'var(--neutral-400)', fontSize: '0.8125rem' }}>—</span>;
+        }
+        const num = parseFloat(d);
+        const display = num < 1000 ? `${Math.round(num)}m` : `${(num / 1000).toFixed(1)}km`;
+        const isWarning = row.location_status === 'OUTSIDE_RADIUS' || row.is_out_of_bounds;
+        return (
+          <span
+            style={{
+              fontVariantNumeric: 'tabular-nums',
+              fontWeight: 600,
+              color: isWarning ? '#b45309' : 'var(--neutral-700)',
+              fontSize: '0.8125rem',
+            }}
+          >
+            {display}
+          </span>
+        );
+      },
+    },
+    {
+      header: 'Location',
+      accessor: 'location_status',
+      render: (row) => {
+        const status = row.location_status || (row.is_out_of_bounds ? 'OUTSIDE_RADIUS' : 'LOCATION_UNAVAILABLE');
+        if (status === 'VERIFIED') {
+          return (
+            <button
+              type="button"
+              onClick={() => openLocationModal(row)}
+              title="Click to inspect location verification details"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px',
+                padding: '2px 8px',
+                borderRadius: '4px',
+                backgroundColor: '#f0fdf4',
+                border: '1px solid #bbf7d0',
+                color: '#15803d',
+                fontSize: '0.75rem',
+                fontWeight: 600,
+                cursor: 'pointer',
+              }}
+            >
+              <span>✓ Verified</span>
+            </button>
+          );
+        }
+        if (status === 'OUTSIDE_RADIUS') {
+          return (
+            <button
+              type="button"
+              onClick={() => openLocationModal(row)}
+              title="Click to view outside-radius verification details"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px',
+                padding: '2px 8px',
+                borderRadius: '4px',
+                backgroundColor: '#fffbeb',
+                border: '1px solid #fde68a',
+                color: '#b45309',
+                fontSize: '0.75rem',
+                fontWeight: 700,
+                cursor: 'pointer',
+                boxShadow: '0 1px 2px rgba(180, 83, 9, 0.08)',
+              }}
+            >
+              <span>⚠ Outside Radius</span>
+            </button>
+          );
+        }
+        return (
+          <button
+            type="button"
+            onClick={() => openLocationModal(row)}
+            title="Click to view details"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '4px',
+              padding: '2px 8px',
+              borderRadius: '4px',
+              backgroundColor: '#f8fafc',
+              border: '1px solid #e2e8f0',
+              color: '#64748b',
+              fontSize: '0.75rem',
+              fontWeight: 500,
+              cursor: 'pointer',
+            }}
+          >
+            <span>Unavailable</span>
+          </button>
+        );
+      },
+    },
+    {
       header: 'Actions',
       accessor: 'id',
       render: (row) => (
@@ -310,7 +432,7 @@ export default function AttendanceListPage() {
     },
   ];
 
-  const hasActiveFilters = statusFilter || dateFilter || searchFilter;
+  const hasActiveFilters = statusFilter || locationFilter || dateFilter || searchFilter;
 
   return (
     <PageContainer
@@ -345,12 +467,24 @@ export default function AttendanceListPage() {
           </form>
 
           {/* Status filter */}
-          <div style={{ width: '180px' }}>
+          <div style={{ width: '170px' }}>
             <Select
               options={statusOptions}
               value={statusFilter}
               onChange={(e) => {
                 setStatusFilter(e.target.value);
+                setPagination((prev) => ({ ...prev, page: 1 }));
+              }}
+            />
+          </div>
+
+          {/* Location filter */}
+          <div style={{ width: '190px' }}>
+            <Select
+              options={locationStatusOptions}
+              value={locationFilter}
+              onChange={(e) => {
+                setLocationFilter(e.target.value);
                 setPagination((prev) => ({ ...prev, page: 1 }));
               }}
             />
@@ -541,6 +675,266 @@ export default function AttendanceListPage() {
               ⚠️ Worked hours and difference will be automatically recalculated from the corrected times. An audit note will be appended to the record.
             </div>
           </div>
+        </Modal>
+      )}
+
+      {/* ── Location Verification Details Modal ── */}
+      {showLocationModal && selectedLocationRecord && (
+        <Modal
+          title="Location Verification Details"
+          isOpen={showLocationModal}
+          onClose={() => {
+            setShowLocationModal(false);
+            setSelectedLocationRecord(null);
+          }}
+          actions={
+            <Button
+              variant="secondary"
+              onClick={() => {
+                setShowLocationModal(false);
+                setSelectedLocationRecord(null);
+              }}
+            >
+              Close
+            </Button>
+          }
+        >
+          {(() => {
+            const row = selectedLocationRecord;
+            const isOutside = row.location_status === 'OUTSIDE_RADIUS' || row.is_out_of_bounds;
+            const isVerified = row.location_status === 'VERIFIED';
+            const distance =
+              row.distance_from_office_meters !== null && row.distance_from_office_meters !== undefined
+                ? parseFloat(row.distance_from_office_meters) < 1000
+                  ? `${Math.round(parseFloat(row.distance_from_office_meters))} m`
+                  : `${(parseFloat(row.distance_from_office_meters) / 1000).toFixed(2)} km`
+                : 'Unknown / Not captured';
+            const radius = row.workplace_radius_meters
+              ? `${parseFloat(row.workplace_radius_meters)} m`
+              : '500 m';
+
+            return (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                {/* Status Notice Banner */}
+                <div
+                  style={{
+                    padding: '14px 16px',
+                    borderRadius: '8px',
+                    backgroundColor: isOutside ? '#fffbeb' : isVerified ? '#f0fdf4' : '#f8fafc',
+                    border: `1px solid ${isOutside ? '#fde68a' : isVerified ? '#bbf7d0' : '#e2e8f0'}`,
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    gap: '12px',
+                  }}
+                >
+                  <span style={{ fontSize: '1.25rem', lineHeight: 1 }}>
+                    {isOutside ? '⚠️' : isVerified ? '✅' : 'ℹ️'}
+                  </span>
+                  <div>
+                    <div
+                      style={{
+                        fontWeight: 700,
+                        fontSize: '0.875rem',
+                        color: isOutside ? '#92400e' : isVerified ? '#166534' : '#334155',
+                      }}
+                    >
+                      {isOutside
+                        ? 'Location Warning: Outside Workplace Radius'
+                        : isVerified
+                        ? 'Location Verified: Within Allowed Radius'
+                        : 'Location Unavailable'}
+                    </div>
+                    <div
+                      style={{
+                        marginTop: '4px',
+                        fontSize: '0.8125rem',
+                        color: isOutside ? '#b45309' : isVerified ? '#15803d' : '#64748b',
+                        lineHeight: 1.4,
+                      }}
+                    >
+                      {isOutside
+                        ? 'Employee checked in outside the configured workplace radius. The check-in is accepted and marked as Present.'
+                        : isVerified
+                        ? 'Employee checked in within the allowed workplace radius.'
+                        : 'GPS location was unavailable or disabled at check-in time. The check-in is recorded as Present.'}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Details Grid */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                  <div
+                    style={{
+                      padding: '12px',
+                      backgroundColor: 'var(--neutral-50, #f8fafc)',
+                      borderRadius: '6px',
+                      border: '1px solid var(--neutral-200, #e2e8f0)',
+                    }}
+                  >
+                    <div
+                      style={{
+                        fontSize: '0.6875rem',
+                        fontWeight: 600,
+                        color: 'var(--text-muted, #64748b)',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.04em',
+                      }}
+                    >
+                      Employee
+                    </div>
+                    <div
+                      style={{
+                        fontWeight: 700,
+                        fontSize: '0.875rem',
+                        color: 'var(--text-primary, #0f172a)',
+                        marginTop: '2px',
+                      }}
+                    >
+                      {row.employee_name || 'Staff Member'}
+                    </div>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted, #64748b)' }}>
+                      {row.employee_code || '—'} {row.department ? `• ${row.department}` : ''}
+                    </div>
+                  </div>
+
+                  <div
+                    style={{
+                      padding: '12px',
+                      backgroundColor: 'var(--neutral-50, #f8fafc)',
+                      borderRadius: '6px',
+                      border: '1px solid var(--neutral-200, #e2e8f0)',
+                    }}
+                  >
+                    <div
+                      style={{
+                        fontSize: '0.6875rem',
+                        fontWeight: 600,
+                        color: 'var(--text-muted, #64748b)',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.04em',
+                      }}
+                    >
+                      Check-In Time
+                    </div>
+                    <div
+                      style={{
+                        fontWeight: 700,
+                        fontSize: '0.875rem',
+                        color: 'var(--text-primary, #0f172a)',
+                        marginTop: '2px',
+                      }}
+                    >
+                      {formatTime(row.clock_in)}
+                    </div>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted, #64748b)' }}>
+                      {formatDate(row.date)}
+                    </div>
+                  </div>
+
+                  <div
+                    style={{
+                      padding: '12px',
+                      backgroundColor: 'var(--neutral-50, #f8fafc)',
+                      borderRadius: '6px',
+                      border: '1px solid var(--neutral-200, #e2e8f0)',
+                    }}
+                  >
+                    <div
+                      style={{
+                        fontSize: '0.6875rem',
+                        fontWeight: 600,
+                        color: 'var(--text-muted, #64748b)',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.04em',
+                      }}
+                    >
+                      Calculated Distance
+                    </div>
+                    <div
+                      style={{
+                        fontWeight: 700,
+                        fontSize: '1rem',
+                        color: isOutside ? '#b45309' : '#0f172a',
+                        marginTop: '2px',
+                      }}
+                    >
+                      {distance}
+                    </div>
+                  </div>
+
+                  <div
+                    style={{
+                      padding: '12px',
+                      backgroundColor: 'var(--neutral-50, #f8fafc)',
+                      borderRadius: '6px',
+                      border: '1px solid var(--neutral-200, #e2e8f0)',
+                    }}
+                  >
+                    <div
+                      style={{
+                        fontSize: '0.6875rem',
+                        fontWeight: 600,
+                        color: 'var(--text-muted, #64748b)',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.04em',
+                      }}
+                    >
+                      Allowed Radius Limit
+                    </div>
+                    <div
+                      style={{
+                        fontWeight: 700,
+                        fontSize: '1rem',
+                        color: 'var(--text-primary, #0f172a)',
+                        marginTop: '2px',
+                      }}
+                    >
+                      {radius}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Audit Context Breakdown */}
+                <div
+                  style={{
+                    padding: '12px 14px',
+                    backgroundColor: '#f8fafc',
+                    borderRadius: '6px',
+                    border: '1px solid #e2e8f0',
+                    fontSize: '0.75rem',
+                    color: '#475569',
+                  }}
+                >
+                  <div style={{ fontWeight: 600, color: '#1e293b', marginBottom: '6px' }}>
+                    Audit Snapshot Data
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                    <div>
+                      <span style={{ color: '#64748b' }}>Check-in Coordinates: </span>
+                      <strong>
+                        {row.latitude && row.longitude
+                          ? `${parseFloat(row.latitude).toFixed(5)}, ${parseFloat(row.longitude).toFixed(5)}`
+                          : 'Unavailable'}
+                      </strong>
+                    </div>
+                    <div>
+                      <span style={{ color: '#64748b' }}>Workplace Coordinates: </span>
+                      <strong>
+                        {row.workplace_latitude && row.workplace_longitude
+                          ? `${parseFloat(row.workplace_latitude).toFixed(5)}, ${parseFloat(row.workplace_longitude).toFixed(5)}`
+                          : '28.61390, 77.20900 (HQ)'}
+                      </strong>
+                    </div>
+                  </div>
+                  {row.location_accuracy && (
+                    <div style={{ marginTop: '4px', color: '#64748b' }}>
+                      Reported GPS Accuracy: <strong>±{Math.round(parseFloat(row.location_accuracy))} meters</strong>
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })()}
         </Modal>
       )}
 

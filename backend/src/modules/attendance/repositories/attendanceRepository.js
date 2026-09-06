@@ -74,7 +74,7 @@ const attendanceRepository = {
   // READ
   // ─────────────────────────────────────────────────────────────
 
-  findAttendance: async ({ employee_id, date, status, search, page = 1, limit = 20 } = {}) => {
+  findAttendance: async ({ employee_id, date, status, location_status, search, page = 1, limit = 20 } = {}) => {
     const offset = (page - 1) * limit;
     try {
       const isLive = await db.testConnection();
@@ -105,6 +105,11 @@ const attendanceRepository = {
           sql += ` AND a.status = $${pIdx++}`;
           params.push(status);
         }
+        if (location_status) {
+          sql += ` AND (a.location_status = $${pIdx} OR a.location_verification_status = $${pIdx})`;
+          params.push(location_status);
+          pIdx++;
+        }
         if (search) {
           sql += ` AND (
             LOWER(e.display_name) LIKE LOWER($${pIdx}) OR
@@ -129,10 +134,11 @@ const attendanceRepository = {
     if (employee_id) filtered = filtered.filter((a) => a.employee_id === employee_id);
     if (date) filtered = filtered.filter((a) => a.date === date);
     if (status) filtered = filtered.filter((a) => a.status === status);
+    if (location_status) filtered = filtered.filter((a) => a.location_status === location_status || a.location_verification_status === location_status);
     return filtered.slice(offset, offset + limit);
   },
 
-  countAttendance: async ({ employee_id, date, status, search } = {}) => {
+  countAttendance: async ({ employee_id, date, status, location_status, search } = {}) => {
     try {
       const isLive = await db.testConnection();
       if (isLive) {
@@ -156,6 +162,11 @@ const attendanceRepository = {
         if (status) {
           sql += ` AND a.status = $${pIdx++}`;
           params.push(status);
+        }
+        if (location_status) {
+          sql += ` AND (a.location_status = $${pIdx} OR a.location_verification_status = $${pIdx})`;
+          params.push(location_status);
+          pIdx++;
         }
         if (search) {
           sql += ` AND (
@@ -302,7 +313,13 @@ const attendanceRepository = {
       latitude: data.latitude !== undefined ? data.latitude : null,
       longitude: data.longitude !== undefined ? data.longitude : null,
       distance_from_office_meters: data.distance_from_office_meters !== undefined ? data.distance_from_office_meters : null,
-      is_out_of_bounds: data.is_out_of_bounds || false,
+      is_out_of_bounds: Boolean(data.is_out_of_bounds),
+      location_status: data.location_status || 'LOCATION_UNAVAILABLE',
+      location_verification_status: data.location_verification_status || data.location_status || 'LOCATION_UNAVAILABLE',
+      workplace_latitude: data.workplace_latitude !== undefined ? data.workplace_latitude : 28.6139,
+      workplace_longitude: data.workplace_longitude !== undefined ? data.workplace_longitude : 77.2090,
+      workplace_radius_meters: data.workplace_radius_meters !== undefined ? data.workplace_radius_meters : 500.00,
+      location_accuracy: data.location_accuracy !== undefined ? data.location_accuracy : null,
       created_at: now,
       updated_at: now,
     };
@@ -310,12 +327,15 @@ const attendanceRepository = {
     try {
       const isLive = await db.testConnection();
       if (isLive) {
-        // Try with new columns; fall back to base columns if migration not run
         try {
           const sql = `
             INSERT INTO attendance
-              (id, employee_id, date, clock_in, clock_out, total_hours, expected_hours, difference_hours, status, notes, latitude, longitude, distance_from_office_meters, is_out_of_bounds, created_at, updated_at)
-            VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16)
+              (id, employee_id, date, clock_in, clock_out, total_hours, expected_hours, difference_hours, status, notes,
+               latitude, longitude, distance_from_office_meters, is_out_of_bounds,
+               location_status, location_verification_status,
+               workplace_latitude, workplace_longitude, workplace_radius_meters, location_accuracy,
+               created_at, updated_at)
+            VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22)
             RETURNING *
           `;
           const res = await db.query(sql, [
@@ -324,25 +344,25 @@ const attendanceRepository = {
             newRecord.expected_hours, newRecord.difference_hours,
             newRecord.status, newRecord.notes,
             newRecord.latitude, newRecord.longitude, newRecord.distance_from_office_meters, newRecord.is_out_of_bounds,
+            newRecord.location_status, newRecord.location_verification_status,
+            newRecord.workplace_latitude, newRecord.workplace_longitude, newRecord.workplace_radius_meters,
+            newRecord.location_accuracy,
             newRecord.created_at, newRecord.updated_at,
           ]);
           return res.rows[0];
         } catch (colErr) {
-          // Migration 005 not yet applied — fall back to base columns
-          if (colErr.message && colErr.message.includes('column')) {
-            const sql = `
-              INSERT INTO attendance (id, employee_id, date, clock_in, clock_out, total_hours, status, notes, created_at, updated_at)
-              VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
-              RETURNING *
-            `;
-            const res = await db.query(sql, [
-              newRecord.id, newRecord.employee_id, newRecord.date,
-              newRecord.clock_in, newRecord.clock_out, newRecord.total_hours,
-              newRecord.status, newRecord.notes, newRecord.created_at, newRecord.updated_at,
-            ]);
-            return res.rows[0];
-          }
-          throw colErr;
+          // Fallback if legacy schema
+          const fallbackSql = `
+            INSERT INTO attendance (id, employee_id, date, clock_in, clock_out, total_hours, status, notes, created_at, updated_at)
+            VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
+            RETURNING *
+          `;
+          const res = await db.query(fallbackSql, [
+            newRecord.id, newRecord.employee_id, newRecord.date,
+            newRecord.clock_in, newRecord.clock_out, newRecord.total_hours,
+            newRecord.status, newRecord.notes, newRecord.created_at, newRecord.updated_at,
+          ]);
+          return res.rows[0];
         }
       }
     } catch (e) {
@@ -373,7 +393,16 @@ const attendanceRepository = {
         if (data.expected_hours !== undefined) addField('expected_hours', data.expected_hours);
         if (data.difference_hours !== undefined) addField('difference_hours', data.difference_hours);
         if (data.status !== undefined) addField('status', data.status);
-        if (data.notes !== undefined) addField('notes', data.notes);
+        if (data.location_status !== undefined) addField('location_status', data.location_status);
+        if (data.location_verification_status !== undefined) addField('location_verification_status', data.location_verification_status);
+        if (data.is_out_of_bounds !== undefined) addField('is_out_of_bounds', data.is_out_of_bounds);
+        if (data.latitude !== undefined) addField('latitude', data.latitude);
+        if (data.longitude !== undefined) addField('longitude', data.longitude);
+        if (data.distance_from_office_meters !== undefined) addField('distance_from_office_meters', data.distance_from_office_meters);
+        if (data.workplace_latitude !== undefined) addField('workplace_latitude', data.workplace_latitude);
+        if (data.workplace_longitude !== undefined) addField('workplace_longitude', data.workplace_longitude);
+        if (data.workplace_radius_meters !== undefined) addField('workplace_radius_meters', data.workplace_radius_meters);
+        if (data.location_accuracy !== undefined) addField('location_accuracy', data.location_accuracy);
 
         fields.push(`updated_at = $${pIdx++}`);
         params.push(now);

@@ -78,6 +78,14 @@ async function runMigration() {
       console.log('[Migration] ✅ Payruns Phase 7 schema and lifecycle constraints updated successfully.');
     }
 
+    const gpsMigration = path.resolve(__dirname, '../../../database/migrations/009_attendance_gps.sql');
+    if (fs.existsSync(gpsMigration)) {
+      const gpsSql = fs.readFileSync(gpsMigration, 'utf8');
+      console.log('[Migration] Executing 009_attendance_gps.sql...');
+      await db.query(gpsSql);
+      console.log('[Migration] ✅ Attendance GPS columns added successfully.');
+    }
+
     const concernsMigration = path.resolve(__dirname, '../../../database/migrations/010_create_concerns.sql');
     if (fs.existsSync(concernsMigration)) {
       const concernsSql = fs.readFileSync(concernsMigration, 'utf8');
@@ -108,6 +116,14 @@ async function runMigration() {
       console.log('[Migration] Executing 013_time_off_type_catalogue.sql...');
       await db.query(catSql);
       console.log('[Migration] ✅ Time Off Type Catalogue schema and policy rules updated successfully.');
+    }
+
+    const locVerifMigration = path.resolve(__dirname, '../../../database/migrations/014_attendance_location_verification.sql');
+    if (fs.existsSync(locVerifMigration)) {
+      const locSql = fs.readFileSync(locVerifMigration, 'utf8');
+      console.log('[Migration] Executing 014_attendance_location_verification.sql...');
+      await db.query(locSql);
+      console.log('[Migration] ✅ Attendance Location Verification schema and constraints updated successfully.');
     }
 
     // Check if employee seed data is needed

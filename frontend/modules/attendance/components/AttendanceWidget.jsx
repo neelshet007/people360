@@ -73,9 +73,16 @@ export default function AttendanceWidget() {
 
     const doCheckIn = async (locationData = {}) => {
       try {
-        await attendanceApi.checkIn(locationData);
+        const res = await attendanceApi.checkIn(locationData);
         await loadActiveState();
-        showToast('✅ Checked in successfully!', 'success');
+        const loc = res?.data?.location_status || res?.data?.location_verification_status;
+        if (loc === 'OUTSIDE_RADIUS') {
+          showToast('⚠️ Check-in recorded. Location warning: You are outside the configured workplace radius.', 'warning');
+        } else if (loc === 'LOCATION_UNAVAILABLE') {
+          showToast('✅ Check-in recorded (Location unavailable).', 'info');
+        } else {
+          showToast('✅ Checked in successfully! (Location verified)', 'success');
+        }
       } catch (err) {
         showToast(err.message || 'Unable to check in. Please try again.', 'danger');
       } finally {
@@ -88,14 +95,15 @@ export default function AttendanceWidget() {
         (position) => {
           doCheckIn({
             latitude: position.coords.latitude,
-            longitude: position.coords.longitude
+            longitude: position.coords.longitude,
+            accuracy: position.coords.accuracy,
           });
         },
         (error) => {
           // Proceed without GPS if permission denied or slow
           doCheckIn({});
         },
-        { timeout: 1000, maximumAge: 60000 }
+        { timeout: 5000, maximumAge: 60000 }
       );
     } else {
       doCheckIn({});

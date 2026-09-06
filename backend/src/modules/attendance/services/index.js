@@ -73,11 +73,52 @@ const attendanceService = {
   // ─────────────────────────────────────────────────────────────
   // EMPLOYEE: CHECK IN
   // ─────────────────────────────────────────────────────────────
-  async checkIn(employeeId, ipAddress, latitude, longitude) {
+  async checkIn(employeeId, ipAddress, latitude, longitude, accuracy) {
     if (!employeeId) throw ApiError.badRequest('Employee ID is required');
 
     const now = new Date();
     const todayDate = now.toISOString().split('T')[0]; // YYYY-MM-DD UTC
+
+    // Workplace Location & Radius Configuration
+    const WORKPLACE_LAT = parseFloat(process.env.WORKPLACE_LATITUDE || '28.6139'); // e.g. New Delhi HQ
+    const WORKPLACE_LON = parseFloat(process.env.WORKPLACE_LONGITUDE || '77.2090');
+    const ALLOWED_RADIUS_METERS = parseFloat(process.env.WORKPLACE_RADIUS_METERS || '500'); // Allowed radius: 500m default
+
+    let distanceMeters = null;
+    let isOutOfBounds = false;
+    let locationStatus = 'LOCATION_UNAVAILABLE';
+
+    // Validate GPS coordinates
+    const parsedLat = parseFloat(latitude);
+    const parsedLon = parseFloat(longitude);
+    const hasValidCoordinates =
+      latitude !== undefined &&
+      latitude !== null &&
+      longitude !== undefined &&
+      longitude !== null &&
+      !isNaN(parsedLat) &&
+      !isNaN(parsedLon) &&
+      parsedLat >= -90 &&
+      parsedLat <= 90 &&
+      parsedLon >= -180 &&
+      parsedLon <= 180;
+
+    if (hasValidCoordinates) {
+      distanceMeters = haversineDistance(parsedLat, parsedLon, WORKPLACE_LAT, WORKPLACE_LON);
+      if (distanceMeters !== null) {
+        // <= allowed radius is VERIFIED, > allowed radius is OUTSIDE_RADIUS
+        if (distanceMeters <= ALLOWED_RADIUS_METERS) {
+          locationStatus = 'VERIFIED';
+          isOutOfBounds = false;
+        } else {
+          locationStatus = 'OUTSIDE_RADIUS';
+          isOutOfBounds = true;
+        }
+      }
+    } else {
+      locationStatus = 'LOCATION_UNAVAILABLE';
+      isOutOfBounds = false;
+    }
 
     // Check if already currently checked in without check-out
     const existing = await attendanceRepository.findByEmployeeAndDate(employeeId, todayDate);
@@ -93,6 +134,17 @@ const attendanceService = {
           clock_in: now.toISOString(),
           clock_out: null,
           status: checkInStatus,
+          latitude: hasValidCoordinates ? parsedLat : null,
+          longitude: hasValidCoordinates ? parsedLon : null,
+          distance_from_office_meters: distanceMeters !== null ? round2(distanceMeters) : null,
+          is_out_of_bounds: isOutOfBounds,
+          location_status: locationStatus,
+          location_verification_status: locationStatus,
+          workplace_latitude: WORKPLACE_LAT,
+          workplace_longitude: WORKPLACE_LON,
+          workplace_radius_meters: ALLOWED_RADIUS_METERS,
+          location_accuracy: accuracy ? parseFloat(accuracy) : null,
+          notes: isOutOfBounds ? 'Employee checked in outside the configured workplace radius.' : existing.notes,
         });
         return updated;
       }
@@ -103,23 +155,7 @@ const attendanceService = {
     const expectedHours = schedule.standard_hours_per_day || 8.0;
     const checkInStatus = determineCheckInStatus(now.toISOString(), schedule.start_time);
 
-    // GPS Bounds Check (Hardcoded Office Location for simplicity)
-    const OFFICE_LAT = 28.6139; // Example: New Delhi
-    const OFFICE_LON = 77.2090;
-    const ALLOWED_RADIUS_METERS = 200;
-
-    let distanceMeters = null;
-    let isOutOfBounds = false;
-
-    if (latitude && longitude) {
-      distanceMeters = haversineDistance(latitude, longitude, OFFICE_LAT, OFFICE_LON);
-      if (distanceMeters > ALLOWED_RADIUS_METERS) {
-        isOutOfBounds = true;
-      } else {
-        isOutOfBounds = false;
-      }
-    }
-
+    // Check-in is ALWAYS allowed; status is set to PRESENT (or LATE), never rejected or marked absent
     const record = await attendanceRepository.createAttendance({
       employee_id: employeeId,
       date: todayDate,
@@ -129,11 +165,17 @@ const attendanceService = {
       expected_hours: expectedHours,
       difference_hours: -expectedHours,
       status: checkInStatus,
-      notes: null,
-      latitude: latitude || null,
-      longitude: longitude || null,
-      distance_from_office_meters: distanceMeters ? round2(distanceMeters) : null,
+      notes: isOutOfBounds ? 'Employee checked in outside the configured workplace radius.' : null,
+      latitude: hasValidCoordinates ? parsedLat : null,
+      longitude: hasValidCoordinates ? parsedLon : null,
+      distance_from_office_meters: distanceMeters !== null ? round2(distanceMeters) : null,
       is_out_of_bounds: isOutOfBounds,
+      location_status: locationStatus,
+      location_verification_status: locationStatus,
+      workplace_latitude: WORKPLACE_LAT,
+      workplace_longitude: WORKPLACE_LON,
+      workplace_radius_meters: ALLOWED_RADIUS_METERS,
+      location_accuracy: accuracy ? parseFloat(accuracy) : null,
     });
 
     return record;
@@ -224,11 +266,11 @@ const attendanceService = {
   async listAttendance(query = {}) {
     const page = parseInt(query.page || '1', 10);
     const limit = parseInt(query.limit || '20', 10);
-    const { employee_id, date, status, search } = query;
+    const { employee_id, date, status, location_status, search } = query;
 
     const [data, total] = await Promise.all([
-      attendanceRepository.findAttendance({ employee_id, date, status, search, page, limit }),
-      attendanceRepository.countAttendance({ employee_id, date, status, search }),
+      attendanceRepository.findAttendance({ employee_id, date, status, location_status, search, page, limit }),
+      attendanceRepository.countAttendance({ employee_id, date, status, location_status, search }),
     ]);
 
     return {
