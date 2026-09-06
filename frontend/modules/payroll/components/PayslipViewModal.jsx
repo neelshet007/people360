@@ -7,7 +7,7 @@ import Alert from '../../../components/feedback/Alert';
 import PayrunStatusBadge from './PayrunStatusBadge';
 import { formatCurrency } from '../../../lib/utils';
 import payrollApi from '../api/payrollApi';
-import { DownloadIcon, PrinterIcon, MessageSquareIcon } from '../../../components/ui/Icons';
+import { PrinterIcon, MessageSquareIcon } from '../../../components/ui/Icons';
 import RaiseConcernModal from '../../concerns/components/RaiseConcernModal';
 
 /**
@@ -73,36 +73,6 @@ export default function PayslipViewModal({ payslipId, isOpen, onClose }) {
           </Button>
           <Button
             variant="secondary"
-            onClick={() => {
-              const token = localStorage.getItem('token');
-              const url = `/api/payroll/payslips/${payslipId}/pdf`;
-              fetch(url, {
-                headers: {
-                  Authorization: token ? `Bearer ${token}` : '',
-                },
-              })
-                .then((res) => {
-                  if (!res.ok) throw new Error('Failed to download PDF');
-                  return res.blob();
-                })
-                .then((blob) => {
-                  const blobUrl = window.URL.createObjectURL(blob);
-                  const a = document.createElement('a');
-                  a.href = blobUrl;
-                  a.download = `Payslip_${payslip?.employee_code || payslipId.slice(0, 8)}.pdf`;
-                  document.body.appendChild(a);
-                  a.click();
-                  a.remove();
-                  window.URL.revokeObjectURL(blobUrl);
-                })
-                .catch((err) => alert(err.message));
-            }}
-            icon={<DownloadIcon size={14} />}
-          >
-            Download PDF
-          </Button>
-          <Button
-            variant="secondary"
             onClick={() => setShowConcernModal(true)}
             icon={<MessageSquareIcon size={14} />}
             style={{ color: 'var(--primary-700, #4338ca)', borderColor: 'var(--primary-200, #c7d2fe)' }}
@@ -114,7 +84,7 @@ export default function PayslipViewModal({ payslipId, isOpen, onClose }) {
             onClick={() => window.print()}
             icon={<PrinterIcon size={14} />}
           >
-            Print Payslip
+            Print PDF
           </Button>
         </div>
       }
