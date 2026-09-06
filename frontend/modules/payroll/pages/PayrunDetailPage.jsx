@@ -68,7 +68,7 @@ export default function PayrunDetailPage() {
     try {
       const res = await payrollApi.computePayrun(id);
       setPayrun(res.data);
-      setActionSuccess('Payroll successfully computed using Phase 6 calculation engine.');
+      setActionSuccess('Payroll successfully computed using statutory Indian calculation engine.');
       fetchDetails();
     } catch (err) {
       setActionError(err.message || 'Failed to compute payrun');
