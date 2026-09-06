@@ -22,7 +22,7 @@ import ScheduleFormPage from '../modules/schedules/pages/ScheduleFormPage';
 
 // P2 — HR Operations Module Pages
 import { AttendanceListPage, MyAttendancePage } from '../modules/attendance';
-import { TimeOffPage } from '../modules/timeoff';
+import { TimeOffPage, CompOffPage } from '../modules/timeoff';
 
 // P3 — Payroll Module Pages
 import {
@@ -31,6 +31,7 @@ import {
   SalaryStructuresPage,
   SalaryRulesPage,
   PayslipsPage,
+  BonusAllocationPage,
 } from '../modules/payroll';
 import DashboardPage from '../modules/dashboard/pages/DashboardPage';
 
@@ -195,6 +196,14 @@ export default function App() {
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="/comp-off"
+              element={
+                <ProtectedRoute>
+                  <CompOffPage />
+                </ProtectedRoute>
+              }
+            />
 
             {/* Payroll — P3 Foundation Views */}
             <Route
@@ -234,6 +243,14 @@ export default function App() {
               element={
                 <ProtectedRoute allowedRoles={['ADMIN', 'HR_PAYROLL_USER', 'HR_PAYROLL_MANAGER']}>
                   <SalaryRulesPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/payroll/bonus"
+              element={
+                <ProtectedRoute allowedRoles={['ADMIN', 'HR_PAYROLL_USER', 'HR_PAYROLL_MANAGER']}>
+                  <BonusAllocationPage />
                 </ProtectedRoute>
               }
             />

@@ -275,6 +275,105 @@ const emailPayrunPayslips = async (req, res, next) => {
   }
 };
 
+// -----------------------------------------------------------------------------
+// BONUS ALLOCATION
+// -----------------------------------------------------------------------------
+const bonusService = require('../services/bonusService');
+
+const createBonusCycle = async (req, res, next) => {
+  try {
+    const payload = {
+      ...req.body,
+      created_by: req.user?.id || req.user?.userId || null,
+    };
+    const result = await bonusService.createBonusCycle(payload);
+    return successResponse(res, result, null, 201);
+  } catch (error) {
+    next(error);
+  }
+};
+
+const listBonusCycles = async (req, res, next) => {
+  try {
+    const cycles = await bonusService.listBonusCycles(req.query);
+    return successResponse(res, cycles);
+  } catch (error) {
+    next(error);
+  }
+};
+
+const getBonusCycleDetail = async (req, res, next) => {
+  try {
+    const detail = await bonusService.getBonusCycleDetail(req.params.id);
+    return successResponse(res, detail);
+  } catch (error) {
+    next(error);
+  }
+};
+
+const updateBonusAllocation = async (req, res, next) => {
+  try {
+    const updated = await bonusService.updateAllocation(req.params.allocId, req.body);
+    return successResponse(res, updated);
+  } catch (error) {
+    next(error);
+  }
+};
+
+const rejectBonusAllocation = async (req, res, next) => {
+  try {
+    const result = await bonusService.rejectAllocation(
+      req.params.allocId,
+      req.user?.id || req.user?.userId || null
+    );
+    return successResponse(res, result);
+  } catch (error) {
+    next(error);
+  }
+};
+
+const approveBonusCycle = async (req, res, next) => {
+  try {
+    const payrun = await bonusService.approveBonusCycle(
+      req.params.id,
+      req.user?.id || req.user?.userId || null
+    );
+    return successResponse(res, payrun);
+  } catch (error) {
+    next(error);
+  }
+};
+
+const disburseBonusCycle = async (req, res, next) => {
+  try {
+    const payrun = await bonusService.disburseBonusCycle(
+      req.params.id,
+      req.user?.id || req.user?.userId || null
+    );
+    return successResponse(res, payrun);
+  } catch (error) {
+    next(error);
+  }
+};
+
+const deleteBonusCycle = async (req, res, next) => {
+  try {
+    const result = await bonusService.deleteBonusCycle(req.params.id);
+    return successResponse(res, result);
+  } catch (error) {
+    next(error);
+  }
+};
+
+const deleteBonusAllocation = async (req, res, next) => {
+  try {
+    const result = await bonusService.deleteAllocation(req.params.id, req.params.allocId);
+    return successResponse(res, result);
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   getPayrollStatus,
   getSalaryStructures,
@@ -300,4 +399,15 @@ module.exports = {
   getPayslipById,
   downloadPayslipPdf,
   emailPayrunPayslips,
+  // Bonus Allocation
+  createBonusCycle,
+  listBonusCycles,
+  getBonusCycleDetail,
+  updateBonusAllocation,
+  rejectBonusAllocation,
+  approveBonusCycle,
+  disburseBonusCycle,
+  deleteBonusCycle,
+  deleteBonusAllocation,
 };
+

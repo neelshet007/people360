@@ -539,7 +539,7 @@ export default function PayrunWizardModal({ isOpen, onClose, onCreated }) {
       {step === 4 && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <div style={{ fontSize: '0.875rem', color: 'var(--neutral-600, #475569)' }}>
-            Review the payrun specifications below before initializing the batch. Once created in <strong>DRAFT</strong> status, you can execute the Phase 6 computation engine.
+            Review the payrun specifications below before initializing the batch. Once created in <strong>DRAFT</strong> status, you can execute the precision payroll calculation engine.
           </div>
 
           <div

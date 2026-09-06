@@ -557,3 +557,27 @@ button, input, select, textarea {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
 }
+
+/* Print Optimization for PDF Generation & Paper Printing */
+@media print {
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+  header, nav, aside, .modal-dialog > div:first-child button, .modal-dialog > div:last-child {
+    display: none !important;
+  }
+  div[role="dialog"] {
+    position: static !important;
+    background: transparent !important;
+    padding: 0 !important;
+  }
+  .modal-dialog {
+    max-width: 100% !important;
+    max-height: none !important;
+    border: none !important;
+    box-shadow: none !important;
+    overflow: visible !important;
+  }
+}
+

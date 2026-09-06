@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import PageContainer from '../../../components/layout/PageContainer';
 import Card from '../../../components/ui/Card';
 import Button from '../../../components/ui/Button';
@@ -19,6 +20,7 @@ import RaiseConcernModal from '../../concerns/components/RaiseConcernModal';
  * Employee self-service: view own attendance history with month/year filter.
  */
 export default function MyAttendancePage() {
+  const navigate = useNavigate();
   const user = getStoredUser();
   const now = new Date();
 
@@ -233,6 +235,15 @@ export default function MyAttendancePage() {
     <PageContainer
       title="My Attendance"
       subtitle={`${user?.name || 'Employee'} — Personal attendance records and session management`}
+      actions={
+        <Button
+          variant="outline"
+          onClick={() => navigate('/comp-off')}
+          style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+        >
+          <ClockIcon size={16} /> Claim Comp Off
+        </Button>
+      }
     >
       {/* ── Today's Status Card ── */}
       <Card

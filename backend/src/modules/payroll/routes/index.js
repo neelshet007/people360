@@ -46,4 +46,26 @@ router.get('/payslips', authenticate, validators.validatePagination, controllers
 router.get('/payslips/:id', authenticate, controllers.getPayslipById);
 router.get('/payslips/:id/pdf', authenticate, controllers.downloadPayslipPdf);
 
+// ---------------------------------------------------------------------------
+// BONUS ALLOCATION ROUTES
+// ---------------------------------------------------------------------------
+// List all bonus cycles (HR/Payroll only)
+router.get('/bonus/cycles', authenticate, authorize('payruns.read'), controllers.listBonusCycles);
+// Create a new bonus cycle
+router.post('/bonus/cycles', authenticate, authorize('payruns.write'), controllers.createBonusCycle);
+// Get full detail (allocations + totals) for one bonus cycle
+router.get('/bonus/cycles/:id', authenticate, authorize('payruns.read'), controllers.getBonusCycleDetail);
+// Approve the whole cycle (triggers compute)
+router.post('/bonus/cycles/:id/approve', authenticate, authorize('payruns.write'), controllers.approveBonusCycle);
+// Disburse (mark paid) a computed bonus cycle
+router.post('/bonus/cycles/:id/disburse', authenticate, authorize('payruns.write'), controllers.disburseBonusCycle);
+// Delete a draft/unapproved bonus cycle
+router.delete('/bonus/cycles/:id', authenticate, authorize('payruns.write'), controllers.deleteBonusCycle);
+// Update individual allocation (amount, remarks)
+router.put('/bonus/cycles/:id/allocations/:allocId', authenticate, authorize('payruns.write'), controllers.updateBonusAllocation);
+// Reject individual allocation
+router.post('/bonus/cycles/:id/allocations/:allocId/reject', authenticate, authorize('payruns.write'), controllers.rejectBonusAllocation);
+// Delete individual allocation from a draft cycle
+router.delete('/bonus/cycles/:id/allocations/:allocId', authenticate, authorize('payruns.write'), controllers.deleteBonusAllocation);
+
 module.exports = router;
